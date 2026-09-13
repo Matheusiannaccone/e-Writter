@@ -4,6 +4,9 @@ import { supabaseAuthAdapter } from "./adapters/supabase/authAdapter.js";
 import { mockProfileAdapter } from "./adapters/mock/profileAdapter.js";
 import { supabaseProfileAdapter } from "./adapters/supabase/profileAdapter.js";
 
+import { mockGenreAdapter } from "./adapters/mock/genreAdapter.js";
+import { supabaseGenreAdapter } from "./adapters/supabase/genreAdapter.js";
+
 export function getDataSource() {
   const hostname = window.location.hostname;
 
@@ -41,4 +44,15 @@ export function getProfileAdapter() {
   }
 
   return supabaseProfileAdapter;
+}
+
+// Retorna o adapter de gênero conforme a fonte de dados atual.
+export function getGenreAdapter() {
+  const dataSource = getDataSource();
+
+  if (dataSource === "mock") {
+    return mockGenreAdapter;
+  }
+
+  return supabaseGenreAdapter;
 }
