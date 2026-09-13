@@ -32,12 +32,53 @@ function createError(code, message) {
   };
 }
 
+// Valida se o valor possui o formato padrão de UUID.
+function isValidUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+// Identifica erros relacionados à conexão com o servidor.
+function isNetworkError(error) {
+  if (!error) {
+    return false;
+  }
+
+  const message =
+    error.message?.toLowerCase() ?? "";
+
+  return (
+    message.includes("failed to fetch") ||
+    message.includes("network error") ||
+    message.includes("network request failed")
+  );
+}
+
+// Converte erros inesperados do Supabase para o padrão dos services.
+function normalizeSupabaseError(
+  error,
+  defaultMessage
+) {
+  if (isNetworkError(error)) {
+    return createError(
+      "NETWORK_ERROR",
+      "Não foi possível conectar ao servidor."
+    );
+  }
+
+  return createError(
+    "UNKNOWN",
+    defaultMessage
+  );
+}
+
 export const supabaseProfileAdapter = {
   // Busca um perfil pelo ID do usuário.
   async getProfile(userId) {
     if (
       typeof userId !== "string" ||
-      userId.trim() === ""
+      !isValidUuid(userId)
     ) {
       return createError(
         "VALIDATION_ERROR",
@@ -52,8 +93,8 @@ export const supabaseProfileAdapter = {
       .maybeSingle();
 
     if (error) {
-      return createError(
-        "UNKNOWN",
+      return normalizeSupabaseError(
+        error,
         "Não foi possível buscar o perfil."
       );
     }
@@ -78,6 +119,13 @@ export const supabaseProfileAdapter = {
       error: authError
     } = await supabase.auth.getUser();
 
+    if (isNetworkError(authError)) {
+      return createError(
+        "NETWORK_ERROR",
+        "Não foi possível conectar ao servidor."
+      );
+    }
+
     if (authError || !user) {
       return createError(
         "UNAUTHENTICATED",
@@ -92,8 +140,8 @@ export const supabaseProfileAdapter = {
       .maybeSingle();
 
     if (error) {
-      return createError(
-        "UNKNOWN",
+      return normalizeSupabaseError(
+        error,
         "Não foi possível buscar o perfil."
       );
     }
@@ -141,8 +189,8 @@ export const supabaseProfileAdapter = {
       .maybeSingle();
 
     if (error) {
-      return createError(
-        "UNKNOWN",
+      return normalizeSupabaseError(
+        error,
         "Não foi possível buscar o perfil."
       );
     }
@@ -173,6 +221,13 @@ async updateMyProfile(data) {
     data: { user },
     error: authError
   } = await supabase.auth.getUser();
+
+  if (isNetworkError(authError)) {
+    return createError(
+      "NETWORK_ERROR",
+      "Não foi possível conectar ao servidor."
+    );
+  }
 
   if (authError || !user) {
     return createError(
@@ -279,7 +334,7 @@ async updateMyProfile(data) {
     .maybeSingle();
 
   if (error) {
-    // Código PostgreSQL de violação de UNIQUE.
+    // Violação da restrição UNIQUE do username.
     if (error.code === "23505") {
       return createError(
         "CONFLICT",
@@ -287,8 +342,8 @@ async updateMyProfile(data) {
       );
     }
 
-    return createError(
-      "UNKNOWN",
+    return normalizeSupabaseError(
+      error,
       "Não foi possível atualizar o perfil."
     );
   }
