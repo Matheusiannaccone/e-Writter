@@ -3,19 +3,7 @@
 // As funções lançam erros indicando que não foram implementadas.
 
 import { mockAuthAdapter } from "./authAdapter.js";
-
-// Perfis disponíveis no ambiente Mock.
-const mockProfiles = [
-  {
-    id: "mock-user-1",
-    username: "teste1",
-    displayName: "Usuário Teste 1",
-    bio: null,
-    avatarPath: null,
-    createdAt: "2026-08-31T12:00:00.000Z",
-    updatedAt: "2026-08-31T12:00:00.000Z"
-  }
-];
+import { mockProfiles } from "./mockData.js";
 
 // Cria um erro no formato padrão dos services.
 function createError(code, message) {
