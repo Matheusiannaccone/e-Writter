@@ -1,6 +1,9 @@
 import { mockAuthAdapter } from "./adapters/mock/authAdapter.js";
 import { supabaseAuthAdapter } from "./adapters/supabase/authAdapter.js";
 
+import { mockProfileAdapter } from "./adapters/mock/profileAdapter.js";
+import { supabaseProfileAdapter } from "./adapters/supabase/profileAdapter.js";
+
 export function getDataSource() {
   const hostname = window.location.hostname;
 
@@ -18,6 +21,7 @@ export function getDataSource() {
   return "supabase";
 }
 
+// Retorna o adapter de autenticação conforme a fonte de dados atual.
 export function getAuthAdapter() {
   const dataSource = getDataSource();
 
@@ -26,4 +30,15 @@ export function getAuthAdapter() {
   }
 
   return supabaseAuthAdapter;
+}
+
+// Retorna o adapter de perfil conforme a fonte de dados atual.
+export function getProfileAdapter() {
+  const dataSource = getDataSource();
+
+  if (dataSource === "mock") {
+    return mockProfileAdapter;
+  }
+
+  return supabaseProfileAdapter;
 }
