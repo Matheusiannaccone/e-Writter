@@ -168,3 +168,6 @@ export const mockChapters = [
     updatedAt: "2026-09-03T12:00:00.000Z"
   }
 ];
+
+// Favoritos disponíveis no ambiente Mock.
+export const mockFavorites = [];
