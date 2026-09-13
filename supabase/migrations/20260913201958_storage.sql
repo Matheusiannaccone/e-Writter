@@ -162,3 +162,32 @@ using (
           and b.author_id = auth.uid()
     )
 );
+
+-- =========================================================
+-- SELECT NECESSÁRIO PARA OPERAÇÕES COM UPSERT
+-- =========================================================
+
+create policy "avatars_select_own"
+on storage.objects
+for select
+to authenticated
+using (
+    bucket_id = 'avatars'
+    and name = auth.uid()::text || '/avatar.webp'
+);
+
+
+create policy "covers_select_by_book_author"
+on storage.objects
+for select
+to authenticated
+using (
+    bucket_id = 'covers'
+    and name = (storage.foldername(name))[1] || '/cover.webp'
+    and exists (
+        select 1
+        from public.books b
+        where b.id::text = (storage.foldername(name))[1]
+          and b.author_id = auth.uid()
+    )
+);
