@@ -2,7 +2,7 @@ import { mockAuthAdapter } from "./adapters/mock/authAdapter.js";
 import { supabaseAuthAdapter } from "./adapters/supabase/authAdapter.js";
 
 import { mockProfileAdapter } from "./adapters/mock/profileAdapter.js";
-//import { supabaseProfileAdapter } from "./adapters/supabase/profileAdapter.js";
+import { supabaseProfileAdapter } from "./adapters/supabase/profileAdapter.js";
 
 export function getDataSource() {
   const hostname = window.location.hostname;
