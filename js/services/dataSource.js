@@ -10,6 +10,9 @@ import { supabaseGenreAdapter } from "./adapters/supabase/genreAdapter.js";
 import { mockBookAdapter } from "./adapters/mock/bookAdapter.js";
 import { supabaseBookAdapter } from "./adapters/supabase/bookAdapter.js";
 
+import { mockChapterAdapter } from "./adapters/mock/chapterAdapter.js";
+import { supabaseChapterAdapter } from "./adapters/supabase/chapterAdapter.js";
+
 export function getDataSource() {
   const hostname = window.location.hostname;
 
@@ -69,4 +72,15 @@ export function getBookAdapter() {
   }
 
   return supabaseBookAdapter;
+}
+
+// Retorna o adapter de capítulos conforme a fonte de dados atual.
+export function getChapterAdapter() {
+  const dataSource = getDataSource();
+
+  if (dataSource === "mock") {
+    return mockChapterAdapter;
+  }
+
+  return supabaseChapterAdapter;
 }
