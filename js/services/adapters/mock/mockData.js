@@ -85,3 +85,61 @@ export const mockGenres = [
     slug: "fanfic"
   }
 ];
+
+// Livros disponíveis no ambiente Mock.
+export const mockBooks = [
+  {
+    id: "11111111-1111-1111-1111-111111111111",
+    authorId: "mock-user-1",
+    title: "Livro Publicado de Teste",
+    description: "Livro utilizado para testes do ambiente Mock.",
+    coverPath: null,
+    status: "published",
+    publicationStatus: "ongoing",
+    language: "pt-BR",
+    publishedAt: "2026-09-01T12:00:00.000Z",
+    createdAt: "2026-08-20T12:00:00.000Z",
+    updatedAt: "2026-09-01T12:00:00.000Z"
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222222",
+    authorId: "mock-user-1",
+    title: "Livro em Rascunho",
+    description: "Rascunho utilizado nos testes.",
+    coverPath: null,
+    status: "draft",
+    publicationStatus: "ongoing",
+    language: "pt-BR",
+    publishedAt: null,
+    createdAt: "2026-09-02T12:00:00.000Z",
+    updatedAt: "2026-09-02T12:00:00.000Z"
+  }
+];
+
+// Relações entre livros e gêneros no ambiente Mock.
+export const mockBookGenres = [
+  {
+    bookId: "11111111-1111-1111-1111-111111111111",
+    genreId: 5
+  },
+  {
+    bookId: "11111111-1111-1111-1111-111111111111",
+    genreId: 2
+  },
+  {
+    bookId: "22222222-2222-2222-2222-222222222222",
+    genreId: 8
+  }
+];
+
+// Capítulos mínimos usados pelos testes de publicação.
+export const mockChapters = [
+  {
+    id: "33333333-3333-3333-3333-333333333333",
+    bookId: "11111111-1111-1111-1111-111111111111",
+    title: "Capítulo 1",
+    content: "Conteúdo de teste.",
+    position: 1,
+    status: "published"
+  }
+];

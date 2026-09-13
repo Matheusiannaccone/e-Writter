@@ -7,6 +7,9 @@ import { supabaseProfileAdapter } from "./adapters/supabase/profileAdapter.js";
 import { mockGenreAdapter } from "./adapters/mock/genreAdapter.js";
 import { supabaseGenreAdapter } from "./adapters/supabase/genreAdapter.js";
 
+import { mockBookAdapter } from "./adapters/mock/bookAdapter.js";
+import { supabaseBookAdapter } from "./adapters/supabase/bookAdapter.js";
+
 export function getDataSource() {
   const hostname = window.location.hostname;
 
@@ -55,4 +58,15 @@ export function getGenreAdapter() {
   }
 
   return supabaseGenreAdapter;
+}
+
+// Retorna o adapter de livros conforme a fonte de dados atual.
+export function getBookAdapter() {
+  const dataSource = getDataSource();
+
+  if (dataSource === "mock") {
+    return mockBookAdapter;
+  }
+
+  return supabaseBookAdapter;
 }
