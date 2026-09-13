@@ -16,6 +16,9 @@ import { supabaseChapterAdapter } from "./adapters/supabase/chapterAdapter.js";
 import { mockFavoriteAdapter } from "./adapters/mock/favoriteAdapter.js";
 import { supabaseFavoriteAdapter } from "./adapters/supabase/favoriteAdapter.js";
 
+import { mockImageAdapter } from "./adapters/mock/imageAdapter.js";
+import { supabaseImageAdapter } from "./adapters/supabase/imageAdapter.js";
+
 export function getDataSource() {
   const hostname = window.location.hostname;
 
@@ -33,10 +36,10 @@ export function getDataSource() {
   return "supabase";
 }
 
+const dataSource = getDataSource();
+
 // Retorna o adapter de autenticação conforme a fonte de dados atual.
 export function getAuthAdapter() {
-  const dataSource = getDataSource();
-
   if (dataSource === "mock") {
     return mockAuthAdapter;
   }
@@ -46,8 +49,6 @@ export function getAuthAdapter() {
 
 // Retorna o adapter de perfil conforme a fonte de dados atual.
 export function getProfileAdapter() {
-  const dataSource = getDataSource();
-
   if (dataSource === "mock") {
     return mockProfileAdapter;
   }
@@ -57,8 +58,6 @@ export function getProfileAdapter() {
 
 // Retorna o adapter de gênero conforme a fonte de dados atual.
 export function getGenreAdapter() {
-  const dataSource = getDataSource();
-
   if (dataSource === "mock") {
     return mockGenreAdapter;
   }
@@ -68,8 +67,6 @@ export function getGenreAdapter() {
 
 // Retorna o adapter de livros conforme a fonte de dados atual.
 export function getBookAdapter() {
-  const dataSource = getDataSource();
-
   if (dataSource === "mock") {
     return mockBookAdapter;
   }
@@ -79,8 +76,6 @@ export function getBookAdapter() {
 
 // Retorna o adapter de capítulos conforme a fonte de dados atual.
 export function getChapterAdapter() {
-  const dataSource = getDataSource();
-
   if (dataSource === "mock") {
     return mockChapterAdapter;
   }
@@ -90,11 +85,18 @@ export function getChapterAdapter() {
 
 // Retorna o adapter de favoritos conforme a fonte de dados atual.
 export function getFavoriteAdapter() {
-  const dataSource = getDataSource();
-
   if (dataSource === "mock") {
     return mockFavoriteAdapter;
   }
 
   return supabaseFavoriteAdapter;
+}
+
+// Retorna o adapter de imagens conforme a fonte de dados atual.
+export function getImageAdapter() {
+  if (dataSource === "mock") {
+    return mockImageAdapter;
+  }
+
+  return supabaseImageAdapter;
 }
