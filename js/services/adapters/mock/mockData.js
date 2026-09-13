@@ -138,8 +138,33 @@ export const mockChapters = [
     id: "33333333-3333-3333-3333-333333333333",
     bookId: "11111111-1111-1111-1111-111111111111",
     title: "Capítulo 1",
-    content: "Conteúdo de teste.",
+    content: "A".repeat(500),
+    status: "published",
     position: 1,
-    status: "published"
+    publishedAt: "2026-09-01T12:00:00.000Z",
+    createdAt: "2026-08-20T12:00:00.000Z",
+    updatedAt: "2026-09-01T12:00:00.000Z"
+  },
+  {
+    id: "44444444-4444-4444-4444-444444444444",
+    bookId: "11111111-1111-1111-1111-111111111111",
+    title: "Capítulo 2",
+    content: "B".repeat(500),
+    status: "draft",
+    position: 2,
+    publishedAt: null,
+    createdAt: "2026-09-02T12:00:00.000Z",
+    updatedAt: "2026-09-02T12:00:00.000Z"
+  },
+  {
+    id: "55555555-5555-5555-5555-555555555555",
+    bookId: "22222222-2222-2222-2222-222222222222",
+    title: "Rascunho 1",
+    content: null,
+    status: "draft",
+    position: 1,
+    publishedAt: null,
+    createdAt: "2026-09-03T12:00:00.000Z",
+    updatedAt: "2026-09-03T12:00:00.000Z"
   }
 ];
