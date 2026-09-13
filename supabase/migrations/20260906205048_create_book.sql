@@ -114,6 +114,6 @@ for each row
 execute function public.handle_updated_user();
 
 create trigger on_book_publication_status_changed
-before insert or update of status on public.books
+before insert or update on public.books
 for each row
 execute function public.handle_book_publication();
