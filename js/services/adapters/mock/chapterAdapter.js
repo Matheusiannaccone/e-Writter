@@ -344,120 +344,157 @@ export const mockChapterAdapter = {
   // Atualiza título e conteúdo de um capítulo.
   async updateChapter(id, data) {
     if (!isValidUuid(id)) {
-      return createError(
+        return createError(
         "VALIDATION_ERROR",
         "ID de capítulo inválido."
-      );
+        );
     }
 
     const user =
-      await getAuthenticatedUser();
+        await getAuthenticatedUser();
 
     if (!user) {
-      return createError(
+        return createError(
         "UNAUTHENTICATED",
         "Nenhum usuário autenticado."
-      );
+        );
     }
 
     const chapter =
-      mockChapters.find(
+        mockChapters.find(
         (item) => item.id === id
-      );
+        );
 
     if (!chapter) {
-      return createError(
+        return createError(
         "NOT_FOUND",
         "Capítulo não encontrado."
-      );
+        );
     }
 
     const book =
-      getBookById(
+        getBookById(
         chapter.bookId
-      );
+        );
 
     if (!isBookAuthor(book, user)) {
-      return createError(
+        return createError(
         "NOT_FOUND",
         "Capítulo não encontrado."
-      );
+        );
     }
 
     if (
-      !data ||
-      typeof data !== "object" ||
-      Object.keys(data).length === 0
+        !data ||
+        typeof data !== "object" ||
+        Object.keys(data).length === 0
     ) {
-      return createError(
+        return createError(
         "VALIDATION_ERROR",
         "Nenhum dado para atualizar."
-      );
+        );
     }
 
     const allowedFields = [
-      "title",
-      "content"
+        "title",
+        "content"
     ];
 
     const keys =
-      Object.keys(data);
+        Object.keys(data);
 
     if (
-      keys.some(
+        keys.some(
         (key) =>
-          !allowedFields.includes(key)
-      )
+            !allowedFields.includes(key)
+        )
     ) {
-      return createError(
+        return createError(
         "VALIDATION_ERROR",
         "Campo não permitido na atualização."
-      );
+        );
     }
 
+    let newTitle =
+        chapter.title;
+
+    let newContent =
+        chapter.content;
+
     if ("title" in data) {
-      if (
+        if (
         data.title !== null &&
         typeof data.title !== "string"
-      ) {
+        ) {
         return createError(
-          "VALIDATION_ERROR",
-          "Título inválido."
+            "VALIDATION_ERROR",
+            "Título inválido."
         );
-      }
+        }
 
-      chapter.title =
+        newTitle =
         data.title == null ||
         data.title.trim() === ""
-          ? null
-          : data.title.trim();
+            ? null
+            : data.title.trim();
     }
 
     if ("content" in data) {
-      if (
+        if (
         data.content !== null &&
         typeof data.content !== "string"
-      ) {
+        ) {
         return createError(
-          "VALIDATION_ERROR",
-          "Conteúdo inválido."
+            "VALIDATION_ERROR",
+            "Conteúdo inválido."
         );
-      }
+        }
 
-      chapter.content =
+        newContent =
         data.content == null ||
         data.content === ""
-          ? null
-          : data.content;
+            ? null
+            : data.content;
     }
 
+    // Capítulos publicados precisam continuar válidos após edição.
+    if (chapter.status === "published") {
+        if (
+        newTitle === null ||
+        newTitle.trim() === ""
+        ) {
+        return createError(
+            "VALIDATION_ERROR",
+            "O capítulo precisa possuir um título para ser publicado."
+        );
+        }
+
+        if (
+        newContent === null ||
+        newContent.length < 500 ||
+        newContent.length > 15000
+        ) {
+        return createError(
+            "VALIDATION_ERROR",
+            "O conteúdo do capítulo deve possuir entre 500 e 15000 caracteres."
+        );
+        }
+    }
+
+    // Aplica as alterações somente após todas as validações.
+    chapter.title =
+        newTitle;
+
+    chapter.content =
+        newContent;
+
     chapter.updatedAt =
-      new Date().toISOString();
+        new Date().toISOString();
 
     return {
-      data:
+        data:
         normalizeChapter(chapter),
-      error: null
+        error: null
     };
   },
 
