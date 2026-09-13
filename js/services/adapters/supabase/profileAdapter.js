@@ -160,8 +160,149 @@ export const supabaseProfileAdapter = {
     };
   },
 
-  // A atualização será implementada na próxima etapa.
-  async updateMyProfile(data) {
-    throw new Error("Not implemented");
+// Atualiza o perfil do usuário autenticado.
+async updateMyProfile(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return createError(
+      "VALIDATION_ERROR",
+      "Dados de perfil inválidos."
+    );
   }
+
+  const {
+    data: { user },
+    error: authError
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return createError(
+      "UNAUTHENTICATED",
+      "Nenhum usuário autenticado."
+    );
+  }
+
+  const update = {};
+
+  // Normaliza e valida o username.
+  if (data.username !== undefined) {
+    if (typeof data.username !== "string") {
+      return createError(
+        "VALIDATION_ERROR",
+        "Nome de usuário inválido."
+      );
+    }
+
+    const username = data.username
+      .trim()
+      .toLowerCase();
+
+    if (
+      username.length < 3 ||
+      username.length > 30 ||
+      !/^[a-z0-9._]+$/.test(username)
+    ) {
+      return createError(
+        "VALIDATION_ERROR",
+        "Nome de usuário inválido."
+      );
+    }
+
+    update.username = username;
+  }
+
+  // Normaliza e valida o nome de exibição.
+  if (data.displayName !== undefined) {
+    if (typeof data.displayName !== "string") {
+      return createError(
+        "VALIDATION_ERROR",
+        "Nome de exibição inválido."
+      );
+    }
+
+    const displayName = data.displayName.trim();
+
+    if (
+      displayName.length < 1 ||
+      displayName.length > 60
+    ) {
+      return createError(
+        "VALIDATION_ERROR",
+        "Nome de exibição inválido."
+      );
+    }
+
+    update.display_name = displayName;
+  }
+
+  // Valida a bio e converte texto vazio para null.
+  if (data.bio !== undefined) {
+    if (
+      data.bio !== null &&
+      typeof data.bio !== "string"
+    ) {
+      return createError(
+        "VALIDATION_ERROR",
+        "Biografia inválida."
+      );
+    }
+
+    if (
+      typeof data.bio === "string" &&
+      data.bio.length > 500
+    ) {
+      return createError(
+        "VALIDATION_ERROR",
+        "A biografia deve conter no máximo 500 caracteres."
+      );
+    }
+
+    update.bio =
+      data.bio === null ||
+      data.bio.trim() === ""
+        ? null
+        : data.bio;
+  }
+
+  // Impede atualização sem campos válidos.
+  if (Object.keys(update).length === 0) {
+    return createError(
+      "VALIDATION_ERROR",
+      "Nenhum campo válido foi informado para atualização."
+    );
+  }
+
+  const { data: updatedProfile, error } = await supabase
+    .from("profiles")
+    .update(update)
+    .eq("id", user.id)
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    // Código PostgreSQL de violação de UNIQUE.
+    if (error.code === "23505") {
+      return createError(
+        "CONFLICT",
+        "Este nome de usuário já está em uso."
+      );
+    }
+
+    return createError(
+      "UNKNOWN",
+      "Não foi possível atualizar o perfil."
+    );
+  }
+
+  if (!updatedProfile) {
+    return createError(
+      "NOT_FOUND",
+      "Perfil não encontrado."
+    );
+  }
+
+  return {
+    data: normalizeProfile(updatedProfile),
+    error: null
+  };
+}
 };
