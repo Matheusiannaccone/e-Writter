@@ -13,6 +13,9 @@ import { supabaseBookAdapter } from "./adapters/supabase/bookAdapter.js";
 import { mockChapterAdapter } from "./adapters/mock/chapterAdapter.js";
 import { supabaseChapterAdapter } from "./adapters/supabase/chapterAdapter.js";
 
+import { mockFavoriteAdapter } from "./adapters/mock/favoriteAdapter.js";
+import { supabaseFavoriteAdapter } from "./adapters/supabase/favoriteAdapter.js";
+
 export function getDataSource() {
   const hostname = window.location.hostname;
 
@@ -83,4 +86,15 @@ export function getChapterAdapter() {
   }
 
   return supabaseChapterAdapter;
+}
+
+// Retorna o adapter de favoritos conforme a fonte de dados atual.
+export function getFavoriteAdapter() {
+  const dataSource = getDataSource();
+
+  if (dataSource === "mock") {
+    return mockFavoriteAdapter;
+  }
+
+  return supabaseFavoriteAdapter;
 }
