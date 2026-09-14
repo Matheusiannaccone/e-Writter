@@ -1,15 +1,11 @@
+// services/adapters/mock/authAdapter.js
+// Este arquivo contém funções de mock para simular operações de autenticação.
+// As funções lançam erros indicando que não foram implementadas.
+
+import { mockUsers, mockProfiles } from "./mockData.js";
+
 let currentUser = null;
 let currentSession = null;
-
-const mockUsers = [
-    {
-        id: "mock-user-1",
-        email: "teste1@gmail.com",
-        password: "090909",
-        username: "teste1",
-        displayName: "Usuário Teste 1",
-    }
-]
 
 const authListeners = [];
 
@@ -107,25 +103,25 @@ export const mockAuthAdapter = {
 
     if (emailExists) {
         return {
-            data: null,
-            error: {
-                code: "CONFLICT",
-                message: "O e-mail já está em uso."
-            }
+        data: null,
+        error: {
+            code: "CONFLICT",
+            message: "O e-mail já está em uso."
+        }
         };
     }
 
-    const usernameExists = mockUsers.some(
-        (user) => user.username === username
+    const usernameExists = mockProfiles.some(
+        (profile) => profile.username === username
     );
 
     if (usernameExists) {
         return {
-            data: null,
-            error: {
-                code: "CONFLICT",
-                message: "O nome de usuário já está em uso."
-            }
+        data: null,
+        error: {
+            code: "CONFLICT",
+            message: "O nome de usuário já está em uso."
+        }
         };
     }
 
@@ -138,6 +134,19 @@ export const mockAuthAdapter = {
     };
 
     mockUsers.push(newUser);
+
+    // Simula o trigger que cria o profile após o cadastro.
+    const now = new Date().toISOString();
+
+    mockProfiles.push({
+        id: newUser.id,
+        username: newUser.username,
+        displayName: newUser.displayName,
+        bio: null,
+        avatarPath: null,
+        createdAt: now,
+        updatedAt: now
+    });
 
     currentUser = {
         id: newUser.id,
