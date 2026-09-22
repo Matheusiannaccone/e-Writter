@@ -1,0 +1,27 @@
+#containerInput{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    border: solid 1px;
+    height: clamp(30px, 350px, 500px);
+    width: clamp(20%, 55%, 80%);
+}
+
+#email, #password{
+    width: clamp(10%, 50%, 50%);
+    height: clamp(5%, 6%, 50%);
+}
+
+#Btn-submit{
+    height: 10%;
+    width: 15%;
+}
+
+main{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
