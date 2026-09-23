@@ -1,0 +1,836 @@
+/* ==========================================================
+   DESIGN TOKENS  (idênticos ao CSS de referência)
+   ========================================================== */
+   :root {
+    --color-bg: #f9f9fa;
+    --color-surface: #f9f9fa;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f3f3f4;
+    --color-surface-container: #eeeeef;
+    --color-surface-container-high: #e8e8e9;
+    --color-surface-container-highest: #e2e2e3;
+    --color-surface-variant: #e2e2e3;
+    --color-surface-dim: #dadadb;
+    --color-surface-bright: #f9f9fa;
+  
+    --color-text: #1a1c1d;
+    --color-text-muted: #47464b;
+    --color-outline: #77767b;
+    --color-outline-variant: #c8c5cb;
+  
+    --color-primary: #000000;
+    --color-on-primary: #ffffff;
+    --color-primary-container: #1b1b1e;
+    --color-on-primary-container: #858387;
+  
+    --color-secondary: #5e5e67;
+    --color-on-secondary: #ffffff;
+    --color-danger: #ba1a1a;
+    --color-on-danger: #ffffff;
+    --color-danger-container: #ffdad6;
+    --color-on-danger-container: #93000a;
+  
+    --color-border: #c8c5cb;
+  
+    --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
+    --font-reading: "Plus Jakarta Sans", system-ui, sans-serif;
+  
+    --space-xxs: 0.25rem;
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+  
+    --gutter-mobile: 1rem;
+    --gutter-tablet: 1.5rem;
+    --gutter-desktop: 2rem;
+  
+    --max-form-width: 28rem;
+    --max-content-width: 72rem;
+  
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-full: 9999px;
+  
+    --touch-target-min: 3rem;
+  }
+  
+  /* ==========================================================
+     BASE
+     ========================================================== */
+  html,
+  body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    min-height: max(884px, 100dvh);
+    overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 24px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  h1,
+  h2,
+  p {
+    margin: 0;
+  }
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+  
+  /* ==========================================================
+     TIPOGRAFIA
+     ========================================================== */
+  .text-headline-md {
+    font-size: 20px;
+    line-height: 28px;
+    letter-spacing: -0.015em;
+    font-weight: 600;
+  }
+  
+  .text-headline-lg-mobile {
+    font-size: 22px;
+    line-height: 30px;
+    letter-spacing: -0.015em;
+    font-weight: 600;
+  }
+  
+  .text-subheading {
+    font-size: 14px;
+    line-height: 22px;
+    font-weight: 400;
+  }
+  
+  .text-body-md {
+    font-size: 15px;
+    line-height: 24px;
+    font-weight: 400;
+  }
+  
+  .text-body-sm {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+  
+  .text-label-md {
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: -0.005em;
+    font-weight: 500;
+  }
+  
+  .text-label-sm {
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 500;
+  }
+  
+  .text-caption {
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.01em;
+    font-weight: 400;
+  }
+  
+  .text-interactive-cta {
+    font-size: 15px;
+    line-height: 20px;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+  
+  /* ==========================================================
+     HEADER / NAV
+     ========================================================== */
+  .app-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 50;
+    padding-top: env(safe-area-inset-top, 0px);
+    background-color: rgba(249, 249, 250, 0.8);
+    backdrop-filter: blur(24px);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.03);
+  }
+  
+  .nav-bar {
+    height: 3.5rem;
+    padding: 0 var(--gutter-mobile);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .icon-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-left: -0.5rem;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text);
+    transition: background-color 150ms ease, transform 150ms ease;
+  }
+  
+  .icon-btn:hover {
+    background-color: var(--color-surface-container);
+  }
+  
+  .icon-btn:active {
+    transform: scale(0.95);
+  }
+  
+  .nav-bar__title {
+    max-width: 200px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.015em;
+  }
+  
+  .avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-full);
+    background-color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-on-primary);
+  }
+  
+  /* ==========================================================
+     LAYOUT
+     ========================================================== */
+  .app-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding-top: 5rem; /* compensa header fixo */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background-color: var(--color-surface);
+  }
+  
+  .form-shell {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: var(--space-sm) var(--gutter-mobile);
+    max-width: var(--max-form-width);
+    margin: 0 auto;
+  }
+  
+  @media (min-width: 768px) {
+    .form-shell {
+      padding-left: var(--gutter-tablet);
+      padding-right: var(--gutter-tablet);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .form-shell {
+      padding-left: var(--gutter-desktop);
+      padding-right: var(--gutter-desktop);
+    }
+  }
+  
+  .page-heading {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    padding: 0 var(--space-xs);
+    padding-bottom: var(--space-lg);
+  }
+  
+  .page-heading__title {
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+  }
+  
+  .page-heading__subtitle {
+    color: var(--color-text-muted);
+    margin-top: 0.375rem;
+    line-height: 1.6;
+  }
+  
+  /* ==========================================================
+     FORMULÁRIO
+     ========================================================== */
+  .login-form,
+  .signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  
+  .field {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .field__label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.375rem;
+    font-weight: 500;
+  }
+  
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface-container-lowest);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .input-wrap:focus-within {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+  
+  .input {
+    width: 100%;
+    height: var(--touch-target-min);
+    padding: 0 1rem;
+    border-radius: var(--radius-lg);
+    background-color: transparent;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    border: none;
+    outline: none;
+    transition: all 150ms ease;
+  }
+  
+  .input::placeholder {
+    color: var(--color-outline);
+  }
+  
+  .input--password {
+    padding-right: 3rem;
+  }
+  
+  .input-wrap__icon {
+    position: absolute;
+    right: 0.875rem;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    color: var(--color-outline);
+  }
+  
+  .input-toggle-btn {
+    position: absolute;
+    right: 0.25rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    color: var(--color-secondary);
+    transition: color 150ms ease;
+  }
+  
+  .input-toggle-btn:hover {
+    color: var(--color-text);
+  }
+  
+  .field-error {
+    color: var(--color-danger);
+    display: none;
+    transition: opacity 150ms ease;
+  }
+  
+  .field-error.is-visible {
+    display: inline;
+  }
+  
+  .field.has-error .input-wrap {
+    outline: 2px solid var(--color-danger);
+    outline-offset: 1px;
+  }
+  
+  .utility-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.125rem;
+    padding-bottom: 0.25rem;
+  }
+  
+  /* ---------- Checkbox ---------- */
+  .checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    cursor: pointer;
+    padding: 0.25rem 0;
+    user-select: none;
+  }
+  
+  .checkbox-field__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  
+  .checkbox-field__box {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface-container-high);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 150ms ease;
+  }
+  
+  .checkbox-field__input:checked + .checkbox-field__box {
+    background-color: var(--color-primary);
+  }
+  
+  .checkbox-field__box .material-symbols-outlined {
+    font-size: 14px;
+    color: var(--color-on-primary);
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+  
+  .checkbox-field__input:checked + .checkbox-field__box .material-symbols-outlined {
+    opacity: 1;
+  }
+  
+  .checkbox-field__input:focus-visible + .checkbox-field__box {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  
+  .checkbox-field__label {
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+  
+  .link-muted {
+    color: var(--color-text-muted);
+    padding: 0.25rem 0;
+    transition: color 150ms ease;
+  }
+  
+  .link-muted:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+  
+  /* ---------- Botões ---------- */
+  .btn-primary {
+    width: 100%;
+    height: 50px;
+    border-radius: var(--radius-lg);
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: transform 150ms ease;
+  }
+  
+  .btn-primary:active {
+    transform: scale(0.985);
+  }
+  
+  .btn-primary:disabled,
+  .btn-primary[aria-busy="true"] {
+    opacity: 0.85;
+    cursor: progress;
+  }
+  
+  .btn-secondary {
+    width: 100%;
+    height: var(--touch-target-min);
+    padding: 0 1rem;
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface-container-lowest);
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: background-color 150ms ease, transform 150ms ease;
+  }
+  
+  .btn-secondary:hover {
+    background-color: var(--color-surface-container-low);
+  }
+  
+  .btn-secondary:active {
+    transform: scale(0.99);
+  }
+  
+  .btn-secondary__icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+  }
+  
+  .spinner {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-on-primary);
+    border-top-color: transparent;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  
+  .spinner.is-visible {
+    display: block;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* ---------- Divisor / social / rodapé ---------- */
+  .divider {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: var(--space-lg) 0;
+  }
+  
+  .divider__line {
+    width: 100%;
+    height: 1px;
+    background-color: var(--color-surface-container-highest);
+  }
+  
+  .divider__label {
+    position: absolute;
+    padding: 0 0.75rem;
+    background-color: var(--color-surface);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-outline);
+    user-select: none;
+  }
+  
+  .social-login {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .signup-footer {
+    margin-top: var(--space-xl);
+    text-align: center;
+    padding-bottom: var(--space-md);
+    color: var(--color-text-muted);
+  }
+  
+  .signup-footer__link {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+  
+  .signup-footer__link:hover {
+    text-decoration: underline;
+  }
+  
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.625rem 1rem;
+    border-radius: var(--radius-full);
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 50;
+  }
+  
+  .toast.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  
+  /* ==========================================================
+     ÍCONES (tamanhos dentro de cada componente)
+     ========================================================== */
+  .icon-btn .material-symbols-outlined { font-size: 22px; }
+  .avatar .material-symbols-outlined { font-size: 18px; }
+  .input-wrap__icon .material-symbols-outlined,
+  .input-toggle-btn .material-symbols-outlined { font-size: 20px; }
+  .btn-primary .material-symbols-outlined { font-size: 18px; }
+  
+  /* ==========================================================
+     ESPECÍFICO DA TELA DE CADASTRO
+     (usa apenas os tokens definidos em :root)
+     ========================================================== */
+  
+  /* Barra de status */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 1.5rem;
+    padding: 0 var(--gutter-mobile);
+    user-select: none;
+  }
+  
+  .status-bar__time {
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+  
+  .status-bar__icons {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  
+  .status-bar__icons .material-symbols-outlined { font-size: 15px; }
+  .status-bar__icons .material-symbols-outlined:last-child { font-size: 17px; }
+  
+  /* Marca */
+  .brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: var(--space-sm);
+  }
+  
+  .brand__logo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: var(--space-sm);
+    border-radius: 1rem;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .brand__logo-icon {
+    font-size: 28px;
+    font-variation-settings: "FILL" 1;
+  }
+  
+  .brand__badge {
+    position: absolute;
+    right: -0.25rem;
+    bottom: -0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--radius-full);
+    background-color: var(--color-surface-container);
+    color: var(--color-primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .brand__badge .material-symbols-outlined { font-size: 13px; }
+  
+  .brand__name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  
+  .brand__name {
+    font-weight: 700;
+  }
+  
+  .brand__tag {
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface-container-high);
+    color: var(--color-secondary);
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  
+  .page-heading__subtitle--narrow {
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Card do formulário */
+  .signup-card {
+    margin-bottom: var(--space-lg);
+    padding: var(--space-lg);
+    border-radius: 1rem;
+    background-color: var(--color-surface-container-lowest);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .signup-card .input-wrap {
+    box-shadow: 0 0 0 1px var(--color-surface-container-highest);
+  }
+  
+  .field__label-row { color: var(--color-text-muted); }
+  
+  /* Input com ícone à direita */
+  .input--icon {
+    padding-right: 3rem;
+  }
+  
+  /* Requisitos da senha */
+  .password-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-top: var(--space-xs);
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface-container-low);
+  }
+  
+  .password-rules__title {
+    color: var(--color-secondary);
+    font-weight: 500;
+  }
+  
+  .password-rules__list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xxs);
+  }
+  
+  .rule {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--color-text-muted);
+  }
+  
+  .rule .material-symbols-outlined {
+    font-size: 14px;
+    color: var(--color-outline);
+  }
+  
+  .rule.is-valid {
+    font-weight: 500;
+    color: var(--color-text);
+  }
+  
+  .rule.is-valid .material-symbols-outlined {
+    color: var(--color-primary);
+  }
+  
+  /* Termos de uso */
+  .checkbox-field { position: relative; }
+  
+  .checkbox-field--terms {
+    align-items: flex-start;
+  }
+  
+  .checkbox-field--terms .checkbox-field__box {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+  
+  .checkbox-field--terms .checkbox-field__label {
+    font-weight: 400;
+    line-height: 1.625;
+  }
+  
+  .link-strong {
+    font-weight: 600;
+    color: var(--color-text);
+    text-decoration: underline;
+    transition: color 150ms ease;
+  }
+  
+  .link-strong:hover {
+    color: var(--color-primary);
+  }
+  
+  /* Link "Entrar" com chevron */
+  .signup-footer__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    margin-left: var(--space-xxs);
+  }
+  
+  .signup-footer__link .material-symbols-outlined { font-size: 16px; }
