@@ -57,7 +57,8 @@
             <input id="password" name="password" type="password" placeholder="Digite sua senha" autocomplete="current-password" required>
           </div>
 
-          <button class="login-button" type="submit">Entrar na biblioteca <span aria-hidden="true">→</span></button>
+          <button class="login-button" id="login-button" type="submit">Entrar na biblioteca <span aria-hidden="true">→</span></button>
+          <p class="form-message" id="login-message" role="status" aria-live="polite" hidden></p>
         </form>
 
         <div class="form-divider"><span>ou</span></div>
@@ -68,13 +69,58 @@
     </section>
   </main>
 
-  <!-- Os serviços usam import/export e devem ser carregados como módulos. -->
   <script type="module">
     import { signIn } from "./js/services/authService.js";
 
-    // A integração do formulário com o login será adicionada na próxima etapa.
-    // Por enquanto, este arquivo mantém apenas o carregamento correto do módulo.
-  </script>
+    const form = document.querySelector("#login-form");
+    const emailInput = document.querySelector("#email");
+    const passwordInput = document.querySelector("#password");
+    const submitButton = document.querySelector("#login-button");
+    const message = document.querySelector("#login-message");
 
+    function showMessage(text, type = "error") {
+      message.textContent = text;
+      message.hidden = false;
+      message.dataset.type = type;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.hidden = true;
+      message.textContent = "";
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        showMessage("Preencha o e-mail e a senha.");
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.setAttribute("aria-busy", "true");
+      submitButton.textContent = "Entrando...";
+
+      try {
+        const result = await signIn({ email, password });
+
+        if (result?.error) {
+          showMessage(result.error.message || "Não foi possível entrar. Confira seus dados.");
+          return;
+        }
+
+        showMessage("Login realizado com sucesso! Sua sessão está ativa.", "success");
+        // Quando a página principal da biblioteca estiver pronta, redirecione aqui.
+        // Exemplo: window.location.href = "pages/biblioteca.html";
+      } catch (error) {
+        console.error("Erro ao realizar login:", error);
+        showMessage("Não foi possível conectar. Verifique sua conexão e tente novamente.");
+      } finally {
+        submitButton.disabled = false;
+        submitButton.removeAttribute("aria-busy");
+        submitButton.innerHTML = 'Entrar na biblioteca <span aria-hidden="true">→</span>';
+      }
+    });
+  </script>
 </body>
 </html>
