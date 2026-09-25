@@ -90,6 +90,13 @@ export const supabaseAuthAdapter = {
     };
   },
 
+  async resetPasswordForEmail({ email }) {
+    const redirectTo = new URL("redefinir-senha.html", window.location.href).href;
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    const normalizedError = normalizeAuthError(error);
+    return normalizedError ? { data: null, error: normalizedError } : { data, error: null };
+  },
+
   async signIn({ email, password }) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
