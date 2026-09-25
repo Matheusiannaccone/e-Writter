@@ -3,22 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#34251d">
+  <meta name="description" content="Entre no E-writter e descubra histórias para ler e compartilhar.">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/responsive.css">
-  <title>Site de Livros</title>
+  <title>Entrar | E-writter</title>
 </head>
 <body>
-  <main>
-    <h1>Site de Livros</h1>
-    <p>Ambiente inicial publicado com sucesso.</p>
+  <main class="login-page">
+    <section class="intro" aria-labelledby="brand-title">
+      <a class="brand" href="index.html" aria-label="E-writter — página inicial">
+        <span class="brand-mark" aria-hidden="true">E</span>
+        <span id="brand-title">E-writter</span>
+      </a>
 
-    <div id="containerInput">
-      <input id="email" type="email" placeholder="Insira seu Email">
-      <input id="password" type="password" placeholder="Insira sua senha">
-      <button id="Btn-submit" type="submit">Enviar</button>
-    </div>
+      <div class="intro-copy">
+        <p class="eyebrow"><span aria-hidden="true">✦</span> SUA PRÓXIMA HISTÓRIA COMEÇA AQUI</p>
+        <h1>Entre em um mundo<br>feito de <em>palavras.</em></h1>
+        <p class="intro-text">Leia histórias que ficam com você. Compartilhe aquelas que só você poderia escrever.</p>
+      </div>
+
+      <div class="book-note" aria-hidden="true">
+        <span class="note-line"></span>
+        <p>“Toda história começa<br>com uma página em branco.”</p>
+        <span class="note-credit">— E uma imaginação sem limites</span>
+      </div>
+      <span class="intro-decoration decoration-one" aria-hidden="true">✳</span>
+      <span class="intro-decoration decoration-two" aria-hidden="true">❧</span>
+    </section>
+
+    <section class="form-side" aria-labelledby="login-title">
+      <div class="parchment-card">
+        <div class="paper-stain stain-top" aria-hidden="true"></div>
+        <div class="paper-stain stain-bottom" aria-hidden="true"></div>
+
+        <div class="card-heading">
+          <p class="eyebrow">BEM-VINDO DE VOLTA</p>
+          <h2 id="login-title">Retome sua leitura</h2>
+          <p class="card-description">Entre na sua conta para continuar de onde parou.</p>
+        </div>
+
+        <form class="login-form" action="#" method="get">
+          <div class="form-field">
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" placeholder="voce@exemplo.com" autocomplete="email" required>
+          </div>
+
+          <div class="form-field">
+            <div class="label-row">
+              <label for="password">Senha</label>
+              <a class="text-link" href="#recuperar-senha">Esqueceu a senha?</a>
+            </div>
+            <input id="password" name="password" type="password" placeholder="Digite sua senha" autocomplete="current-password" required>
+          </div>
+
+          <button class="login-button" type="button">Entrar na biblioteca <span aria-hidden="true">→</span></button>
+        </form>
+
+        <div class="form-divider"><span>ou</span></div>
+        <p class="signup-prompt">Ainda não tem uma conta? <a class="text-link signup-link" href="#criar-conta">Crie a sua</a></p>
+        <p class="privacy-note"><span aria-hidden="true">✧</span> Um cantinho para leitores e escritores.</p>
+      </div>
+      <footer class="page-footer">© 2026 E-writter <span aria-hidden="true">·</span> Feito para quem ama histórias</footer>
+    </section>
   </main>
-
-  
 </body>
 </html>
