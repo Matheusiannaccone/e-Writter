@@ -43,7 +43,7 @@
           <p class="card-description">Entre na sua conta para continuar de onde parou.</p>
         </div>
 
-        <form class="login-form" action="#" method="get">
+        <form class="login-form" id="login-form">
           <div class="form-field">
             <label for="email">E-mail</label>
             <input id="email" name="email" type="email" placeholder="voce@exemplo.com" autocomplete="email" required>
@@ -57,7 +57,7 @@
             <input id="password" name="password" type="password" placeholder="Digite sua senha" autocomplete="current-password" required>
           </div>
 
-          <button class="login-button" type="button">Entrar na biblioteca <span aria-hidden="true">→</span></button>
+          <button class="login-button" type="submit">Entrar na biblioteca <span aria-hidden="true">→</span></button>
         </form>
 
         <div class="form-divider"><span>ou</span></div>
@@ -68,33 +68,13 @@
     </section>
   </main>
 
-  <script src="js/services/authService.js"></script>
-  <script src="js/services/bookService.js"></script>
-  <script src="js/services/chapterService.js"></script>
-  <script src="js/services/dataSource.js"></script>
-  <script src="js/services/favoriteService.js"></script>
-  <script src="js/services/genreService.js"></script>
-  <script src="js/services/imageService.js"></script>
-  <script src="js/services/profileService.js"></script>
-  <script src="js/services/supabaseClient.js"></script>
+  <!-- Os serviços usam import/export e devem ser carregados como módulos. -->
+  <script type="module">
+    import { signIn } from "./js/services/authService.js";
 
-  //Mock
-  <script src="js/services/adapters/mock/authAdapter.js"></script>
-  <script src="js/services/adapters/mock/bookAdapter.js"></script>
-  <script src="js/services/adapters/mock/chapterAdapter.js"></script>
-  <script src="js/services/adapters/mock/favoriteAdapter.js"></script>
-  <script src="js/services/adapters/mock/genreAdapter.js"></script>
-  <script src="js/services/adapters/mock/imageAdapter.js"></script>
-  <script src="js/services/adapters/mock/mockData.js"></script>
-  <script src="js/services/adapters/mock/profileAdapter.js"></script>
+    // A integração do formulário com o login será adicionada na próxima etapa.
+    // Por enquanto, este arquivo mantém apenas o carregamento correto do módulo.
+  </script>
 
-  //supabase
-  <script src="js/services/adapters/supabase/authAdapter.js"></script>
-  <script src="js/services/adapters/supabase/bookAdapter.js"></script>
-  <script src="js/services/adapters/supabase/chapterAdapter.js"></script>
-  <script src="js/services/adapters/supabase/favoriteAdapter.js"></script>
-  <script src="js/services/adapters/supabase/genreAdapter.js"></script>
-  <script src="js/services/adapters/supabase/imageAdapter.js"></script>
-  <script src="js/services/adapters/supabase/profileAdapter.js"></script>
 </body>
 </html>
