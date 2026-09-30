@@ -167,6 +167,13 @@ export const mockAuthAdapter = {
     };
 },
 
+  async resetPasswordForEmail({ email }) {
+    const exists = mockUsers.some((user) => user.email === email);
+    return exists
+      ? { data: { message: "Solicitação simulada." }, error: null }
+      : { data: null, error: { code: "NOT_FOUND", message: "Não encontramos uma conta com esse e-mail." } };
+  },
+
   async signIn({ email, password }) {
     const user = mockUsers.find(
         (item) => item.email === email && item.password === password

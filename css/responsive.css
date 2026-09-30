@@ -1,0 +1,39 @@
+@media (max-width: 900px) {
+  .login-page { grid-template-columns: minmax(0, 0.8fr) minmax(390px, 1.2fr); }
+  .intro { padding: 42px 32px; }
+  .intro h1 { font-size: clamp(44px, 6vw, 60px); }
+  .form-side { padding: 36px 28px; }
+}
+
+@media (max-width: 700px) {
+  .login-page { display: flex; flex-direction: column; }
+  .intro { min-height: auto; padding: 30px 28px 26px; }
+  .intro::before { inset: 10px; }
+  .brand { font-size: 26px; }
+  .brand-mark { width: 36px; height: 36px; font-size: 25px; }
+  .intro-copy { margin: 45px 0 28px; }
+  .intro .eyebrow { margin-bottom: 13px; font-size: 9px; letter-spacing: 1.5px; }
+  .intro h1 { font-size: clamp(43px, 11vw, 60px); }
+  .intro-text { max-width: 440px; margin-top: 17px; font-size: 13px; }
+  .book-note { display: none; }
+  .decoration-one { top: 30%; right: 8%; font-size: 64px; }
+  .decoration-two { right: 5%; bottom: 8%; font-size: 75px; }
+  .form-side { min-height: auto; flex: 1; gap: 20px; padding: 28px 18px 24px; }
+  .parchment-card { width: min(100%, 470px); padding: 32px 25px; }
+  .card-heading { margin-bottom: 25px; }
+  .card-heading h2 { font-size: 36px; }
+  .page-footer { line-height: 1.6; }
+}
+
+@media (max-width: 360px) {
+  .intro { padding-right: 22px; padding-left: 22px; }
+  .intro h1 { font-size: 41px; }
+  .form-side { padding-right: 12px; padding-left: 12px; }
+  .parchment-card { padding: 28px 19px; }
+  .label-row { align-items: flex-start; }
+  .text-link { font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+}

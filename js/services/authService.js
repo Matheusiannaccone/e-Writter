@@ -31,3 +31,6 @@ export async function getCurrentUser() {
 export function onAuthStateChange(callback) {
   return getAuthAdapter().onAuthStateChange(callback);
 }
+export async function resetPasswordForEmail({ email }) {
+  return getAuthAdapter().resetPasswordForEmail({ email });
+}
