@@ -88,7 +88,23 @@ Tutoriais específicos sobre estrutura de banco, policies, constraints, triggers
 
 Tutoriais sobre branches, commits, Pull Requests, revisão de código, conflitos e versionamento.
 
-> Nenhum tutorial publicado nesta categoria até o momento.
+## Tutorial 3 — Git, GitHub e fluxo de versionamento
+
+**Objetivo:** ensinar o fluxo de trabalho padronizado do projeto, desde a clonagem do repositório até a abertura e revisão de um Pull Request.
+
+**Conteúdo abordado:**
+- clonagem e atualização do repositório;
+- criação e nomenclatura de branches;
+- Conventional Commits;
+- Semantic Versioning;
+- revisão das alterações antes do commit;
+- push de branches;
+- abertura de Pull Request;
+- revisão e merge;
+- atualização local após a integração.
+
+**Link:**  
+`Será adicionado após a publicação do tutorial.`
 
 ---
 
