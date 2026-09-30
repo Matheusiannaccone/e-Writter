@@ -104,7 +104,7 @@ Tutoriais sobre branches, commits, Pull Requests, revisão de código, conflitos
 - atualização local após a integração.
 
 **Link:**  
-`Será adicionado após a publicação do tutorial.`
+`https://youtu.be/V9PNyin4ds0`
 
 ---
 
