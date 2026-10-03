@@ -1,43 +1,48 @@
-# Site de Livros
+# e-Writter
 
-> **Nome provisório do projeto.** O nome comercial poderá ser alterado sem impacto na arquitetura documentada.
+Plataforma web **mobile first** de escrita e leitura de livros, desenvolvida como projeto acadêmico da disciplina de Web Design.
 
-Plataforma web mobile first de escrita e leitura de livros, desenvolvida como projeto acadêmico em grupo. Qualquer usuário cadastrado poderá atuar como leitor e escritor, publicando obras organizadas em capítulos e consumindo conteúdos publicados por outros usuários.
+O e-Writter permite que usuários atuem como leitores e escritores, criando obras organizadas em capítulos, publicando conteúdo e mantendo uma biblioteca pessoal de favoritos.
 
-## Objetivo
+O MVP utiliza **HTML, CSS e JavaScript puro** no frontend e **Supabase + PostgreSQL** no backend.
 
-Entregar uma aplicação web funcional em que usuários possam:
+## Funcionalidades do MVP
 
-- criar conta e autenticar-se;
-- criar, editar e publicar livros;
-- criar, editar e publicar capítulos;
-- descobrir livros publicados;
-- visualizar informações de uma obra;
-- ler capítulos diretamente pelo navegador;
-- gerenciar o próprio perfil e suas obras;
-- favoritar livros;
-- utilizar a aplicação adequadamente em dispositivos móveis e desktop.
+* cadastro e autenticação de usuários;
+* perfis públicos;
+* criação e gerenciamento de livros;
+* criação e publicação de capítulos;
+* classificação de livros em 1 a 3 gêneros;
+* descoberta e leitura de obras publicadas;
+* biblioteca privada de favoritos;
+* interface responsiva para desktop e dispositivos móveis.
 
-Funcionalidades adicionais poderão ser evoluídas após o MVP conforme disponibilidade de tempo e prioridades definidas no roadmap.
+### Regras principais
+
+Livros podem permanecer como `draft` enquanto estão sendo desenvolvidos. Para publicação, precisam possuir título, descrição, de 1 a 3 gêneros e pelo menos um capítulo publicado.
+
+Capítulos são adicionados sequencialmente ao final do livro. No MVP não existe reordenação ou inserção entre capítulos existentes. Para publicação, um capítulo precisa possuir título e conteúdo entre **500 e 15.000 caracteres**.
+
+As principais regras de integridade também são protegidas diretamente pelo banco de dados.
 
 ## Stack
 
-- **Frontend:** HTML5, CSS3 e JavaScript ES Modules, sem frameworks;
-- **Backend as a Service:** Supabase;
-- **Banco de dados:** PostgreSQL;
-- **Autenticação:** Supabase Auth;
-- **Autorização:** PostgreSQL Row Level Security (RLS);
-- **Armazenamento de imagens:** Supabase Storage;
-- **Ambiente local de backend:** Supabase CLI + Docker;
-- **Hospedagem:** Vercel;
-- **Versionamento de código:** Git + GitHub;
-- **Versionamento do software:** Semantic Versioning (`MAJOR.MINOR.PATCH`).
+| Área           | Tecnologia                          |
+| -------------- | ----------------------------------- |
+| Frontend       | HTML5, CSS3 e JavaScript ES Modules |
+| Backend        | Supabase                            |
+| Banco de dados | PostgreSQL                          |
+| Autenticação   | Supabase Auth                       |
+| Autorização    | Row Level Security                  |
+| Ambiente local | Supabase CLI + Docker               |
+| Hospedagem     | Vercel                              |
+| Versionamento  | Git + GitHub                        |
 
-## Arquitetura do frontend
+O projeto não utiliza framework frontend.
 
-As páginas e componentes não acessam diretamente o Supabase.
+## Arquitetura
 
-O fluxo previsto é:
+O frontend não acessa diretamente o Supabase a partir das páginas e componentes.
 
 ```text
 Página / Componente
@@ -49,29 +54,93 @@ Página / Componente
     Mock   Supabase
 ```
 
-- **Pages e components** cuidam da interface e interação com o usuário;
-- **Services** expõem contratos estáveis para o frontend;
-- **Adapters Mock** permitem desenvolvimento e testes de interface sem dependência do backend;
-- **Adapters Supabase** realizam chamadas reais à API, Auth, Storage e banco de dados.
+Essa separação permite desenvolver partes da interface utilizando dados simulados e posteriormente conectá-las ao backend sem alterar o contrato consumido pelo frontend.
 
-A especificação detalhada está em [Arquitetura](docs/04-Arquitetura.md) e [Contrato Front ↔ Supabase](docs/14-Contrato-Front-Supabase.md).
+A fonte de dados é selecionada por `dataSource.js`.
 
-## Estrutura atual do repositório
+Mais detalhes estão disponíveis em [Arquitetura](docs/04-Arquitetura.md) e [Contrato Front ↔ Supabase](docs/14-Contrato-Front-Supabase.md).
+
+## Banco de dados
+
+O modelo principal do MVP possui seis tabelas:
+
+```text
+profiles
+books
+chapters
+genres
+book_genres
+favorites
+```
+
+Relacionamento simplificado:
+
+```text
+auth.users
+    │
+    ▼
+ profiles
+    │
+    ▼
+  books ───────── favorites
+   │  \
+   │   └──── book_genres ──── genres
+   │
+   ▼
+chapters
+```
+
+O banco utiliza:
+
+* constraints;
+* foreign keys;
+* Row Level Security;
+* functions;
+* triggers;
+* exclusões em cascata;
+* validações de publicação e integridade.
+
+Entre as regras protegidas no banco estão a autoria das obras, sequência dos capítulos, limites de gêneros, favoritos privados e requisitos para publicação.
+
+A estrutura é versionada em:
+
+```text
+supabase/migrations/
+```
+
+## Autenticação
+
+A autenticação já possui uma camada de services e adapters:
+
+```text
+authService
+     ↓
+authAdapter
+   ↙     ↘
+ Mock  Supabase
+```
+
+O fluxo contempla cadastro, login, logout, sessão atual, usuário autenticado e mudanças no estado de autenticação.
+
+Erros provenientes do backend são normalizados antes de chegar ao frontend.
+
+## Estrutura do projeto
 
 ```text
 /
 ├── assets/
-│   ├── icons/
-│   └── images/
 ├── css/
 ├── docs/
 ├── js/
 │   ├── components/
 │   ├── pages/
 │   └── services/
-│       └── adapters/
-│           ├── mock/
-│           └── supabase/
+│       ├── adapters/
+│       │   ├── mock/
+│       │   └── supabase/
+│       ├── authService.js
+│       ├── dataSource.js
+│       └── supabaseClient.js
 ├── supabase/
 │   ├── migrations/
 │   ├── config.toml
@@ -81,68 +150,46 @@ A especificação detalhada está em [Arquitetura](docs/04-Arquitetura.md) e [Co
 └── README.md
 ```
 
-Novas páginas, componentes, services, adapters e migrations serão adicionados conforme as funcionalidades forem implementadas.
+A estrutura será expandida conforme novos services, adapters, páginas e componentes forem implementados.
 
-## Banco de dados e Supabase
+## Ambiente local
 
-A estrutura do banco é versionada através de migrations em:
+### Requisitos
 
-```text
-supabase/migrations/
-```
+* Git;
+* Node.js e npm;
+* Docker;
+* Supabase CLI.
 
-O ambiente local pode ser executado com:
+### Iniciar o Supabase
 
 ```bash
 npx supabase start
 ```
 
-Para recriar o banco local a partir das migrations e do `seed.sql`:
+### Recriar o banco local
 
 ```bash
 npx supabase db reset
 ```
 
-Alterações estruturais no banco devem ser testadas localmente antes de serem aplicadas ao projeto remoto sempre que possível.
+### Conferir migrations
 
-### Perfis de usuário
-
-A estrutura inicial de `profiles` já foi definida com:
-
-- relação 1:1 com `auth.users`;
-- criação automática do profile por trigger após cadastro;
-- `username` único e obrigatório;
-- username entre 3 e 30 caracteres;
-- username apenas em letras minúsculas, números, `_` e `.`;
-- `display_name` entre 1 e 60 caracteres;
-- `bio` opcional com até 500 caracteres;
-- atualização automática de `updated_at`;
-- RLS com leitura pública e atualização restrita ao próprio usuário.
-
-## Segurança
-
-O frontend pode utilizar apenas informações públicas necessárias para conexão com o Supabase, como:
-
-```text
-SUPABASE_URL
-SUPABASE_PUBLISHABLE_KEY
+```bash
+npx supabase migration list
 ```
 
-Nunca devem ser expostos no frontend ou no repositório:
+### Validar alterações antes do ambiente remoto
 
-- `service_role`;
-- secret keys;
-- senha do banco;
-- connection strings privilegiadas;
-- qualquer outra credencial administrativa.
+```bash
+npx supabase db push --dry-run
+```
 
-As políticas detalhadas estão documentadas em [Segurança](docs/11-Seguranca.md).
+Alterações de banco devem ser validadas localmente antes de serem aplicadas ao Supabase compartilhado pela equipe.
 
 ## Fluxo Git
 
-O projeto utiliza branches curtas e focadas por tarefa.
-
-Prefixos definidos:
+O projeto utiliza branches específicas por tarefa:
 
 ```text
 feature/
@@ -151,113 +198,96 @@ docs/
 refactor/
 ```
 
-Fluxo esperado:
+Fluxo padrão:
 
 ```text
-main atualizada
-    ↓
-nova branch
-    ↓
+main
+ ↓
+branch
+ ↓
 implementação
-    ↓
+ ↓
+testes
+ ↓
 commit
-    ↓
-push
-    ↓
+ ↓
 Pull Request
-    ↓
+ ↓
 revisão
-    ↓
-merge em main
+ ↓
+merge
 ```
 
 Não deve haver desenvolvimento direto na `main`.
 
-Os commits seguem Conventional Commits e incluem a versão do projeto no padrão `MAJOR.MINOR.PATCH`, conforme definido em [Git e Versionamento](docs/09-Git-e-Versionamento.md).
+Os commits seguem **Conventional Commits** e **Semantic Versioning**:
 
-## Ambientes
+```text
+MAJOR.MINOR.PATCH - tipo: descrição
+```
 
-O projeto utiliza três contextos principais:
+Exemplo:
 
-### Desenvolvimento com Mock
+```text
+0.15.0 - feat: adiciona integridade entre livros capítulos e gêneros
+```
 
-Usado principalmente para construção de interface e simulação de estados sem acesso ao backend.
+Mais detalhes em [Git e Versionamento](docs/09-Git-e-Versionamento.md).
 
-### Supabase local
+## Estado atual
 
-Executado com Supabase CLI e Docker para validar:
+O projeto está na fase de **implementação e integração do MVP**.
 
-- migrations;
-- Auth;
-- constraints;
-- triggers;
-- RLS;
-- integrações reais sem alterar o banco remoto.
+Atualmente já estão implementados ou definidos:
 
-### Ambiente remoto
+* arquitetura e regras de negócio;
+* ambientes Supabase local e remoto;
+* deploy pela Vercel;
+* fluxo colaborativo com Git e Pull Requests;
+* autenticação com adapters Mock e Supabase;
+* alternância entre Mock e backend real;
+* modelo completo do banco do MVP;
+* RLS, constraints, functions e triggers;
+* regras de publicação de livros e capítulos;
+* associação de gêneros;
+* favoritos;
+* validação completa das migrations e regras de integridade.
 
-O Supabase remoto é compartilhado pela equipe e deve receber alterações já validadas.
+O foco atual passa a ser a criação dos services restantes e a integração progressiva do frontend com o backend.
 
-A aplicação publicada utiliza Vercel, com a `main` como referência de produção e previews para Pull Requests quando aplicável.
+## Próximas etapas
+
+* services de perfis;
+* services de livros;
+* services de capítulos;
+* services de gêneros e favoritos;
+* integração das páginas com o backend;
+* capas e avatares com Supabase Storage;
+* refinamento da interface;
+* testes de integração e do fluxo completo do usuário.
+
+Recursos como comentários, avaliações, recomendações, notificações, reorganização livre de capítulos e leitura offline ficam para evolução pós-MVP.
 
 ## Documentação
 
-A documentação técnica está em [`docs/`](docs/):
+A documentação técnica completa está em [`docs/`](docs/).
 
-1. [Visão Geral](docs/01-Visao-Geral.md)
-2. [Requisitos](docs/02-Requisitos.md)
-3. [Regras de Negócio](docs/03-Regras-de-Negocio.md)
-4. [Arquitetura](docs/04-Arquitetura.md)
-5. [Modelo de Dados](docs/05-Modelo-de-Dados.md)
-6. [Fluxos de Usuário](docs/06-Fluxos-de-Usuario.md)
-7. [Design System](docs/07-Design-System.md)
-8. [Backlog e Roadmap](docs/08-Backlog-e-Roadmap.md)
-9. [Git e Versionamento](docs/09-Git-e-Versionamento.md)
-10. [Testes](docs/10-Testes.md)
-11. [Segurança](docs/11-Seguranca.md)
-12. [Deploy e Ambientes](docs/12-Deploy-e-Ambientes.md)
-13. [Decisões Técnicas](docs/13-Decisoes-Tecnicas.md)
-14. [Contrato Front ↔ Supabase](docs/14-Contrato-Front-Supabase.md)
-15. [Links dos Tutoriais](docs/15-Link-dos-Tutoriais.md)
+Principais documentos:
 
-## Tutoriais internos
+* [Visão Geral](docs/01-Visao-Geral.md)
+* [Requisitos](docs/02-Requisitos.md)
+* [Regras de Negócio](docs/03-Regras-de-Negocio.md)
+* [Arquitetura](docs/04-Arquitetura.md)
+* [Modelo de Dados](docs/05-Modelo-de-Dados.md)
+* [Fluxos de Usuário](docs/06-Fluxos-de-Usuario.md)
+* [Git e Versionamento](docs/09-Git-e-Versionamento.md)
+* [Testes](docs/10-Testes.md)
+* [Segurança](docs/11-Seguranca.md)
+* [Contrato Front ↔ Supabase](docs/14-Contrato-Front-Supabase.md)
+* [Links dos Tutoriais](docs/15-Link-dos-Tutoriais.md)
 
-A equipe possui tutoriais em vídeo para padronizar a configuração e o uso do ambiente de desenvolvimento.
+## Projeto acadêmico
 
-Os links são mantidos em:
+Projeto desenvolvido por uma equipe de **5 integrantes** para a disciplina de **Web Design**.
 
-[Links dos Tutoriais](docs/15-Link-dos-Tutoriais.md)
-
-Os materiais são organizados de acordo com o tipo de atividade, como configuração inicial, Supabase local, banco de dados, frontend e integração.
-
-## Estado atual do projeto
-
-O projeto já saiu da fase exclusivamente de planejamento e arquitetura e entrou na implementação do MVP.
-
-Atualmente já existem:
-
-- documentação técnica e regras de negócio definidas;
-- ambientes Supabase e Vercel configurados;
-- fluxo Git e processo de Pull Request definidos;
-- contratos Front ↔ Supabase documentados;
-- Supabase CLI configurado para trabalho colaborativo;
-- ambiente local com Docker disponível para testes;
-- primeira estrutura de banco para `profiles`;
-- triggers de criação e atualização de profile;
-- policies RLS iniciais para `profiles`.
-
-As próximas implementações devem seguir o roadmap e os cartões operacionais da equipe.
-
-Ainda não existe uma versão estável `1.0.0`. Durante o desenvolvimento, o projeto permanece em versões `0.x.y`.
-
-## Equipe
-
-Projeto desenvolvido por um grupo de **5 integrantes**.
-
-As responsabilidades de implementação são distribuídas entre frontend, backend/Supabase, integração, documentação e revisão de código conforme o planejamento da equipe.
-
-## Documentos acadêmicos
-
-O relatório final e a apresentação em formato de pitch serão produzidos a partir dos modelos fornecidos pelo professor.
-
-Os documentos deste repositório funcionam como fonte técnica, histórica e de decisões do projeto para apoiar essas entregas.
+A primeira versão estável do MVP será representada pela versão `1.0.0`. Durante o desenvolvimento, o projeto permanece em versões `0.x.y`.

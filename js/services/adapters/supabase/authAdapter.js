@@ -1,3 +1,7 @@
+// services/adapters/supabase/authAdapter.js
+// Este arquivo contém funções para operações de autenticação usando Supabase.
+// As funções lançam erros indicando que não foram implementadas.
+
 import { supabase } from "../../supabaseClient.js";
 
 function normalizeAuthError(error) {
