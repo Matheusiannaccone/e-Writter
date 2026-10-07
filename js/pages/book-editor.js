@@ -1,4 +1,6 @@
-import { getMyBooks, createBook, updateBook } from '../services/bookService.js';
+import { getMyBooks, createBook, updateBook, publishBook, unpublishBook } from '../services/bookService.js';
+import { getChaptersByBook, publishChapter, unpublishChapter } from '../services/chapterService.js';
+import { bookBlockers, chapterBlockers } from './publication-rules.js';
 import { getGenres } from '../services/genreService.js';
 import { uploadBookCover, removeBookCover, getBookCoverUrl } from '../services/imageService.js';
 
@@ -15,6 +17,9 @@ const coverPreview = $('#cover-preview');
 const removeCover = $('#remove-cover');
 const saveButton = $('#save-book');
 let books = [];
+let chapters = [];
+let publicationRequest = 0;
+let chaptersLoading = false;
 let genres = [];
 let selectedFile = null;
 let removeExistingCover = false;
@@ -93,6 +98,7 @@ coverImage.addEventListener('error', () => {
 function setBusy(value) {
   busy = value;
   saveButton.disabled = value;
+  document.querySelectorAll('[data-publication-action], #book-publication-action').forEach((button) => { button.disabled = value || button.dataset.blocked === 'true'; });
   picker.disabled = value;
   saveButton.textContent = value ? 'Salvando…' : picker.value ? 'Salvar alterações' : 'Criar rascunho';
 }
@@ -116,10 +122,147 @@ function fillForm() {
   fieldError(coverFile, 'cover-error', '');
   updateGenreCount();
   showCover();
+  loadPublication(book);
   $('#save-note').textContent = book?.status === 'published' ? 'As alterações serão salvas na obra publicada.' : 'Sua obra será salva como rascunho.';
   saveButton.textContent = book ? 'Salvar alterações' : 'Criar rascunho';
   message('');
 }
+
+function badge(statusValue) {
+  const span = document.createElement('span');
+  span.className = `editor__badge editor__badge--${statusValue}`;
+  span.textContent = statusValue === 'published' ? 'Publicado' : 'Rascunho';
+  return span;
+}
+function renderReasons(container, reasons) {
+  container.replaceChildren();
+  reasons.forEach((reason) => {
+    const item = document.createElement('li');
+    item.textContent = reason;
+    container.append(item);
+  });
+  container.hidden = reasons.length === 0;
+}
+function renderPublication(book) {
+  const panel = $('#publication-panel');
+  panel.hidden = !book;
+  if (!book) return;
+  const published = book.status === 'published';
+  const statusBadge = $('#book-status-badge');
+  statusBadge.className = `editor__badge editor__badge--${book.status}`;
+  statusBadge.textContent = published ? 'Publicado' : 'Rascunho';
+  $('#book-visibility').textContent = published
+    ? 'Esta obra está disponível no catálogo. Somente capítulos publicados podem ser lidos.'
+    : 'Esta obra está privada. Mesmo capítulos publicados só ficam visíveis ao público após publicar a obra.';
+  const blockers = published ? [] : bookBlockers(book, chapters);
+  if (chaptersLoading && !published) blockers.push('Aguarde o carregamento dos capítulos.');
+  renderReasons($('#book-blockers'), blockers);
+  const bookAction = $('#book-publication-action');
+  bookAction.textContent = published ? 'Retirar obra de publicação' : 'Publicar obra';
+  bookAction.dataset.blocked = String(blockers.length > 0);
+  bookAction.disabled = busy || chaptersLoading || blockers.length > 0;
+  bookAction.setAttribute('aria-describedby', blockers.length ? 'book-blockers' : 'book-visibility');
+  $('#chapter-count').textContent = chaptersLoading ? 'Carregando…' : `${chapters.length} ${chapters.length === 1 ? 'capítulo' : 'capítulos'}`;
+  const list = $('#chapter-list');
+  list.replaceChildren();
+  if (!chapters.length) {
+    const empty = document.createElement('li');
+    empty.textContent = chaptersLoading ? 'Carregando capítulos…' : 'Nenhum capítulo nesta obra.';
+    list.append(empty);
+  }
+  const publishedCount = chapters.filter((chapter) => chapter.status === 'published').length;
+  chapters.forEach((chapter) => {
+    const item = document.createElement('li');
+    item.className = 'editor__chapter';
+    const top = document.createElement('div');
+    top.className = 'editor__chapter-top';
+    const name = document.createElement('strong');
+    name.textContent = `${String(chapter.position).padStart(2, '0')} · ${chapter.title || 'Sem título'}`;
+    top.append(name, badge(chapter.status));
+    const reasons = chapter.status === 'published' ? [] : chapterBlockers(chapter);
+    if (chapter.status === 'published' && published && publishedCount === 1) {
+      reasons.push('Retire a obra de publicação antes de retirar o último capítulo publicado.');
+    }
+    const note = document.createElement('p');
+    note.className = 'editor__help';
+    note.textContent = chapter.status === 'published'
+      ? (published ? 'Visível para leitores.' : 'Pronto para leitura quando a obra for publicada.')
+      : 'Privado para leitores.';
+    const reasonList = document.createElement('ul');
+    reasonList.className = 'editor__blockers';
+    renderReasons(reasonList, reasons);
+    const action = document.createElement('button');
+    action.type = 'button';
+    action.className = 'button button--secondary';
+    action.dataset.publicationAction = chapter.id;
+    action.dataset.blocked = String(reasons.length > 0);
+    action.textContent = chapter.status === 'published' ? 'Retirar capítulo de publicação' : 'Publicar capítulo';
+    action.disabled = busy || reasons.length > 0;
+    item.append(top, note, reasonList, action);
+    list.append(item);
+  });
+}
+async function loadPublication(book) {
+  const request = ++publicationRequest;
+  chapters = [];
+  chaptersLoading = Boolean(book);
+  renderPublication(book);
+  if (!book) return;
+  const result = await getChaptersByBook(book.id);
+  if (request !== publicationRequest) return;
+  chaptersLoading = false;
+  if (result.error) {
+    message(`Não foi possível carregar os capítulos: ${result.error.message}`, 'error');
+    renderPublication(book);
+    $('#book-publication-action').disabled = true;
+    return;
+  }
+  chapters = result.data ?? [];
+  renderPublication(book);
+}
+async function changePublication(target) {
+  if (busy) return;
+  const book = books.find((item) => item.id === picker.value);
+  if (!book) return;
+  const chapter = target === 'book' ? null : chapters.find((item) => item.id === target);
+  if (target !== 'book' && !chapter) return;
+  const published = (chapter ?? book).status === 'published';
+  const blockers = chapter
+    ? (published && book.status === 'published' && chapters.filter((item) => item.status === 'published').length === 1
+      ? ['Retire a obra de publicação antes de retirar o último capítulo publicado.']
+      : published ? [] : chapterBlockers(chapter))
+    : published ? [] : bookBlockers(book, chapters);
+  if (blockers.length) { message(blockers.join(' '), 'error'); return; }
+  const label = chapter ? `o capítulo “${chapter.title || 'Sem título'}”` : `a obra “${book.title}”`;
+  if (!window.confirm(`${published ? 'Retirar de publicação' : 'Publicar'} ${label}?`)) return;
+  setBusy(true);
+  message(`${published ? 'Retirando de publicação' : 'Publicando'} ${chapter ? 'capítulo' : 'obra'}…`);
+  try {
+    const result = chapter
+      ? await (published ? unpublishChapter(chapter.id) : publishChapter(chapter.id))
+      : await (published ? unpublishBook(book.id) : publishBook(book.id));
+    if (result.error) throw new Error(result.error.message);
+    if (chapter) chapters = chapters.map((item) => item.id === chapter.id ? result.data : item);
+    else books = books.map((item) => item.id === book.id ? result.data : item);
+    renderPublication(books.find((item) => item.id === picker.value));
+    $('#save-note').textContent = books.find((item) => item.id === picker.value)?.status === 'published'
+      ? 'As alterações serão salvas na obra publicada.' : 'Sua obra será salva como rascunho.';
+    message(chapter
+      ? (published ? 'Capítulo retirado de publicação.' : 'Capítulo publicado com sucesso.')
+      : (published ? 'Obra retirada de publicação.' : 'Obra publicada com sucesso.'), 'success');
+  } catch (error) {
+    message(error.message || 'Não foi possível mudar o estado. Tente novamente.', 'error');
+  } finally {
+    setBusy(false);
+    renderPublication(books.find((item) => item.id === picker.value));
+  }
+}
+$('#book-publication-action').addEventListener('click', () => changePublication('book'));
+$('#chapter-list').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-publication-action]');
+  if (button) changePublication(button.dataset.publicationAction);
+});
+
 function validate() {
   let valid = true;
   const trimmed = title.value.trim();

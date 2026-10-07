@@ -781,6 +781,20 @@ export const supabaseBookAdapter = {
     return fetchBookById(id);
   },
 
+  // Retira uma obra própria do catálogo público; RLS valida autoria.
+  async unpublishBook(id) {
+    if (!isValidUuid(id)) return createError("VALIDATION_ERROR", "ID de livro inválido.");
+    const auth = await getAuthenticatedUser();
+    if (auth.error) return auth.error;
+    const { data, error } = await supabase.from("books")
+      .update({ status: "draft" })
+      .eq("id", id).eq("author_id", auth.user.id).eq("status", "published")
+      .select("id").maybeSingle();
+    if (error) return normalizeSupabaseError(error, "Não foi possível retirar a obra de publicação.");
+    if (!data) return createError("NOT_FOUND", "Obra publicada não encontrada ou ação não permitida.");
+    return fetchBookById(id);
+  },
+
   // Exclui um livro.
   async deleteBook(id) {
     if (!isValidUuid(id)) {

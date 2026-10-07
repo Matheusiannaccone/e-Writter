@@ -26,6 +26,13 @@
         <label for="book-picker">Obra em edição</label>
         <select id="book-picker"><option value="">Nova obra</option></select>
       </div>
+      <section id="publication-panel" class="editor__publication" aria-labelledby="publication-heading" hidden>
+        <div class="editor__publication-head"><div><p class="editor__eyebrow">Estado editorial</p><h2 id="publication-heading">Publicação</h2></div><span id="book-status-badge" class="editor__badge"></span></div>
+        <p id="book-visibility" class="editor__help"></p>
+        <ul id="book-blockers" class="editor__blockers"></ul>
+        <button id="book-publication-action" class="button button--secondary" type="button"></button>
+        <section class="editor__chapters" aria-labelledby="chapters-heading"><div class="editor__publication-head"><h3 id="chapters-heading">Capítulos</h3><span id="chapter-count" class="editor__help"></span></div><ul id="chapter-list" class="editor__chapter-list"></ul></section>
+      </section>
       <form id="book-form" novalidate>
         <div class="editor__grid">
           <div class="editor__fields">
