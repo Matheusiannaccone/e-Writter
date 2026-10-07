@@ -1,6 +1,6 @@
 import { getMyBooks, createBook, updateBook } from '../services/bookService.js';
 import { getGenres } from '../services/genreService.js';
-import { uploadBookCover, removeBookCover } from '../services/imageService.js';
+import { uploadBookCover, removeBookCover, getBookCoverUrl } from '../services/imageService.js';
 
 const $ = (selector) => document.querySelector(selector);
 const form = $('#book-form');
@@ -19,6 +19,7 @@ let genres = [];
 let selectedFile = null;
 let removeExistingCover = false;
 let previewUrl = null;
+let coverRequest = 0;
 let busy = false;
 
 function message(value, kind = '') {
@@ -43,21 +44,52 @@ function updateGenreCount() {
   });
   if (count) fieldError($('#genre-fieldset'), 'genres-error', '');
 }
-function showCover() {
-  if (previewUrl) URL.revokeObjectURL(previewUrl);
-  previewUrl = selectedFile ? URL.createObjectURL(selectedFile) : null;
-  coverImage.hidden = !previewUrl;
-  if (previewUrl) coverImage.src = previewUrl;
-  else coverImage.removeAttribute('src');
-  coverPreview.querySelector('.editor__cover-placeholder').hidden = Boolean(previewUrl);
+async function showCover() {
+  const request = ++coverRequest;
+  if (previewUrl?.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
+  previewUrl = null;
+  coverImage.hidden = true;
+  coverImage.removeAttribute('src');
+  const placeholder = coverPreview.querySelector('.editor__cover-placeholder');
+  const caption = placeholder.querySelector('span:last-child');
+  placeholder.hidden = false;
   const book = books.find((item) => item.id === picker.value);
   removeCover.hidden = !selectedFile && (!book?.coverPath || removeExistingCover);
-  if (!previewUrl && book?.coverPath && !removeExistingCover) {
-    coverPreview.querySelector('.editor__cover-placeholder span:last-child').textContent = 'Capa cadastrada';
+  if (selectedFile) {
+    previewUrl = URL.createObjectURL(selectedFile);
+  } else if (book?.coverPath && !removeExistingCover) {
+    caption.textContent = 'Carregando capa…';
+    let result;
+    try {
+      result = await getBookCoverUrl(book.coverPath);
+    } catch {
+      result = { error: { message: 'Não foi possível carregar a capa.' } };
+    }
+    if (request !== coverRequest) {
+      if (result.data?.url?.startsWith('blob:')) URL.revokeObjectURL(result.data.url);
+      return;
+    }
+    if (result.error) {
+      caption.textContent = 'Capa indisponível';
+      fieldError(coverFile, 'cover-error', `${result.error.message} Você pode escolher outra imagem.`);
+      return;
+    }
+    previewUrl = result.data.url;
   } else {
-    coverPreview.querySelector('.editor__cover-placeholder span:last-child').innerHTML = 'Seu mundo<br>começa aqui';
+    caption.innerHTML = 'Seu mundo<br>começa aqui';
+  }
+  if (previewUrl) {
+    coverImage.src = previewUrl;
+    coverImage.hidden = false;
+    placeholder.hidden = true;
   }
 }
+coverImage.addEventListener('error', () => {
+  coverImage.hidden = true;
+  coverPreview.querySelector('.editor__cover-placeholder').hidden = false;
+  coverPreview.querySelector('.editor__cover-placeholder span:last-child').textContent = 'Capa indisponível';
+  fieldError(coverFile, 'cover-error', 'Não foi possível mostrar esta capa. Escolha outra imagem.');
+});
 function setBusy(value) {
   busy = value;
   saveButton.disabled = value;
@@ -163,13 +195,16 @@ form.addEventListener('submit', async (event) => {
       message('Obra salva. Enviando capa…');
       const upload = await uploadBookCover(book.id, selectedFile);
       if (upload.error) {
+        fieldError(coverFile, 'cover-error', `${upload.error.message} Tente salvar novamente.`);
         message(`Obra salva, mas a capa não foi enviada: ${upload.error.message} Tente salvar novamente.`, 'error');
         return;
       }
       book.coverPath = upload.data.path;
     } else if (removeExistingCover) {
+      message('Obra salva. Removendo capa…');
       const removal = await removeBookCover(book.id);
       if (removal.error) {
+        fieldError(coverFile, 'cover-error', `${removal.error.message} Tente novamente.`);
         message(`Obra salva, mas a capa não foi removida: ${removal.error.message} Tente novamente.`, 'error');
         return;
       }

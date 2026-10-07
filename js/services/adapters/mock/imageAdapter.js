@@ -3,7 +3,8 @@
 import { mockAuthAdapter } from "./authAdapter.js";
 import {
   mockProfiles,
-  mockBooks
+  mockBooks,
+  saveMockLibrary
 } from "./mockData.js";
 
 const ALLOWED_IMAGE_TYPES = [
@@ -102,6 +103,32 @@ function validateImageFile(
     data: true,
     error: null
   };
+}
+
+// Arquivos de capa do mock ficam no navegador, separados dos metadados.
+function openCoverDatabase() {
+  return new Promise((resolve, reject) => {
+    if (typeof indexedDB === "undefined") return reject(new Error("IndexedDB indisponível"));
+    const request = indexedDB.open("e-writter-mock-covers", 1);
+    request.onupgradeneeded = () => request.result.createObjectStore("covers");
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function coverOperation(mode, action) {
+  const database = await openCoverDatabase();
+  try {
+    return await new Promise((resolve, reject) => {
+      const transaction = database.transaction("covers", mode);
+      const request = action(transaction.objectStore("covers"));
+      transaction.oncomplete = () => resolve(request.result);
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    });
+  } finally {
+    database.close();
+  }
 }
 
 export const mockImageAdapter = {
@@ -253,11 +280,18 @@ export const mockImageAdapter = {
     const path =
       `covers/${bookId}/cover.webp`;
 
+    try {
+      await coverOperation("readwrite", (store) => store.put(file, bookId));
+    } catch {
+      return createError("UNKNOWN", "Não foi possível guardar a capa neste navegador.");
+    }
+
     book.coverPath =
       path;
 
     book.updatedAt =
       new Date().toISOString();
+    saveMockLibrary();
 
     return {
       data: {
@@ -265,6 +299,19 @@ export const mockImageAdapter = {
       },
       error: null
     };
+  },
+
+  // Retorna uma URL temporária de exibição para a capa simulada.
+  async getBookCoverUrl(path) {
+    const match = /^covers\/([0-9a-f-]{36})\/cover\.webp$/i.exec(path ?? "");
+    if (!match) return createError("VALIDATION_ERROR", "Caminho de capa inválido.");
+    try {
+      const file = await coverOperation("readonly", (store) => store.get(match[1]));
+      if (!file) return createError("NOT_FOUND", "Capa não encontrada neste navegador.");
+      return { data: { url: URL.createObjectURL(file) }, error: null };
+    } catch {
+      return createError("UNKNOWN", "Não foi possível carregar a capa neste navegador.");
+    }
   },
 
   // Remove a capa de um livro.
@@ -308,11 +355,18 @@ export const mockImageAdapter = {
       );
     }
 
+    try {
+      await coverOperation("readwrite", (store) => store.delete(bookId));
+    } catch {
+      return createError("UNKNOWN", "Não foi possível remover a capa neste navegador.");
+    }
+
     book.coverPath =
       null;
 
     book.updatedAt =
       new Date().toISOString();
+    saveMockLibrary();
 
     return {
       data: {
