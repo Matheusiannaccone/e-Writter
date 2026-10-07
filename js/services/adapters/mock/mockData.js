@@ -171,3 +171,26 @@ export const mockChapters = [
 
 // Favoritos disponíveis no ambiente Mock.
 export const mockFavorites = [];
+
+// Preserva alterações do catálogo simulado entre recarregamentos locais.
+const LIBRARY_KEY = "e-writter-mock-library-v1";
+try {
+  const saved = JSON.parse(localStorage.getItem(LIBRARY_KEY) || "null");
+  if (Array.isArray(saved?.books) && Array.isArray(saved?.bookGenres)) {
+    mockBooks.splice(0, mockBooks.length, ...saved.books);
+    mockBookGenres.splice(0, mockBookGenres.length, ...saved.bookGenres);
+  }
+} catch {
+  // O mock continua com os dados iniciais quando storage está indisponível.
+}
+
+export function saveMockLibrary() {
+  try {
+    localStorage.setItem(LIBRARY_KEY, JSON.stringify({
+      books: mockBooks,
+      bookGenres: mockBookGenres
+    }));
+  } catch {
+    // A operação atual ainda funciona; novo reload usa os dados iniciais.
+  }
+}

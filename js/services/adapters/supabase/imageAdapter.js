@@ -602,6 +602,16 @@ export const supabaseImageAdapter = {
     };
   },
 
+  // Resolve o caminho lógico da capa no bucket público, sem expor Storage à página.
+  async getBookCoverUrl(path) {
+    const match = /^covers\/([0-9a-f-]{36})\/cover\.webp$/i.exec(path ?? "");
+    if (!match) return createError("VALIDATION_ERROR", "Caminho de capa inválido.");
+    const { data } = supabase.storage.from("covers").getPublicUrl(`${match[1]}/cover.webp`);
+    return data?.publicUrl
+      ? { data: { url: `${data.publicUrl}?v=${Date.now()}` }, error: null }
+      : createError("UNKNOWN", "Não foi possível carregar a capa.");
+  },
+
   // Remove a capa de um livro.
   async removeBookCover(bookId) {
     if (!isValidUuid(bookId)) {

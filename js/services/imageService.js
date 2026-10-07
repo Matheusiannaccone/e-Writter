@@ -21,3 +21,7 @@ export async function uploadBookCover(bookId, file) {
 export async function removeBookCover(bookId) {
   return getImageAdapter().removeBookCover(bookId);
 }
+// Retorna uma URL de exibição para um coverPath persistido.
+export async function getBookCoverUrl(path) {
+  return getImageAdapter().getBookCoverUrl(path);
+}

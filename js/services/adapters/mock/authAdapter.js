@@ -6,6 +6,15 @@ import { mockUsers, mockProfiles } from "./mockData.js";
 
 let currentUser = null;
 let currentSession = null;
+try {
+  const saved = JSON.parse(sessionStorage.getItem("e-writter-mock-user") || "null");
+  if (saved && mockUsers.some((user) => user.id === saved.id)) {
+    currentUser = saved;
+    currentSession = { user: saved };
+  }
+} catch {
+  // Sessão simulada em memória quando sessionStorage não está disponível.
+}
 
 const authListeners = [];
 
@@ -159,6 +168,7 @@ export const mockAuthAdapter = {
         user: currentUser
     };
 
+    try { sessionStorage.setItem("e-writter-mock-user", JSON.stringify(currentUser)); } catch {}
     notifyAuthStateChange("SIGNED_IN", currentSession);
 
     return {
@@ -193,6 +203,7 @@ export const mockAuthAdapter = {
         user: currentUser
     };
 
+    try { sessionStorage.setItem("e-writter-mock-user", JSON.stringify(currentUser)); } catch {}
     notifyAuthStateChange("SIGNED_IN", currentSession);
 
     return {
@@ -204,6 +215,7 @@ export const mockAuthAdapter = {
   async signOut() {
     currentUser = null;
     currentSession = null;
+    try { sessionStorage.removeItem("e-writter-mock-user"); } catch {}
 
     notifyAuthStateChange("SIGNED_OUT", null);
 
