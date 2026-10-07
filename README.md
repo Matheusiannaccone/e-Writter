@@ -255,6 +255,18 @@ Atualmente já estão implementados ou definidos:
 
 O foco atual passa a ser a criação dos services restantes e a integração progressiva do frontend com o backend.
 
+## Leitor de capítulos
+
+A página `chapter.html?id=<uuid-do-capitulo>` carrega uma obra e um capítulo
+publicados pelos services existentes. Em `localhost`, o ID
+`33333333-3333-3333-3333-333333333333` abre o capítulo de exemplo do Mock.
+Os controles anterior/próximo mostram apenas capítulos publicados. Para usar
+o Supabase local, acrescente `&datasource=supabase` à URL.
+
+O texto é exibido como texto simples. Parágrafos são separados por linhas em
+branco, e quebras dentro de cada parágrafo são preservadas. Não há suporte a
+HTML ou Markdown no conteúdo dos capítulos.
+
 ## Próximas etapas
 
 * services de perfis;
