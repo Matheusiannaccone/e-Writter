@@ -41,3 +41,7 @@ export async function publishBook(id) {
 export async function deleteBook(id) {
   return getBookAdapter().deleteBook(id);
 }
+// Retira uma obra do catálogo público. A autorização pertence ao adapter.
+export async function unpublishBook(id) {
+  return getBookAdapter().unpublishBook(id);
+}

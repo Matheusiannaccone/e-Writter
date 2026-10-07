@@ -179,6 +179,7 @@ try {
   if (Array.isArray(saved?.books) && Array.isArray(saved?.bookGenres)) {
     mockBooks.splice(0, mockBooks.length, ...saved.books);
     mockBookGenres.splice(0, mockBookGenres.length, ...saved.bookGenres);
+    if (Array.isArray(saved.chapters)) mockChapters.splice(0, mockChapters.length, ...saved.chapters);
   }
 } catch {
   // O mock continua com os dados iniciais quando storage está indisponível.
@@ -188,7 +189,8 @@ export function saveMockLibrary() {
   try {
     localStorage.setItem(LIBRARY_KEY, JSON.stringify({
       books: mockBooks,
-      bookGenres: mockBookGenres
+      bookGenres: mockBookGenres,
+      chapters: mockChapters
     }));
   } catch {
     // A operação atual ainda funciona; novo reload usa os dados iniciais.

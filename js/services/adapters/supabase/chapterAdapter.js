@@ -108,6 +108,10 @@ function normalizeSupabaseError(
     );
   }
 
+  if (message.includes("a published book must have at least 1 published chapter")) {
+    return createError("VALIDATION_ERROR", "Uma obra publicada precisa manter pelo menos um capítulo publicado. Retire a obra de publicação primeiro.");
+  }
+
   if (
     message.includes(
       "chapter position cannot be changed"
@@ -585,6 +589,23 @@ export const supabaseChapterAdapter = {
         normalizeChapter(chapter),
       error: null
     };
+  },
+
+  // Retira capítulo próprio; triggers preservam a integridade do livro.
+  async unpublishChapter(id) {
+    if (!isValidUuid(id)) return createError("VALIDATION_ERROR", "ID de capítulo inválido.");
+    const auth = await getAuthenticatedUser();
+    if (auth.error) return auth.error;
+    const current = await fetchChapterById(id);
+    if (current.error) return current;
+    const ownership = await validateOwnedBook(current.data.bookId, auth.user.id);
+    if (ownership.error) return ownership.error;
+    const { data, error } = await supabase.from("chapters")
+      .update({ status: "draft" }).eq("id", id).eq("status", "published")
+      .select(CHAPTER_SELECT).maybeSingle();
+    if (error) return normalizeSupabaseError(error, "Não foi possível retirar o capítulo de publicação.");
+    if (!data) return createError("NOT_FOUND", "Capítulo publicado não encontrado.");
+    return { data: normalizeChapter(data), error: null };
   },
 
   // Exclui o capítulo selecionado e todos os posteriores.

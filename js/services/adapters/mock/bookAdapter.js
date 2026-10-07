@@ -654,11 +654,27 @@ export const mockBookAdapter = {
 
     book.updatedAt =
       new Date().toISOString();
+    saveMockLibrary();
 
     return {
       data: normalizeBook(book),
       error: null
     };
+  },
+
+  // Retira uma obra própria do catálogo público.
+  async unpublishBook(id) {
+    if (!isValidUuid(id)) return createError("VALIDATION_ERROR", "ID de livro inválido.");
+    const user = await getAuthenticatedUser();
+    if (!user) return createError("UNAUTHENTICATED", "Nenhum usuário autenticado.");
+    const book = mockBooks.find((item) => item.id === id && item.authorId === user.id);
+    if (!book) return createError("NOT_FOUND", "Livro não encontrado.");
+    if (book.status !== "published") return createError("VALIDATION_ERROR", "A obra já é um rascunho.");
+    book.status = "draft";
+    book.publishedAt = null;
+    book.updatedAt = new Date().toISOString();
+    saveMockLibrary();
+    return { data: normalizeBook(book), error: null };
   },
 
   // Exclui um livro do usuário autenticado.
