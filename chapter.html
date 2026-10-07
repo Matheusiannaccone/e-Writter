@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#34251d">
+    <title>Leitura de capítulo · e-Writter</title>
+    <link rel="stylesheet" href="./css/chapter-reader.css">
+    <script type="module" src="./js/pages/chapter-reader.js"></script>
+  </head>
+  <body>
+    <main class="reader-shell" id="reader">
+      <header class="reader-header">
+        <a class="site-link" href="./index.html"><span class="brand-mark" aria-hidden="true">E</span><span>E-writter</span></a>
+        <span class="header-label">Leitura</span>
+      </header>
+
+      <div class="reader-column">
+        <nav class="breadcrumb" aria-label="Localização">
+          <span>Obra</span><span aria-hidden="true">/</span><span>Capítulo</span>
+        </nav>
+
+        <section class="reader-state" id="reader-state" role="status" aria-live="polite">
+          <div class="loading-mark" aria-hidden="true"></div>
+          <h1>Preparando sua leitura</h1>
+          <p>Carregando o capítulo…</p>
+        </section>
+
+        <article class="chapter" id="chapter" hidden>
+          <header class="chapter-header">
+            <p class="eyebrow">e-Writter <span aria-hidden="true">·</span> <span id="chapter-position"></span></p>
+            <p class="book-title" id="book-title"></p>
+            <h1 id="chapter-title"></h1>
+            <div class="chapter-rule" aria-hidden="true"></div>
+          </header>
+          <div class="chapter-content" id="chapter-content"></div>
+          <footer class="chapter-footer">
+            <span>Fim do capítulo</span>
+            <div class="chapter-rule" aria-hidden="true"></div>
+          </footer>
+        </article>
+
+        <nav class="chapter-navigation" id="chapter-navigation" aria-label="Navegação entre capítulos" hidden>
+          <a class="chapter-link previous" id="previous-chapter" href="#">
+            <span class="link-direction">← Anterior</span>
+            <span class="link-title" id="previous-title"></span>
+          </a>
+          <a class="chapter-link next" id="next-chapter" href="#">
+            <span class="link-direction">Próximo →</span>
+            <span class="link-title" id="next-title"></span>
+          </a>
+        </nav>
+      </div>
+    </main>
+  </body>
+</html>
