@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#34251d">
     <title>Leitura de capítulo · e-Writter</title>
+    <link rel="stylesheet" href="./css/global.css">
+    <link rel="stylesheet" href="./css/components.css">
     <link rel="stylesheet" href="./css/chapter-reader.css">
+    <script type="module" src="./js/components/site-layout.js"></script>
     <script type="module" src="./js/pages/chapter-reader.js"></script>
   </head>
   <body>
+    <a class="skip-link" href="#reader">Ir para o conteúdo</a>
+    <header class="site-header" data-site-header></header>
     <main class="reader-shell" id="reader">
-      <header class="reader-header">
-        <a class="site-link" href="./index.html"><span class="brand-mark" aria-hidden="true">E</span><span>E-writter</span></a>
-        <span class="header-label">Leitura</span>
-      </header>
 
       <div class="reader-column">
         <nav class="breadcrumb" aria-label="Localização">
@@ -52,5 +53,6 @@
         </nav>
       </div>
     </main>
+    <footer class="site-footer" data-site-footer></footer>
   </body>
 </html>

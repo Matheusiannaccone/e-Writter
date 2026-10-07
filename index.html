@@ -1,16 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Site de Livros</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#34251d">
+  <title>Início · e-Writter</title>
+  <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <style>
+    .welcome { display: grid; align-content: center; min-height: calc(100vh - 11rem); padding-block: 4rem; }
+    .welcome__eyebrow { margin: 0 0 .75rem; color: var(--color-primary); font-size: .85rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .welcome h1 { max-width: 13ch; margin: 0; font: 600 clamp(3rem, 9vw, 6rem)/.98 var(--font-reading); letter-spacing: -.025em; }
+    .welcome p:not(.welcome__eyebrow) { max-width: 38rem; margin: 1.5rem 0 2rem; color: var(--color-text-muted); font-size: 1.1rem; }
+    .welcome__actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+  </style>
+  <script type="module" src="./js/components/site-layout.js"></script>
 </head>
 <body>
-  <main>
-    <h1>Site de Livros</h1>
-    <p>Ambiente inicial publicado com sucesso.</p>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <header class="site-header" data-site-header></header>
+  <main id="conteudo" class="welcome page-container">
+    <p class="welcome__eyebrow">Histórias que aproximam</p>
+    <h1>Todo capítulo começa aqui.</h1>
+    <p>Um espaço para descobrir histórias e acompanhar cada página no seu ritmo.</p>
+    <div class="welcome__actions"><a class="button" href="./chapter.html">Abrir leitor</a></div>
   </main>
-
-  
+  <footer class="site-footer" data-site-footer></footer>
 </body>
 </html>
