@@ -35,6 +35,8 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--color-primary);
 .header-label { color: #d2c2a9 !important; }
 .header-label, .breadcrumb, .eyebrow, .chapter-footer { color: var(--color-text-muted); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
 .reader-column { width: min(100%, 47rem); margin: auto; }
+.reader-skip-link, .reader-return-link { display: inline-block; min-height: 44px; padding: .7rem 0; color: var(--color-primary); font-size: .9rem; font-weight: 700; text-underline-offset: .2em; }
+.reader-return-link { margin-top: var(--space-3); }
 .breadcrumb { display: flex; gap: .65rem; padding: var(--space-4) 0 var(--space-3); }
 .reader-state { min-height: 45vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: var(--space-3); }
 .reader-state h1 { font-family: var(--font-reading); font-size: clamp(1.7rem, 6vw, 2.4rem); margin: var(--space-2) 0 var(--space-1); }
