@@ -1,13 +1,15 @@
-import { getBookById } from "../services/bookService.js";
-import { getChapterById, getChaptersByBook } from "../services/chapterService.js";
-
 const state = document.querySelector("#reader-state");
 const chapterElement = document.querySelector("#chapter");
 const navigation = document.querySelector("#chapter-navigation");
+const navigationShortcut = document.querySelector("#navigation-shortcut");
+const returnLink = document.querySelector("#return-to-chapter");
+let services;
 
 function showState(title, message, { error = false, retry = false } = {}) {
   chapterElement.hidden = true;
   navigation.hidden = true;
+  navigationShortcut.hidden = true;
+  returnLink.hidden = true;
   state.hidden = false;
   state.classList.toggle("error", error);
   state.replaceChildren();
@@ -23,7 +25,10 @@ function showState(title, message, { error = false, retry = false } = {}) {
     button.type = "button";
     button.className = "retry-button";
     button.textContent = "Tentar novamente";
-    button.addEventListener("click", loadChapter);
+    button.addEventListener("click", () => {
+      if (services) loadChapter();
+      else window.location.reload();
+    });
     state.append(button);
   }
 }
@@ -65,6 +70,15 @@ async function loadChapter() {
   }
 
   try {
+    // Carregamento dentro do try mantém falhas dos módulos recuperáveis na UI.
+    if (!services) {
+      const [bookService, chapterService] = await Promise.all([
+        import("../services/bookService.js"),
+        import("../services/chapterService.js")
+      ]);
+      services = { ...bookService, ...chapterService };
+    }
+    const { getBookById, getChapterById, getChaptersByBook } = services;
     const chapterResult = await getChapterById(id);
     if (chapterResult.error || !chapterResult.data) {
       showServiceError(chapterResult.error);
@@ -104,6 +118,8 @@ async function loadChapter() {
     setNeighbor("previous-chapter", "previous-title", chapters[index - 1]);
     setNeighbor("next-chapter", "next-title", chapters[index + 1]);
     navigation.hidden = chapters.length <= 1;
+    navigationShortcut.hidden = navigation.hidden;
+    returnLink.hidden = navigation.hidden;
     chapterElement.hidden = false;
     state.hidden = true;
   } catch {
