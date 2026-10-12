@@ -5,7 +5,8 @@ import {
   mockBooks,
   mockBookGenres,
   mockGenres,
-  mockChapters
+  mockChapters,
+  saveMockLibrary
 } from "./mockData.js";
 
 // Cria um erro no formato padrão dos services.
@@ -359,6 +360,8 @@ export const mockBookAdapter = {
       });
     }
 
+    saveMockLibrary();
+
     return {
       data: normalizeBook(book),
       error: null
@@ -558,6 +561,7 @@ export const mockBookAdapter = {
 
     book.updatedAt =
       new Date().toISOString();
+    saveMockLibrary();
 
     return {
       data: normalizeBook(book),
@@ -731,6 +735,8 @@ export const mockBookAdapter = {
         );
       }
     }
+
+    saveMockLibrary();
 
     return {
       data: {

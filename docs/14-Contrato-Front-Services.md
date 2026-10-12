@@ -1704,6 +1704,8 @@ removeAvatar()
 uploadBookCover(bookId, file)
 
 removeBookCover(bookId)
+
+getBookCoverUrl(coverPath)
 ```
 
 ---
@@ -1902,6 +1904,21 @@ Após a operação:
 ```text
 book.coverPath = null
 ```
+
+---
+
+## 12.7 `getBookCoverUrl(coverPath)`
+
+Resolve um `coverPath` já retornado pelo `bookService` em uma URL de exibição.
+A página deve descartar URLs temporárias `blob:` quando trocar de capa.
+
+```js
+const result = await getBookCoverUrl(book.coverPath);
+// { data: { url: string }, error: null }
+```
+
+O adapter Supabase resolve a URL do bucket público; o adapter Mock lê a imagem
+salva no navegador. A página não conhece bucket, URL de Storage ou RPC.
 
 ---
 

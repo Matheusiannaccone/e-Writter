@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#34251d">
+  <title>Ateliê de obras · e-Writter</title>
+  <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/book-editor.css">
+  <script type="module" src="./js/components/site-layout.js"></script>
+  <script type="module" src="./js/pages/book-editor.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <header class="site-header" data-site-header></header>
+  <main id="conteudo" class="editor page-container">
+    <div class="editor__intro">
+      <p class="editor__eyebrow">Ateliê de obras <span aria-hidden="true">/</span> Seus livros</p>
+      <h1>Uma história começa com um nome.</h1>
+      <p>Prepare os detalhes da sua obra. Você pode voltar e aperfeiçoar tudo depois.</p>
+    </div>
+    <div id="editor-status" class="editor__status" role="status" aria-live="polite">Carregando seu ateliê…</div>
+    <div id="editor-content" class="editor__content" hidden>
+      <div class="editor__toolbar">
+        <label for="book-picker">Obra em edição</label>
+        <select id="book-picker"><option value="">Nova obra</option></select>
+      </div>
+      <form id="book-form" novalidate>
+        <div class="editor__grid">
+          <div class="editor__fields">
+            <section class="editor__section" aria-labelledby="identity-heading">
+              <div class="editor__section-head"><span class="editor__section-number">01</span><div><h2 id="identity-heading">Identidade da obra</h2><p>O essencial para criar seu rascunho.</p></div></div>
+              <div class="editor__field">
+                <label for="book-title">Título <span class="editor__required">Obrigatório</span></label>
+                <input id="book-title" name="title" type="text" maxlength="180" autocomplete="off" placeholder="Como se chama sua história?" required aria-describedby="title-error">
+                <p class="editor__error" id="title-error" hidden></p>
+              </div>
+              <div class="editor__field">
+                <label for="book-description">Descrição <span class="editor__optional">Opcional</span></label>
+                <textarea id="book-description" name="description" rows="5" placeholder="Conte ao leitor o que ele vai encontrar…" aria-describedby="description-help"></textarea>
+                <p class="editor__help" id="description-help">Pode ficar em branco enquanto a obra é um rascunho.</p>
+              </div>
+            </section>
+            <section class="editor__section" aria-labelledby="genres-heading">
+              <div class="editor__section-head"><span class="editor__section-number">02</span><div><h2 id="genres-heading">Gêneros</h2><p>Escolha de um a três caminhos para descobrir sua história.</p></div></div>
+              <fieldset id="genre-fieldset" aria-describedby="genres-error"><legend class="sr-only">Gêneros da obra, obrigatório</legend><div id="genre-options" class="editor__genres"></div></fieldset>
+              <p class="editor__error" id="genres-error" hidden></p>
+              <p class="editor__help" id="genre-count">Nenhum gênero selecionado</p>
+            </section>
+          </div>
+          <aside class="editor__cover-section" aria-labelledby="cover-heading">
+            <div class="editor__section-head"><span class="editor__section-number">03</span><div><h2 id="cover-heading">Capa</h2><p>A primeira impressão da sua obra.</p></div></div>
+            <div class="editor__cover" id="cover-preview"><div class="editor__cover-placeholder"><span class="editor__cover-symbol" aria-hidden="true">✦</span><span>Seu mundo<br>começa aqui</span></div><img id="cover-image" alt="Prévia da capa selecionada" hidden></div>
+            <label class="button button--secondary editor__upload" for="cover-file">Escolher imagem</label>
+            <input id="cover-file" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="cover-help cover-error">
+            <p class="editor__help" id="cover-help">JPG, PNG ou WebP · até 5 MB. Opcional.</p>
+            <p class="editor__error" id="cover-error" hidden></p>
+            <button id="remove-cover" class="editor__text-button" type="button" hidden>Remover capa</button>
+          </aside>
+        </div>
+        <div class="editor__actions"><p id="save-note">Sua obra será salva como rascunho.</p><button class="button editor__save" id="save-book" type="submit">Criar rascunho</button></div>
+      </form>
+    </div>
+  </main>
+  <footer class="site-footer" data-site-footer></footer>
+</body>
+</html>
