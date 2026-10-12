@@ -1,5 +1,7 @@
-.reader-shell { min-height: calc(100vh - 11rem); padding: 0 var(--space-2) var(--space-5); background: radial-gradient(ellipse at 95% 8%, rgb(151 105 53 / 17%), transparent 27%), radial-gradient(ellipse at 4% 92%, rgb(151 105 53 / 13%), transparent 30%), var(--color-bg); }
+.reader-shell { min-height: 70vh; padding: 0 var(--space-2) var(--space-5); background: radial-gradient(ellipse at 95% 8%, rgb(151 105 53 / 17%), transparent 27%), var(--color-bg); }
 .reader-column { width: min(100%, 47rem); margin: auto; }
+.reader-skip-link, .reader-return-link { display: inline-block; min-height: 44px; padding: .7rem 0; color: var(--color-primary); font-size: .9rem; font-weight: 700; text-underline-offset: .2em; }
+.reader-return-link { margin-top: var(--space-3); }
 .breadcrumb { display: flex; gap: .65rem; padding: var(--space-4) 0 var(--space-3); }
 .reader-state { min-height: 45vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: var(--space-3); }
 .reader-state h1 { font-family: var(--font-reading); font-size: clamp(1.7rem, 6vw, 2.4rem); margin: var(--space-2) 0 var(--space-1); }
