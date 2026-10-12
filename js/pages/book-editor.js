@@ -26,6 +26,7 @@ let removeExistingCover = false;
 let previewUrl = null;
 let coverRequest = 0;
 let busy = false;
+let pendingEdits = false;
 
 function message(value, kind = '') {
   status.textContent = value;
@@ -104,11 +105,12 @@ function setBusy(value) {
 }
 function renderPicker(selectedId = '') {
   picker.replaceChildren(new Option('Nova obra', ''));
-  books.forEach((book) => picker.add(new Option(book.title, book.id)));
+  books.forEach((book) => picker.add(new Option(`${book.title} · ${book.status === 'published' ? 'Publicado' : 'Rascunho'}`, book.id)));
   picker.value = selectedId;
   if (picker.value !== selectedId) picker.value = '';
 }
 function fillForm() {
+  pendingEdits = false;
   const book = books.find((item) => item.id === picker.value);
   title.value = book?.title ?? '';
   description.value = book?.description ?? '';
@@ -155,6 +157,7 @@ function renderPublication(book) {
     ? 'Esta obra está disponível no catálogo. Somente capítulos publicados podem ser lidos.'
     : 'Esta obra está privada. Mesmo capítulos publicados só ficam visíveis ao público após publicar a obra.';
   const blockers = published ? [] : bookBlockers(book, chapters);
+  if (pendingEdits) blockers.push('Salve as alterações da obra antes de publicar.');
   if (chaptersLoading && !published) blockers.push('Aguarde o carregamento dos capítulos.');
   renderReasons($('#book-blockers'), blockers);
   const bookAction = $('#book-publication-action');
@@ -231,7 +234,7 @@ async function changePublication(target) {
     ? (published && book.status === 'published' && chapters.filter((item) => item.status === 'published').length === 1
       ? ['Retire a obra de publicação antes de retirar o último capítulo publicado.']
       : published ? [] : chapterBlockers(chapter))
-    : published ? [] : bookBlockers(book, chapters);
+    : published ? [] : [...bookBlockers(book, chapters), ...(pendingEdits ? ['Salve as alterações da obra antes de publicar.'] : [])];
   if (blockers.length) { message(blockers.join(' '), 'error'); return; }
   const label = chapter ? `o capítulo “${chapter.title || 'Sem título'}”` : `a obra “${book.title}”`;
   if (!window.confirm(`${published ? 'Retirar de publicação' : 'Publicar'} ${label}?`)) return;
@@ -244,6 +247,11 @@ async function changePublication(target) {
     if (result.error) throw new Error(result.error.message);
     if (chapter) chapters = chapters.map((item) => item.id === chapter.id ? result.data : item);
     else books = books.map((item) => item.id === book.id ? result.data : item);
+    const [bookResult, chapterResult] = await Promise.all([getMyBooks(), getChaptersByBook(book.id)]);
+    if (bookResult.error || chapterResult.error) throw new Error('Estado alterado, mas não foi possível confirmar os dados atualizados. Recarregue a página.');
+    books = bookResult.data ?? [];
+    chapters = chapterResult.data ?? [];
+    renderPicker(book.id);
     renderPublication(books.find((item) => item.id === picker.value));
     $('#save-note').textContent = books.find((item) => item.id === picker.value)?.status === 'published'
       ? 'As alterações serão salvas na obra publicada.' : 'Sua obra será salva como rascunho.';
@@ -303,6 +311,14 @@ async function load() {
   }
 }
 options.addEventListener('change', updateGenreCount);
+form.addEventListener('input', () => {
+  pendingEdits = true;
+  renderPublication(books.find((item) => item.id === picker.value));
+});
+form.addEventListener('change', () => {
+  pendingEdits = true;
+  renderPublication(books.find((item) => item.id === picker.value));
+});
 title.addEventListener('input', () => { if (title.value.trim()) fieldError(title, 'title-error', ''); });
 picker.addEventListener('change', fillForm);
 coverFile.addEventListener('change', () => {
@@ -320,6 +336,8 @@ removeCover.addEventListener('click', () => {
   coverFile.value = '';
   removeExistingCover = Boolean(picker.value);
   showCover();
+  pendingEdits = true;
+  renderPublication(books.find((item) => item.id === picker.value));
 });
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
