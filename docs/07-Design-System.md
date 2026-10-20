@@ -195,3 +195,24 @@ Antes de criar componente novo:
 2. reutilizar tokens;
 3. manter estados de foco/erro/desabilitado;
 4. documentar quando o padrão for reutilizável.
+
+## 13. Implementação compartilhada
+
+A base visual está em `css/global.css` (tokens, tipografia, reset e foco) e
+`css/components.css` (header, navegação, footer e botões). As páginas importam
+ambos antes do CSS específico. O visual mantém a linguagem de papel, tinta e
+vinho presente nas páginas de autenticação e no leitor. Os valores ainda estão
+sujeitos à aprovação do grupo como identidade final.
+
+Para usar a estrutura global em outra página, inclua o módulo
+`js/components/site-layout.js` e os elementos sem conteúdo
+`<header class="site-header" data-site-header></header>` e
+`<footer class="site-footer" data-site-footer></footer>`. Adicione um link de
+pular para `main` e um `id` correspondente. O módulo gera a navegação, marca
+`aria-current="page"` pela URL e controla o menu mobile com `aria-expanded`.
+A lista de links inclui apenas rotas presentes nesta branch; atualize-a quando
+as outras páginas forem integradas.
+
+Páginas de autenticação em outras branches podem reaproveitar tokens e estilos
+sem receber o header completo quando a composição própria exigir foco no
+formulário. O leitor mantém sua coluna e sua tipografia específicas.
