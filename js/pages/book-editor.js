@@ -167,7 +167,12 @@ coverFile.addEventListener('change', () => {
   if (!file) return;
   const error = validateFile(file);
   fieldError(coverFile, 'cover-error', error);
-  if (error) { coverFile.value = ''; return; }
+  if (error) {
+    coverFile.value = '';
+    selectedFile = null;
+    showCover();
+    return;
+  }
   selectedFile = file;
   removeExistingCover = false;
   showCover();
