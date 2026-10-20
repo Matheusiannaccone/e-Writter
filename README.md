@@ -303,3 +303,12 @@ Principais documentos:
 Projeto desenvolvido por uma equipe de **5 integrantes** para a disciplina de **Web Design**.
 
 A primeira versão estável do MVP será representada pela versão `1.0.0`. Durante o desenvolvimento, o projeto permanece em versões `0.x.y`.
+
+## Layout compartilhado
+
+As páginas públicas usam `css/global.css` antes dos estilos específicos.
+`index.html` e `chapter.html` montam header e footer com
+`js/components/site-layout.js` usando `data-site-header` e
+`data-site-footer`. As páginas de autenticação usam os mesmos tokens
+e preservam o layout de formulário próprio. Rotas existentes: início,
+leitura, login, cadastro e recuperação de senha.
