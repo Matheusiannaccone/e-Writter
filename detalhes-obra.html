@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Conheça os detalhes da obra no E-writter.">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/obra.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <title>Detalhes da obra | E-writter</title>
+</head>
+<body class="obra-page">
+  <main class="obra-shell">
+    <header class="obra-header">
+      <a class="obra-back" href="home.html"><span aria-hidden="true">←</span> Voltar ao catálogo</a>
+      <a class="obra-brand" href="home.html" aria-label="E-writter — página inicial"><span class="obra-brand-mark" aria-hidden="true">E</span><span>E-writter</span></a>
+      <span class="obra-header-space" aria-hidden="true"></span>
+    </header>
+
+    <p id="obra-status" class="obra-feedback" role="status" aria-live="polite">Carregando obra...</p>
+    <section id="obra-content" class="obra-content" aria-labelledby="obra-title" hidden>
+      <div class="obra-main-card">
+        <div class="obra-cover-wrap"><div id="obra-cover" class="obra-cover" role="img" aria-label="Capa da obra"><span class="cover-small">E-writter</span><span id="cover-title" class="cover-title"></span><span class="cover-ornament" aria-hidden="true">✦</span></div></div>
+        <div class="obra-info">
+          <p class="obra-eyebrow">UMA NOVA HISTÓRIA</p>
+          <h1 id="obra-title"></h1>
+          <p class="obra-author">por <strong id="obra-author"></strong></p>
+          <div id="obra-tags" class="obra-tags" aria-label="Gêneros da obra"></div>
+          <div class="obra-meta" aria-label="Informações da obra">
+            <div><span class="meta-label">Status</span><strong id="obra-publication-status"></strong></div>
+            <div><span class="meta-label">Idioma</span><strong id="obra-language"></strong></div>
+            <div><span class="meta-label">Capítulos publicados</span><strong id="obra-chapter-count"></strong></div>
+          </div>
+          <div class="obra-actions">
+            <a id="start-reading" class="obra-primary-button" href="#capitulos">Ver capítulos <span aria-hidden="true">→</span></a>
+            <button id="favorite-button" class="obra-favorite-button" type="button" aria-pressed="false"><span aria-hidden="true">♡</span> Favoritar</button>
+          </div>
+          <p id="favorite-status" class="obra-feedback" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+      <section class="obra-section" aria-labelledby="sinopse-title"><div class="section-heading"><p class="obra-eyebrow">SOBRE A OBRA</p><h2 id="sinopse-title">Sinopse</h2></div><p id="obra-description" class="obra-description"></p></section>
+      <section class="obra-section chapters-section" id="capitulos" aria-labelledby="chapters-title">
+        <div class="section-heading chapters-heading"><div><p class="obra-eyebrow">A HISTÓRIA CONTINUA</p><h2 id="chapters-title">Capítulos</h2></div><span id="chapter-count-label" class="chapter-count"></span></div>
+        <div id="chapter-list" class="chapter-list"></div>
+      </section>
+    </section>
+    <footer class="obra-footer">© 2026 E-writter <span aria-hidden="true">·</span> Feito para quem ama histórias</footer>
+  </main>
+
+  <script type="module" src="js/pages/detalhesObraPage.js"></script>
+</body>
+</html>
