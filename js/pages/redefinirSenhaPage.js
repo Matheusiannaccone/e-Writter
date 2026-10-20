@@ -1,7 +1,7 @@
 import { updatePassword } from '../services/authService.js';
   const form=document.querySelector('#new-password-form'),button=document.querySelector('#save-button'),message=document.querySelector('#new-password-message');
 
-  const showMessage = (text,type='error') => 
+  const showMessage = (text,type='error') =>
   {message.textContent=text;
     message.hidden=false;
     message.dataset.type=type;
@@ -11,7 +11,7 @@ form.addEventListener('submit',async e=>{
     message.hidden=true;
     const password=form.elements.password.value
     const confirm=form.elements.confirmPassword.value;
-    
+
     if(password!==confirm)
     {
         showMessage('As senhas não coincidem.');
@@ -19,7 +19,7 @@ form.addEventListener('submit',async e=>{
     }
     button.disabled=true;
     button.textContent='Salvando...';
-    
+
     try{const result = await updatePassword({ password });
     if (result?.error) {
         showMessage(result.error.message || 'Não foi possível alterar a senha. Abra novamente o link recebido por e-mail.');

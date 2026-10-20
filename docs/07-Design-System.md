@@ -216,3 +216,15 @@ as outras páginas forem integradas.
 Páginas de autenticação em outras branches podem reaproveitar tokens e estilos
 sem receber o header completo quando a composição própria exigir foco no
 formulário. O leitor mantém sua coluna e sua tipografia específicas.
+
+## 13. Implementação 0.33.2
+
+A base em `css/global.css` define tokens, tipografia, foco e largura comum.
+`css/components.css` contém header, menu mobile, footer e botões.
+`js/components/site-layout.js` monta o shell de início e leitura;
+formulários de autenticação compartilham os tokens e mantêm um layout
+próprio. O estado ativo usa `aria-current="page"`; o menu informa
+`aria-expanded`, fecha com Escape e usa controles de 44 px.
+
+A paleta em pergaminho e vinho segue a identidade já presente nas páginas.
+Os valores continuam sujeitos à aprovação visual do grupo.

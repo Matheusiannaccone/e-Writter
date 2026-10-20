@@ -37,3 +37,5 @@ a { color: inherit; }
 .skip-link:focus { top: .5rem; }
 @media (min-width: 768px) { .page-container { width: min(100% - 4rem, var(--page-width)); } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+@media (prefers-contrast: more) { :focus-visible { outline-width: 4px; } .site-nav__link[aria-current="page"] { text-decoration: underline; text-underline-offset: .3em; } }
