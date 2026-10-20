@@ -1,6 +1,3 @@
-// services/adapters/mock/authAdapter.js
-// Este arquivo contém funções de mock para simular operações de autenticação.
-// As funções lançam erros indicando que não foram implementadas.
 
 import { mockUsers, mockProfiles } from "./mockData.js";
 
@@ -16,11 +13,16 @@ function loadMockSession() {
 
     const session = JSON.parse(savedSession);
 
+    if (!session?.user) {
+      return { user: null, session: null };
+    }
+
     return {
-      user: session?.user ?? null,
+      user: session.user,
       session
     };
-  } catch {
+  } catch (error) {
+    console.error("Erro ao recuperar sessão Mock:", error);
     return { user: null, session: null };
   }
 }
@@ -31,13 +33,20 @@ let currentUser = savedAuth.user;
 let currentSession = savedAuth.session;
 
 function persistMockSession() {
-  if (currentSession) {
-    sessionStorage.setItem(
-      MOCK_SESSION_KEY,
-      JSON.stringify(currentSession)
-    );
-  } else {
-    sessionStorage.removeItem(MOCK_SESSION_KEY);
+  try {
+    if (currentSession) {
+      sessionStorage.setItem(
+        MOCK_SESSION_KEY,
+        JSON.stringify(currentSession)
+      );
+    } else {
+      sessionStorage.removeItem(MOCK_SESSION_KEY);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Erro ao salvar sessão Mock:", error);
+    return false;
   }
 }
 
@@ -45,240 +54,294 @@ const authListeners = [];
 
 function notifyAuthStateChange(event, session) {
   authListeners.forEach((callback) => {
-    callback(event, session);
+    try {
+      callback(event, session);
+    } catch (error) {
+      console.error("Erro no observador de autenticação:", error);
+    }
   });
 }
 
 export const mockAuthAdapter = {
   async signUp({ email, password, username, displayName }) {
     if (!email || !password || !username || !displayName) {
-        return {
+      return {
         data: null,
         error: {
-            code: "VALIDATION_ERROR",
-            message: "Preencha todos os campos obrigatórios."
+          code: "VALIDATION_ERROR",
+          message: "Preencha todos os campos obrigatórios."
         }
-        };
+      };
     }
 
     if (password.length < 6) {
-        return {
+      return {
         data: null,
         error: {
-            code: "VALIDATION_ERROR",
-            message: "A senha deve conter pelo menos 6 caracteres."
+          code: "VALIDATION_ERROR",
+          message: "A senha deve conter pelo menos 6 caracteres."
         }
-        };
+      };
     }
 
     if (username.length < 3 || username.length > 30) {
-        return {
+      return {
         data: null,
         error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de usuário deve conter entre 3 e 30 caracteres."
+          code: "VALIDATION_ERROR",
+          message: "O nome de usuário deve conter entre 3 e 30 caracteres."
         }
-        };
+      };
     }
 
     if (username !== username.trim()) {
-        return {
+      return {
         data: null,
         error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de usuário não pode começar ou terminar com espaços."
+          code: "VALIDATION_ERROR",
+          message: "O nome de usuário não pode começar ou terminar com espaços."
         }
-        };
+      };
     }
 
     if (username !== username.toLowerCase()) {
-        return {
+      return {
         data: null,
         error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de usuário deve usar apenas letras minúsculas."
+          code: "VALIDATION_ERROR",
+          message: "O nome de usuário deve usar apenas letras minúsculas."
         }
-        };
+      };
     }
 
     if (!/^[a-z0-9._]+$/.test(username)) {
-        return {
+      return {
         data: null,
         error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de usuário contém caracteres inválidos."
+          code: "VALIDATION_ERROR",
+          message: "O nome de usuário contém caracteres inválidos."
         }
-        };
+      };
     }
 
     if (displayName !== displayName.trim()) {
-        return {
+      return {
         data: null,
         error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de exibição não pode começar ou terminar com espaços."
+          code: "VALIDATION_ERROR",
+          message: "O nome de exibição não pode começar ou terminar com espaços."
         }
-        };
+      };
     }
 
     if (displayName.length > 60) {
-        return {
+      return {
         data: null,
         error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de exibição deve conter no máximo 60 caracteres."
+          code: "VALIDATION_ERROR",
+          message: "O nome de exibição deve conter no máximo 60 caracteres."
         }
-        };
+      };
     }
 
     const emailExists = mockUsers.some(
-        (user) => user.email === email
+      (user) => user.email === email
     );
 
     if (emailExists) {
-        return {
+      return {
         data: null,
         error: {
-            code: "CONFLICT",
-            message: "O e-mail já está em uso."
+          code: "CONFLICT",
+          message: "O e-mail já está em uso."
         }
-        };
+      };
     }
 
     const usernameExists = mockProfiles.some(
-        (profile) => profile.username === username
+      (profile) => profile.username === username
     );
 
     if (usernameExists) {
-        return {
+      return {
         data: null,
         error: {
-            code: "CONFLICT",
-            message: "O nome de usuário já está em uso."
+          code: "CONFLICT",
+          message: "O nome de usuário já está em uso."
         }
-        };
+      };
     }
 
     const newUser = {
-        id: `mock-user-${mockUsers.length + 1}`,
-        email,
-        password,
-        username,
-        displayName
+      id: `mock-user-${mockUsers.length + 1}`,
+      email,
+      password,
+      username,
+      displayName
     };
 
     mockUsers.push(newUser);
 
-    // Simula o trigger que cria o profile após o cadastro.
     const now = new Date().toISOString();
 
     mockProfiles.push({
-        id: newUser.id,
-        username: newUser.username,
-        displayName: newUser.displayName,
-        bio: null,
-        avatarPath: null,
-        createdAt: now,
-        updatedAt: now
+      id: newUser.id,
+      username: newUser.username,
+      displayName: newUser.displayName,
+      bio: null,
+      avatarPath: null,
+      createdAt: now,
+      updatedAt: now
     });
 
     currentUser = {
-        id: newUser.id,
-        email: newUser.email,
-        username: newUser.username,
-        displayName: newUser.displayName
+      id: newUser.id,
+      email: newUser.email,
+      username: newUser.username,
+      displayName: newUser.displayName
     };
 
     currentSession = {
-        user: currentUser
+      user: currentUser
     };
 
-    persistMockSession();
+    if (!persistMockSession()) {
+      currentUser = null;
+      currentSession = null;
+
+      return {
+        data: null,
+        error: {
+          code: "SESSION_STORAGE_ERROR",
+          message: "Não foi possível salvar a sessão. Verifique as configurações do navegador."
+        }
+      };
+    }
 
     notifyAuthStateChange("SIGNED_IN", currentSession);
 
     return {
-        data: currentSession,
-        error: null
+      data: currentSession,
+      error: null
     };
-},
+  },
 
   async resetPasswordForEmail({ email }) {
-    const exists = mockUsers.some((user) => user.email === email);
+    const exists = mockUsers.some(
+      (user) => user.email === email
+    );
+
     return exists
-      ? { data: { message: "Solicitação simulada." }, error: null }
-      : { data: null, error: { code: "NOT_FOUND", message: "Não encontramos uma conta com esse e-mail." } };
+      ? {
+          data: { message: "Solicitação simulada." },
+          error: null
+        }
+      : {
+          data: null,
+          error: {
+            code: "NOT_FOUND",
+            message: "Não encontramos uma conta com esse e-mail."
+          }
+        };
   },
 
   async signIn({ email, password }) {
+    const normalizedEmail = email?.trim().toLowerCase();
+
     const user = mockUsers.find(
-        (item) => item.email === email && item.password === password
+      (item) =>
+        item.email.toLowerCase() === normalizedEmail &&
+        item.password === password
     );
 
     if (!user) {
-        return {
-            data: null,
-            error: {
-                code: "UNAUTHENTICATED",
-                message: "E-mail ou senha inválidos"
-            }
-        };
+      return {
+        data: null,
+        error: {
+          code: "UNAUTHENTICATED",
+          message: "E-mail ou senha inválidos."
+        }
+      };
     }
 
     currentUser = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        displayName: user.displayName
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      displayName: user.displayName
     };
 
     currentSession = {
-        user: currentUser
+      user: currentUser
     };
+
+    // CORREÇÃO: salva a sessão antes de concluir o login.
+    if (!persistMockSession()) {
+      currentUser = null;
+      currentSession = null;
+
+      return {
+        data: null,
+        error: {
+          code: "SESSION_STORAGE_ERROR",
+          message: "O login foi validado, mas não foi possível salvar a sessão no navegador."
+        }
+      };
+    }
 
     notifyAuthStateChange("SIGNED_IN", currentSession);
 
     return {
-        data: currentSession,
-        error: null
+      data: currentSession,
+      error: null
     };
-},
+  },
 
   async signOut() {
-  currentUser = null;
-  currentSession = null;
+    currentUser = null;
+    currentSession = null;
 
-  persistMockSession();
+    const saved = persistMockSession();
 
-  notifyAuthStateChange("SIGNED_OUT", null);
+    notifyAuthStateChange("SIGNED_OUT", null);
 
-  return {
-    data: null,
-    error: null
-  };
-},
+    if (!saved) {
+      return {
+        data: null,
+        error: {
+          code: "SESSION_STORAGE_ERROR",
+          message: "Não foi possível limpar a sessão do navegador."
+        }
+      };
+    }
+
+    return {
+      data: null,
+      error: null
+    };
+  },
 
   async getSession() {
     return {
-        data: currentSession,
-        error: null
-    }
+      data: currentSession,
+      error: null
+    };
   },
 
   async getCurrentUser() {
     if (!currentUser) {
-        return {
-            data: null,
-            error: {
-                code: "UNAUTHENTICATED",
-                message: "Nenhuma sessão autenticada encontrada."
-            }
-        };
+      return {
+        data: null,
+        error: {
+          code: "UNAUTHENTICATED",
+          message: "Nenhuma sessão autenticada encontrada."
+        }
+      };
     }
 
     return {
-        data: currentUser,
-        error: null
+      data: currentUser,
+      error: null
     };
   },
 
@@ -286,17 +349,17 @@ export const mockAuthAdapter = {
     authListeners.push(callback);
 
     return {
-        data: {
-            subscription: {
-                unsubscribe() {
-                  const index = authListeners.indexOf(callback);
+      data: {
+        subscription: {
+          unsubscribe() {
+            const index = authListeners.indexOf(callback);
 
-                  if (index !== -1) {
-                    authListeners.splice(index, 1);
-                  }
-                }
+            if (index !== -1) {
+              authListeners.splice(index, 1);
             }
+          }
         }
-    }
+      }
+    };
   }
 };
