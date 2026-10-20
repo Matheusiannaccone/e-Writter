@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -5,102 +6,342 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#34251d">
   <meta name="description" content="Edite e organize sua obra no E-writter.">
+
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/book-editor.css">
   <link rel="stylesheet" href="css/responsive.css">
+
   <title>Editor de obra | E-writter</title>
 </head>
+
 <body class="editor-page">
+
   <header class="editor-header">
-    <a class="editor-brand" href="index.html" aria-label="E-writter - início"><span class="editor-brand-mark">E</span><span>E-writter</span></a>
-    <div class="editor-header-label"><span class="editor-status-dot"></span> Área do escritor</div>
-    
-    <div class="editor-user-menu" id="editor-user-menu">
-  <button
-    class="editor-user-button"
-    id="editor-user-button"
-    type="button"
-    aria-haspopup="true"
-    aria-expanded="false"
-    aria-label="Abrir menu do usuário"
-  >
-    <span class="editor-user-name" id="editor-user-name">Minha conta</span>
-    <span class="editor-user-chevron" aria-hidden="true">⌄</span>
-  </button>
-
-  <div class="editor-user-dropdown" id="editor-user-dropdown" hidden>
-    <p class="editor-user-email" id="editor-user-email"></p>
-
-    <a href="pages/perfil.html" class="user-menu-item">
-      <span>♙</span>
-      <span>Perfil</span>
-    </a>
-
-    <a href="pages/meus-livros.html" class="user-menu-item">
-      <span>📚</span>
-      <span>Meus livros</span>
-    </a>
-
-    <a href="pages/livros-favoritos.html" class="user-menu-item">
-      <span>♥</span>
-      <span>Livros favoritos</span>
-    </a>
-
-    <div class="user-menu-divider"></div>
-
-    <button
-      class="editor-logout-button"
-      id="editor-logout-button"
-      type="button"
+    <a
+      class="editor-brand"
+      href="index.html"
+      aria-label="E-writter - início"
     >
-      <span aria-hidden="true">↪</span> Sair da conta
-    </button>
-  </div>
-</div>  
+      <span class="editor-brand-mark">E</span>
+      <span>E-writter</span>
+    </a>
+
+    <div class="editor-header-label">
+      <span class="editor-status-dot"></span>
+      Área do escritor
+    </div>
+
+    <!-- Menu do usuário -->
+    <div class="editor-user-menu" id="editor-user-menu">
+
+      <button
+        class="editor-user-button"
+        id="editor-user-button"
+        type="button"
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-label="Abrir menu do usuário"
+      >
+        <span class="editor-user-icon" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M5 21v-2a7 7 0 0 1 14 0v2"></path>
+          </svg>
+        </span>
+
+        <span class="editor-user-name" id="editor-user-name">
+          Minha conta
+        </span>
+
+        <span class="editor-user-chevron" aria-hidden="true">⌄</span>
+      </button>
+
+      <!-- Opções do menu -->
+      <div
+        class="editor-user-dropdown"
+        id="editor-user-dropdown"
+        hidden
+      >
+        <p class="editor-user-email" id="editor-user-email"></p>
+
+        <a href="pages/perfil.html" class="user-menu-item">
+          <span aria-hidden="true">♙</span>
+          <span>Perfil</span>
+        </a>
+
+        <a href="pages/meus-livros.html" class="user-menu-item">
+          <span aria-hidden="true">📚</span>
+          <span>Meus livros</span>
+        </a>
+
+        <a href="pages/livros-favoritos.html" class="user-menu-item">
+          <span aria-hidden="true">♥</span>
+          <span>Livros favoritos</span>
+        </a>
+
+        <div class="user-menu-divider"></div>
+
+        <button
+          class="editor-logout-button"
+          id="editor-logout-button"
+          type="button"
+        >
+          <span aria-hidden="true">↪</span>
+          Sair da conta
+        </button>
+      </div>
+
+    </div>
   </header>
 
   <main class="editor-shell">
+
     <div class="editor-page-heading">
-      <div><p class="editor-eyebrow">✦ OFICINA DE HISTÓRIAS</p><h1>Editor de obra</h1><p class="editor-subtitle">Dê forma à sua próxima história, uma página de cada vez.</p></div>
-      <span class="editor-draft-badge"><span aria-hidden="true">●</span> Rascunho</span>
+      <div>
+        <p class="editor-eyebrow">✦ OFICINA DE HISTÓRIAS</p>
+        <h1>Editor de obra</h1>
+        <p class="editor-subtitle">
+          Dê forma à sua próxima história, uma página de cada vez.
+        </p>
+      </div>
+
+      <span class="editor-draft-badge">
+        <span aria-hidden="true">●</span>
+        Rascunho
+      </span>
     </div>
 
     <form class="editor-layout" id="book-editor-form">
+
       <aside class="editor-sidebar">
+
         <section class="editor-paper-card editor-cover-card">
           <p class="editor-section-kicker">A CAPA DA OBRA</p>
+
           <label class="editor-cover-upload" for="book-cover">
-            <span class="editor-cover-art" aria-hidden="true"><span class="editor-cover-ornament">❧</span><span class="editor-cover-placeholder-title">Sua história<br>começa aqui</span><span class="editor-cover-placeholder-author">NOME DO AUTOR</span></span>
-            <span class="editor-cover-upload-label"><span aria-hidden="true">＋</span> Escolher imagem</span>
+            <span class="editor-cover-art" aria-hidden="true">
+              <span class="editor-cover-ornament">❧</span>
+              <span class="editor-cover-placeholder-title">
+                Sua história<br>começa aqui
+              </span>
+              <span class="editor-cover-placeholder-author">
+                NOME DO AUTOR
+              </span>
+            </span>
+
+            <span class="editor-cover-upload-label">
+              <span aria-hidden="true">＋</span>
+              Escolher imagem
+            </span>
           </label>
-          <input class="editor-file-input" id="book-cover" name="cover" type="file" accept="image/*">
-          <p class="editor-help-text">Use uma imagem vertical para representar sua obra.</p>
+
+          <input
+            class="editor-file-input"
+            id="book-cover"
+            name="cover"
+            type="file"
+            accept="image/*"
+          >
+
+          <p class="editor-help-text">
+            Use uma imagem vertical para representar sua obra.
+          </p>
         </section>
+
         <section class="editor-paper-card editor-tips-card">
           <p class="editor-section-kicker">✧ DICA DO ESCRITOR</p>
-          <p>Uma boa sinopse desperta curiosidade sem revelar todos os segredos da história.</p>
+          <p>
+            Uma boa sinopse desperta curiosidade sem revelar todos
+            os segredos da história.
+          </p>
           <span class="editor-tip-ornament" aria-hidden="true">❦</span>
         </section>
+
       </aside>
 
       <section class="editor-paper-card editor-main-form">
-        <div class="editor-section-heading"><span class="editor-section-number">01</span><div><h2>Sobre sua obra</h2><p>Apresente os detalhes que vão ajudar leitores a encontrar sua história.</p></div></div>
-        <div class="editor-fields">
-          <div class="editor-field editor-field-full"><label for="book-title">Título da obra <span>*</span></label><input id="book-title" name="title" type="text" maxlength="120" placeholder="Ex.: A biblioteca das estrelas" required><small>Escolha um título fácil de lembrar.</small></div>
-          <div class="editor-field editor-field-full"><label for="book-description">Sinopse</label><textarea id="book-description" name="description" rows="5" maxlength="2000" placeholder="Sobre o que é sua história? Apresente os personagens, o conflito e o universo da obra..."></textarea><div class="editor-field-foot"><small>Conte um pouco sobre sua história.</small><small>Até 2.000 caracteres</small></div></div>
-          <div class="editor-field"><label for="book-language">Idioma</label><select id="book-language" name="language"><option value="pt-BR">Português</option><option value="en">Inglês</option><option value="es">Espanhol</option></select></div>
-          <div class="editor-field"><label for="book-status">Situação da história</label><select id="book-status" name="publicationStatus"><option value="ongoing">Em andamento</option><option value="completed">Concluída</option><option value="discontinued">Interrompida</option></select></div>
-          <fieldset class="editor-field editor-field-full editor-genres"><legend>Gêneros <span>*</span> <small>Escolha de 1 a 3 opções.</small></legend><div class="editor-genre-options">
-            <label class="editor-genre-option"><input type="checkbox" name="genres" value="1"><span>Ação</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="2"><span>Aventura</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="3"><span>Comédia</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="4"><span>Drama</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="5"><span>Fantasia</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="6"><span>Ficção científica</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="7"><span>Mistério</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="8"><span>Romance</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="9"><span>Suspense</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="10"><span>Terror</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="11"><span>Ficção histórica</span></label><label class="editor-genre-option"><input type="checkbox" name="genres" value="12"><span>Fanfic</span></label>
-          </div></fieldset>
+
+        <div class="editor-section-heading">
+          <span class="editor-section-number">01</span>
+          <div>
+            <h2>Sobre sua obra</h2>
+            <p>
+              Apresente os detalhes que vão ajudar leitores a encontrar
+              sua história.
+            </p>
+          </div>
         </div>
-        <div class="editor-form-message" id="editor-message" role="status" aria-live="polite" hidden></div>
-        <div class="editor-actions"><a class="editor-secondary-button" href="index.html">Cancelar</a><button class="editor-save-button" type="button">Salvar rascunho <span aria-hidden="true">↗</span></button><button class="editor-publish-button" type="submit">Publicar obra <span aria-hidden="true">→</span></button></div>
-        <p class="editor-disclaimer">Você poderá editar os detalhes da obra depois de salvá-la.</p>
+
+        <div class="editor-fields">
+
+          <div class="editor-field editor-field-full">
+            <label for="book-title">
+              Título da obra <span>*</span>
+            </label>
+            <input
+              id="book-title"
+              name="title"
+              type="text"
+              maxlength="120"
+              placeholder="Ex.: A biblioteca das estrelas"
+              required
+            >
+            <small>Escolha um título fácil de lembrar.</small>
+          </div>
+
+          <div class="editor-field editor-field-full">
+            <label for="book-description">Sinopse</label>
+            <textarea
+              id="book-description"
+              name="description"
+              rows="5"
+              maxlength="2000"
+              placeholder="Sobre o que é sua história? Apresente os personagens, o conflito e o universo da obra..."
+            ></textarea>
+
+            <div class="editor-field-foot">
+              <small>Conte um pouco sobre sua história.</small>
+              <small>Até 2.000 caracteres</small>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="book-language">Idioma</label>
+            <select id="book-language" name="language">
+              <option value="pt-BR">Português</option>
+              <option value="en">Inglês</option>
+              <option value="es">Espanhol</option>
+            </select>
+          </div>
+
+          <div class="editor-field">
+            <label for="book-status">Situação da história</label>
+            <select id="book-status" name="publicationStatus">
+              <option value="ongoing">Em andamento</option>
+              <option value="completed">Concluída</option>
+              <option value="discontinued">Interrompida</option>
+            </select>
+          </div>
+
+          <fieldset class="editor-field editor-field-full editor-genres">
+            <legend>
+              Gêneros <span>*</span>
+              <small>Escolha de 1 a 3 opções.</small>
+            </legend>
+
+            <div class="editor-genre-options">
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="1">
+                <span>Ação</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="2">
+                <span>Aventura</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="3">
+                <span>Comédia</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="4">
+                <span>Drama</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="5">
+                <span>Fantasia</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="6">
+                <span>Ficção científica</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="7">
+                <span>Mistério</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="8">
+                <span>Romance</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="9">
+                <span>Suspense</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="10">
+                <span>Terror</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="11">
+                <span>Ficção histórica</span>
+              </label>
+
+              <label class="editor-genre-option">
+                <input type="checkbox" name="genres" value="12">
+                <span>Fanfic</span>
+              </label>
+            </div>
+          </fieldset>
+
+        </div>
+
+        <div
+          class="editor-form-message"
+          id="editor-message"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+
+        <div class="editor-actions">
+          <a class="editor-secondary-button" href="index.html">
+            Cancelar
+          </a>
+
+          <button class="editor-save-button" type="button">
+            Salvar rascunho <span aria-hidden="true">↗</span>
+          </button>
+
+          <button class="editor-publish-button" type="submit">
+            Publicar obra <span aria-hidden="true">→</span>
+          </button>
+        </div>
+
+        <p class="editor-disclaimer">
+          Você poderá editar os detalhes da obra depois de salvá-la.
+        </p>
+
       </section>
     </form>
-    <footer class="editor-footer">© 2026 E-writter <span>·</span> Cada história merece seu próprio lugar.</footer>
+
+    <footer class="editor-footer">
+      © 2026 E-writter
+      <span>·</span>
+      Cada história merece seu próprio lugar.
+    </footer>
+
   </main>
+
   <script type="module" src="js/pages/bookEditorPage.js"></script>
+
 </body>
 </html>
