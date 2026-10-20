@@ -2,7 +2,8 @@
 
 import {
   mockBooks,
-  mockChapters
+  mockChapters,
+  saveMockLibrary
 } from "./mockData.js";
 
 import { mockAuthAdapter } from "./authAdapter.js";
@@ -333,6 +334,7 @@ export const mockChapterAdapter = {
     };
 
     mockChapters.push(chapter);
+    saveMockLibrary();
 
     return {
       data:
@@ -490,6 +492,7 @@ export const mockChapterAdapter = {
 
     chapter.updatedAt =
         new Date().toISOString();
+    saveMockLibrary();
 
     return {
         data:
@@ -577,12 +580,32 @@ export const mockChapterAdapter = {
 
     chapter.updatedAt =
       now;
+    saveMockLibrary();
 
     return {
       data:
         normalizeChapter(chapter),
       error: null
     };
+  },
+
+  // Retira um capítulo próprio da leitura pública.
+  async unpublishChapter(id) {
+    if (!isValidUuid(id)) return createError("VALIDATION_ERROR", "ID de capítulo inválido.");
+    const user = await getAuthenticatedUser();
+    if (!user) return createError("UNAUTHENTICATED", "Nenhum usuário autenticado.");
+    const chapter = mockChapters.find((item) => item.id === id);
+    const book = chapter && getBookById(chapter.bookId);
+    if (!chapter || !isBookAuthor(book, user)) return createError("NOT_FOUND", "Capítulo não encontrado.");
+    if (chapter.status !== "published") return createError("VALIDATION_ERROR", "O capítulo já é um rascunho.");
+    if (book.status === "published" && !mockChapters.some((item) => item.bookId === book.id && item.id !== id && item.status === "published")) {
+      return createError("VALIDATION_ERROR", "Uma obra publicada precisa manter pelo menos um capítulo publicado. Retire a obra de publicação primeiro.");
+    }
+    chapter.status = "draft";
+    chapter.publishedAt = null;
+    chapter.updatedAt = new Date().toISOString();
+    saveMockLibrary();
+    return { data: normalizeChapter(chapter), error: null };
   },
 
   // Exclui o capítulo selecionado e todos os posteriores.

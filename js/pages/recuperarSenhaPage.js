@@ -4,7 +4,7 @@ const form=document.querySelector('#reset-form')
 const button=document.querySelector('#reset-button')
 const message=document.querySelector('#reset-message');
 
-const showMessage = (text,type='error') => 
+const showMessage = (text,type='error') =>
 {
     message.textContent=text;
     message.hidden=false;
@@ -18,10 +18,10 @@ form.addEventListener('submit',async e=>
     const email=form.elements.email.value.trim();
     button.disabled=true;
     button.textContent='Enviando...';
-    
+
     try{
         const result=await resetPasswordForEmail({email});
-        
+
         if(result?.error)
         {
             showMessage(result.error.message||'Não foi possível enviar as instruções.');
@@ -41,6 +41,6 @@ form.addEventListener('submit',async e=>
 for(const a of document.querySelectorAll('[data-page-link]'))
 {
     const q=new URLSearchParams(location.search);
-    
+
     if(q.has('datasource'))a.href+='?'+q.toString();
     }

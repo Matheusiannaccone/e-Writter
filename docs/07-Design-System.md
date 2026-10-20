@@ -195,3 +195,36 @@ Antes de criar componente novo:
 2. reutilizar tokens;
 3. manter estados de foco/erro/desabilitado;
 4. documentar quando o padrão for reutilizável.
+
+## 13. Implementação compartilhada
+
+A base visual está em `css/global.css` (tokens, tipografia, reset e foco) e
+`css/components.css` (header, navegação, footer e botões). As páginas importam
+ambos antes do CSS específico. O visual mantém a linguagem de papel, tinta e
+vinho presente nas páginas de autenticação e no leitor. Os valores ainda estão
+sujeitos à aprovação do grupo como identidade final.
+
+Para usar a estrutura global em outra página, inclua o módulo
+`js/components/site-layout.js` e os elementos sem conteúdo
+`<header class="site-header" data-site-header></header>` e
+`<footer class="site-footer" data-site-footer></footer>`. Adicione um link de
+pular para `main` e um `id` correspondente. O módulo gera a navegação, marca
+`aria-current="page"` pela URL e controla o menu mobile com `aria-expanded`.
+A lista de links inclui apenas rotas presentes nesta branch; atualize-a quando
+as outras páginas forem integradas.
+
+Páginas de autenticação em outras branches podem reaproveitar tokens e estilos
+sem receber o header completo quando a composição própria exigir foco no
+formulário. O leitor mantém sua coluna e sua tipografia específicas.
+
+## 13. Implementação 0.33.2
+
+A base em `css/global.css` define tokens, tipografia, foco e largura comum.
+`css/components.css` contém header, menu mobile, footer e botões.
+`js/components/site-layout.js` monta o shell de início e leitura;
+formulários de autenticação compartilham os tokens e mantêm um layout
+próprio. O estado ativo usa `aria-current="page"`; o menu informa
+`aria-expanded`, fecha com Escape e usa controles de 44 px.
+
+A paleta em pergaminho e vinho segue a identidade já presente nas páginas.
+Os valores continuam sujeitos à aprovação visual do grupo.

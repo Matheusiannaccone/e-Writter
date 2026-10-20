@@ -18,7 +18,7 @@ form.addEventListener('submit',async e=>{
  const email=form.elements.email.value.trim()
  const password=form.elements.password.value
  const confirm=form.elements.passwordConfirm.value;
- 
+
  if(password!==confirm){
   showMessage('As senhas não coincidem.');
   return;
@@ -35,7 +35,7 @@ form.addEventListener('submit',async e=>{
 
    try{
     const result=await signUp({email,password,username,displayName});
-    
+
     if(result?.error){
       showMessage(result.error.message||'Não foi possível criar a conta.');
       return;

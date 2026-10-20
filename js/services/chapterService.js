@@ -37,3 +37,7 @@ export async function publishChapter(id) {
 export async function deleteChapter(id) {
   return getChapterAdapter().deleteChapter(id);
 }
+// Retira um capítulo da leitura pública.
+export async function unpublishChapter(id) {
+  return getChapterAdapter().unpublishChapter(id);
+}
