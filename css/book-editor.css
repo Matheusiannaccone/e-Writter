@@ -86,3 +86,61 @@
 @media (max-width: 820px) { .editor-layout { grid-template-columns: minmax(0, 1fr); } .editor-sidebar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; } .editor-cover-art { width: min(100%, 170px); } .editor-tips-card { display: flex; flex-direction: column; justify-content: center; } }
 @media (max-width: 560px) { .editor-header { min-height: 66px; padding: 10px 16px; } .editor-brand { font-size: 23px; } .editor-brand-mark { width: 32px; height: 32px; font-size: 22px; } .editor-header-label { display: none; } .editor-shell { width: calc(100% - 24px); padding-top: 28px; } .editor-page-heading { align-items: flex-start; flex-direction: column; gap: 15px; margin-bottom: 20px; } .editor-page-heading h1 { font-size: 42px; } .editor-sidebar { grid-template-columns: 1fr; } .editor-paper-card { padding: 22px 18px; } .editor-cover-art { width: min(100%, 190px); } .editor-main-form { padding: 22px 17px; } .editor-section-heading h2 { font-size: 26px; } .editor-fields { grid-template-columns: 1fr; gap: 19px; } .editor-field-full { grid-column: auto; } .editor-actions { display: grid; grid-template-columns: 1fr; } .editor-secondary-button { margin-right: 0; } .editor-actions > * { width: 100%; } .editor-disclaimer { text-align: left; } }
 @media (prefers-reduced-motion: reduce) { .editor-page *, .editor-page *::before, .editor-page *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+
+
+.user-dropdown {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 240px;
+  padding: 8px;
+  border: 1px solid #c7aa7b;
+  border-radius: 8px;
+  background: #fbf1da;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 20%);
+}
+
+.user-dropdown[hidden] {
+  display: none;
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  color: #34251d;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.user-menu-item:hover {
+  background: #ead8b5;
+}
+
+.user-menu-item span:first-child {
+  width: 22px;
+  color: #743d35;
+  text-align: center;
+  font-size: 18px;
+}
+
+.user-menu-divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: #d8c39d;
+}
+
+.logout-item,
+.logout-item span:first-child {
+  color: #a13f36;
+}

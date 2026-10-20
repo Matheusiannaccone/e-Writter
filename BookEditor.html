@@ -16,7 +16,33 @@
     <div class="editor-header-label"><span class="editor-status-dot"></span> Área do escritor</div>
     <div class="editor-user-menu" id="editor-user-menu">
       <button class="editor-user-button" id="editor-user-button" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Abrir menu do usuário">
-        <span class="editor-user-icon" aria-hidden="true">♙</span>
+        
+        <div id="user-menu" class="user-menu">
+          <div id="user-dropdown" class="user-dropdown" hidden>
+  <a href="pages/perfil.html" class="user-menu-item">
+    <span>♙</span>
+    <span>Perfil</span>
+  </a>
+
+  <a href="pages/meus-livros.html" class="user-menu-item">
+    <span>📚</span>
+    <span>Meus livros</span>
+  </a>
+
+  <a href="pages/livros-favoritos.html" class="user-menu-item">
+    <span>♥</span>
+    <span>Livros favoritos</span>
+  </a>
+
+  <div class="user-menu-divider"></div>
+
+  <button id="logout-button" class="user-menu-item logout-item" type="button">
+    <span>↪</span>
+    <span>Sair</span>
+  </button>
+</div>
+        </div>
+
         <span class="editor-user-name" id="editor-user-name">Minha conta</span>
         <span class="editor-user-chevron" aria-hidden="true">⌄</span>
       </button>
