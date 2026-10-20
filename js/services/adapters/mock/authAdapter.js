@@ -4,8 +4,42 @@
 
 import { mockUsers, mockProfiles } from "./mockData.js";
 
-let currentUser = null;
-let currentSession = null;
+const MOCK_SESSION_KEY = "ewritter_mock_session";
+
+function loadMockSession() {
+  try {
+    const savedSession = sessionStorage.getItem(MOCK_SESSION_KEY);
+
+    if (!savedSession) {
+      return { user: null, session: null };
+    }
+
+    const session = JSON.parse(savedSession);
+
+    return {
+      user: session?.user ?? null,
+      session
+    };
+  } catch {
+    return { user: null, session: null };
+  }
+}
+
+const savedAuth = loadMockSession();
+
+let currentUser = savedAuth.user;
+let currentSession = savedAuth.session;
+
+function persistMockSession() {
+  if (currentSession) {
+    sessionStorage.setItem(
+      MOCK_SESSION_KEY,
+      JSON.stringify(currentSession)
+    );
+  } else {
+    sessionStorage.removeItem(MOCK_SESSION_KEY);
+  }
+}
 
 const authListeners = [];
 
@@ -159,6 +193,8 @@ export const mockAuthAdapter = {
         user: currentUser
     };
 
+    persistMockSession();
+
     notifyAuthStateChange("SIGNED_IN", currentSession);
 
     return {
@@ -209,16 +245,18 @@ export const mockAuthAdapter = {
 },
 
   async signOut() {
-    currentUser = null;
-    currentSession = null;
+  currentUser = null;
+  currentSession = null;
 
-    notifyAuthStateChange("SIGNED_OUT", null);
+  persistMockSession();
 
-    return {
-        data: null,
-        error: null
-    };
-  },
+  notifyAuthStateChange("SIGNED_OUT", null);
+
+  return {
+    data: null,
+    error: null
+  };
+},
 
   async getSession() {
     return {

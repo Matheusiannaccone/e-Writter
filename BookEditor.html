@@ -14,7 +14,17 @@
   <header class="editor-header">
     <a class="editor-brand" href="index.html" aria-label="E-writter - início"><span class="editor-brand-mark">E</span><span>E-writter</span></a>
     <div class="editor-header-label"><span class="editor-status-dot"></span> Área do escritor</div>
-    <a class="editor-exit" href="index.html"><span aria-hidden="true">←</span> Voltar</a>
+    <div class="editor-user-menu" id="editor-user-menu">
+      <button class="editor-user-button" id="editor-user-button" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Abrir menu do usuário">
+        <span class="editor-user-icon" aria-hidden="true">♙</span>
+        <span class="editor-user-name" id="editor-user-name">Minha conta</span>
+        <span class="editor-user-chevron" aria-hidden="true">⌄</span>
+      </button>
+      <div class="editor-user-dropdown" id="editor-user-dropdown" hidden>
+        <p class="editor-user-email" id="editor-user-email"></p>
+        <button class="editor-logout-button" id="editor-logout-button" type="button"><span aria-hidden="true">↪</span> Sair da conta</button>
+      </div>
+    </div>
   </header>
 
   <main class="editor-shell">
@@ -59,5 +69,6 @@
     </form>
     <footer class="editor-footer">© 2026 E-writter <span>·</span> Cada história merece seu próprio lugar.</footer>
   </main>
+  <script type="module" src="js/pages/bookEditorPage.js"></script>
 </body>
 </html>
