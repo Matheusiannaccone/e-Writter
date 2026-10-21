@@ -7,6 +7,8 @@
   <title>Meu perfil | E-writter</title>
   <link rel="stylesheet" href="/e-Writter/css/user-pages.css">
   <link rel="stylesheet" href="/e-Writter/css/responsive.css">
+  </head>
+  
 <body class="user-page">
   <header class="user-page-header">
     <a class="user-page-brand" href="../index.html">
@@ -40,20 +42,78 @@
       </div>
     </section>
 
-    <section class="user-page-card">
-      <h2>Informações da conta</h2>
-      <div class="profile-detail">
-        <span>Nome de exibição</span>
-        <strong id="profile-display-name">—</strong>
-      </div>
-      <div class="profile-detail">
-        <span>E-mail</span>
-        <strong id="profile-detail-email">—</strong>
-      </div>
-      <p class="user-page-note" id="profile-message">
-        Os dados são carregados a partir da sessão da sua conta.
-      </p>
-    </section>
+   
+<section class="user-page-card">
+  <h2>Informações da conta</h2>
+
+  <form id="profile-form">
+    <div class="profile-detail">
+      <label for="profile-display-name-input">
+        Nome de exibição
+      </label>
+      <input
+        type="text"
+        id="profile-display-name-input"
+        name="displayName"
+        maxlength="80"
+        required
+        placeholder="Como deseja ser chamado?"
+      >
+    </div>
+
+    <div class="profile-detail">
+      <label for="profile-username-input">
+        Nome de usuário
+      </label>
+      <input
+        type="text"
+        id="profile-username-input"
+        name="username"
+        maxlength="30"
+        required
+        placeholder="Escolha seu nome de usuário"
+      >
+    </div>
+
+    <div class="profile-detail">
+      <label for="profile-bio-input">
+        Biografia
+      </label>
+      <textarea
+        id="profile-bio-input"
+        name="bio"
+        maxlength="500"
+        rows="4"
+        placeholder="Conte um pouco sobre você e suas histórias."
+      ></textarea>
+    </div>
+
+    <div class="profile-detail">
+      <span>E-mail</span>
+      <strong id="profile-detail-email">—</strong>
+    </div>
+
+    <p
+      class="user-page-note"
+      id="profile-message"
+      role="status"
+      aria-live="polite"
+    >
+      Carregando informações da conta...
+    </p>
+
+    <div class="profile-actions">
+      <button type="submit" id="profile-save-button">
+        Salvar alterações
+      </button>
+
+      <button type="button" id="profile-cancel-button">
+        Cancelar
+      </button>
+    </div>
+  </form>
+</section>
+
 
     <section class="user-page-shortcuts">
       <a class="user-page-shortcut" href="meus-livros.html">
