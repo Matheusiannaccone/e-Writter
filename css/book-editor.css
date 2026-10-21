@@ -240,3 +240,24 @@
     font-size: 12px;
   }
 }
+
+.editor-user-menu {
+  position: relative;
+}
+
+.editor-user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 9999;
+  width: 240px;
+  padding: 8px;
+  background: #fbf1da;
+  border: 1px solid #c7aa7b;
+  border-radius: 6px;
+  box-shadow: 0 12px 28px rgb(52 37 29 / 20%);
+}
+
+.editor-user-dropdown[hidden] {
+  display: none !important;
+}
