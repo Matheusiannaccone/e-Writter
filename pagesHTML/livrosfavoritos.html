@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livros favoritos | E-writter</title>
+    <link rel="stylesheet" href="../css/styles.css">
+   <link rel="stylesheet" href="../css/user-pages.css">
+   <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body class="user-page">
+  <header class="user-page-header">
+    <a class="user-page-brand" href="../index.html">
+      <span class="user-page-brand-mark">E</span>
+      <span>E-writter</span>
+    </a>
+
+    <nav class="user-page-nav" aria-label="Navegação da conta">
+      <a href="perfil.html">Perfil</a>
+      <a href="meus-livros.html">Meus livros</a>
+      <a href="livros-favoritos.html" aria-current="page">Favoritos</a>
+      <a href="../BookEditor.html">Escrever</a>
+    </nav>
+  </header>
+
+  <main class="user-page-main">
+    <a class="user-page-back" href="../index.html">← Voltar para o início</a>
+
+    <section class="user-page-heading">
+      <span class="user-page-eyebrow">SUA COLEÇÃO PESSOAL</span>
+      <h1>Livros favoritos <span class="favorite-heart">♥</span></h1>
+      <p>Um lugar para guardar as histórias que conquistaram você.</p>
+    </section>
+
+    <section class="library-toolbar">
+      <div>
+        <h2>Sua coleção</h2>
+        <p id="favorites-count">Seus livros favoritos aparecerão aqui.</p>
+      </div>
+      <a class="user-page-secondary-button" href="../index.html">Explorar livros</a>
+    </section>
+
+    <section class="user-page-card library-empty" id="favorites-empty">
+      <div class="empty-book-icon" aria-hidden="true">♡</div>
+      <h2>Nenhum favorito por enquanto</h2>
+      <p>Quando você favoritar um livro do catálogo, poderá encontrá-lo nesta estante.</p>
+      <a class="user-page-primary-button" href="../index.html">Explorar o catálogo</a>
+    </section>
+
+    <section class="book-list" id="favorites-list" aria-label="Lista de livros favoritos" hidden></section>
+  </main>
+
+  <footer class="user-page-footer">E-writter — suas próximas leituras começam aqui.</footer>
+
+  <script type="module" src="../js/pages/favoritesPage.js"></script>
+</body>
+</html>
