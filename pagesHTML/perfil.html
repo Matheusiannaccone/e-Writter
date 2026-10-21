@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu perfil | E-writter</title>
+  <link rel="stylesheet" href="/e-Writter/css/user-pages.css">
+  <link rel="stylesheet" href="/e-Writter/css/responsive.css">
+<body class="user-page">
+  <header class="user-page-header">
+    <a class="user-page-brand" href="../index.html">
+      <span class="user-page-brand-mark">E</span>
+      <span>E-writter</span>
+    </a>
+
+    <nav class="user-page-nav" aria-label="Navegação da conta">
+      <a href="./pagesHTML/perfil.html" aria-current="page">Perfil</a>
+      <a href="meus-livros.html">Meus livros</a>
+      <a href="livros-favoritos.html">Favoritos</a>
+      <a href="../BookEditor.html">Escrever</a>
+    </nav>
+  </header>
+
+  <main class="user-page-main">
+    <a class="user-page-back" href="../BookEditor.html">← Voltar para a área do escritor</a>
+
+    <section class="user-page-heading">
+      <span class="user-page-eyebrow">SUA CONTA</span>
+      <h1>Meu perfil</h1>
+      <p>Suas informações e sua jornada como escritor.</p>
+    </section>
+
+    <section class="profile-card">
+      <div class="profile-avatar" aria-hidden="true">♙</div>
+      <div class="profile-info">
+        <h2 id="profile-name">Carregando perfil...</h2>
+        <p id="profile-email">Verificando sua sessão</p>
+        <span class="profile-status">Conta E-writter</span>
+      </div>
+    </section>
+
+    <section class="user-page-card">
+      <h2>Informações da conta</h2>
+      <div class="profile-detail">
+        <span>Nome de exibição</span>
+        <strong id="profile-display-name">—</strong>
+      </div>
+      <div class="profile-detail">
+        <span>E-mail</span>
+        <strong id="profile-detail-email">—</strong>
+      </div>
+      <p class="user-page-note" id="profile-message">
+        Os dados são carregados a partir da sessão da sua conta.
+      </p>
+    </section>
+
+    <section class="user-page-shortcuts">
+      <a class="user-page-shortcut" href="meus-livros.html">
+        <span aria-hidden="true">📚</span>
+        <span><strong>Meus livros</strong><small>Veja suas obras</small></span>
+        <span aria-hidden="true">→</span>
+      </a>
+      <a class="user-page-shortcut" href="livros-favoritos.html">
+        <span aria-hidden="true">♥</span>
+        <span><strong>Livros favoritos</strong><small>Encontre suas leituras salvas</small></span>
+        <span aria-hidden="true">→</span>
+      </a>
+    </section>
+  </main>
+
+  <footer class="user-page-footer">E-writter — histórias esperando para serem contadas.</footer>
+
+  <script type="module" src="../js/pages/profilePage.js"></script>
+</body>
+</html>
