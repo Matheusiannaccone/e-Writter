@@ -1,0 +1,395 @@
+
+/* Aparência compartilhada das páginas da conta */
+
+.user-page {
+  margin: 0;
+  min-height: 100vh;
+  color: #38271f;
+  background: #f4ead5;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.user-page *,
+.user-page *::before,
+.user-page *::after {
+  box-sizing: border-box;
+}
+
+.user-page a {
+  color: inherit;
+}
+
+.user-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px max(5%, calc((100% - 1120px) / 2));
+  background: #4b2925;
+  color: #fff1d5;
+  border-bottom: 2px solid #b8955d;
+}
+
+.user-page-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.user-page-brand-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid #d7bb83;
+  color: #f4dfb2;
+  font-size: 26px;
+}
+
+.user-page-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-page-nav a {
+  padding: 9px 11px;
+  border-radius: 4px;
+  color: #f8e9ca;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.user-page-nav a:hover,
+.user-page-nav a[aria-current="page"] {
+  background: #70413a;
+}
+
+.user-page-main {
+  width: min(100% - 36px, 960px);
+  min-height: calc(100vh - 150px);
+  margin: 0 auto;
+  padding: 34px 0 60px;
+}
+
+.user-page-back {
+  display: inline-block;
+  margin-bottom: 28px;
+  color: #79513a;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.user-page-back:hover {
+  text-decoration: underline;
+}
+
+.user-page-heading {
+  margin-bottom: 28px;
+}
+
+.user-page-eyebrow {
+  color: #8a613c;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.user-page-heading h1 {
+  margin: 9px 0;
+  color: #492a25;
+  font-size: clamp(32px, 5vw, 46px);
+  font-weight: normal;
+}
+
+.user-page-heading p {
+  margin: 0;
+  color: #796657;
+  line-height: 1.6;
+}
+
+.user-page-card,
+.profile-card {
+  padding: 25px;
+  border: 1px solid #d8c39d;
+  border-radius: 8px;
+  background: #fff8e9;
+  box-shadow: 0 8px 24px rgb(67 43 29 / 6%);
+}
+
+.user-page-card h2,
+.profile-card h2,
+.library-toolbar h2 {
+  margin-top: 0;
+  color: #512f29;
+  font-weight: normal;
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.profile-avatar {
+  display: grid;
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  border: 1px solid #c6a876;
+  border-radius: 50%;
+  color: #6c4035;
+  background: #eee0c3;
+  font-size: 36px;
+}
+
+.profile-info h2 {
+  margin: 0 0 7px;
+  overflow-wrap: anywhere;
+  font-size: 25px;
+}
+
+.profile-info p {
+  margin: 0 0 10px;
+  color: #786656;
+  overflow-wrap: anywhere;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+.profile-status {
+  display: inline-block;
+  padding: 5px 9px;
+  border: 1px solid #d5c19b;
+  border-radius: 20px;
+  color: #67472f;
+  background: #f5e9ce;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+}
+
+.profile-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px 0;
+  border-bottom: 1px solid #eadbc0;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+.profile-detail span {
+  color: #786656;
+}
+
+.profile-detail strong {
+  max-width: 60%;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.user-page-note {
+  margin-bottom: 0;
+  color: #826f5e;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.user-page-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.user-page-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 18px;
+  border: 1px solid #d8c39d;
+  border-radius: 7px;
+  background: #fbf2df;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.user-page-shortcut:hover {
+  background: #f1e2c2;
+  transform: translateY(-2px);
+}
+
+.user-page-shortcut > span:first-child {
+  font-size: 25px;
+}
+
+.user-page-shortcut > span:last-child {
+  margin-left: auto;
+  color: #875b3a;
+}
+
+.user-page-shortcut strong,
+.user-page-shortcut small {
+  display: block;
+}
+
+.user-page-shortcut strong {
+  margin-bottom: 5px;
+}
+
+.user-page-shortcut small {
+  color: #806d5c;
+  line-height: 1.4;
+}
+
+.library-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 28px 0 18px;
+}
+
+.library-toolbar h2 {
+  margin-bottom: 5px;
+}
+
+.library-toolbar p {
+  margin: 0;
+  color: #806d5c;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+}
+
+.user-page-primary-button,
+.user-page-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 11px 16px;
+  border: 1px solid #63372e;
+  border-radius: 5px;
+  background: #63372e;
+  color: #fff1d5 !important;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.user-page-primary-button:hover {
+  background: #79483d;
+}
+
+.user-page-secondary-button {
+  border-color: #c6a876;
+  background: #fff8e9;
+  color: #63372e !important;
+}
+
+.user-page-secondary-button:hover {
+  background: #f0e0c0;
+}
+
+.library-empty {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-book-icon {
+  margin-bottom: 12px;
+  color: #926d43;
+  font-size: 48px;
+}
+
+.library-empty h2 {
+  margin-bottom: 10px;
+}
+
+.library-empty p {
+  max-width: 470px;
+  margin: 0 auto 22px;
+  color: #806d5c;
+  line-height: 1.7;
+}
+
+.favorite-heart {
+  color: #8d3f37;
+}
+
+.user-page-footer {
+  padding: 20px;
+  border-top: 1px solid #d8c39d;
+  color: #826f5e;
+  text-align: center;
+  font-size: 13px;
+}
+
+@media (max-width: 650px) {
+  .user-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px 20px;
+  }
+
+  .user-page-nav {
+    width: 100%;
+    gap: 3px;
+  }
+
+  .user-page-nav a {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .user-page-main {
+    width: min(100% - 28px, 960px);
+    padding-top: 25px;
+  }
+
+  .profile-card {
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .profile-avatar {
+    flex-basis: 55px;
+    width: 55px;
+    height: 55px;
+    font-size: 28px;
+  }
+
+  .profile-info h2 {
+    font-size: 20px;
+  }
+
+  .user-page-shortcuts {
+    grid-template-columns: 1fr;
+  }
+
+  .library-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-detail {
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .profile-detail strong {
+    max-width: 100%;
+    text-align: left;
+  }
+}
