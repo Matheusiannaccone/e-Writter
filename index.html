@@ -8,13 +8,17 @@
   <link rel="stylesheet" href="./css/global.css">
   <link rel="stylesheet" href="./css/components.css">
   <style>
-    .welcome { display: grid; align-content: center; min-height: calc(100vh - 11rem); padding-block: 4rem; }
+    .welcome { display: grid; align-content: center; min-height: min(70vh, 42rem); padding-block: 4rem; }
     .welcome__eyebrow { margin: 0 0 .75rem; color: var(--color-primary); font-size: .85rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
     .welcome h1 { max-width: 13ch; margin: 0; font: 600 clamp(3rem, 9vw, 6rem)/.98 var(--font-reading); letter-spacing: -.025em; }
     .welcome p:not(.welcome__eyebrow) { max-width: 38rem; margin: 1.5rem 0 2rem; color: var(--color-text-muted); font-size: 1.1rem; }
     .welcome__actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+    .home-books { padding-block: 0 var(--space-5); }
+    .home-books h2 { margin: 0 0 var(--space-3); font: 600 clamp(2rem, 5vw, 3rem)/1 var(--font-reading); }
+    .home-books__state { color: var(--color-text-muted); }
   </style>
   <script type="module" src="./js/components/site-layout.js"></script>
+  <script type="module" src="./js/pages/home-books.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -25,6 +29,11 @@
     <p>Um espaço para descobrir histórias e acompanhar cada página no seu ritmo.</p>
     <div class="welcome__actions"><a class="button" href="./chapter.html">Abrir leitor</a></div>
   </main>
+  <section class="home-books page-container" aria-labelledby="home-books-title">
+    <h2 id="home-books-title">Histórias para começar</h2>
+    <p class="home-books__state" id="home-books-state" role="status">Carregando livros…</p>
+    <div class="book-grid" id="home-books-grid" aria-label="Livros publicados"></div>
+  </section>
   <footer class="site-footer" data-site-footer></footer>
 </body>
 </html>
