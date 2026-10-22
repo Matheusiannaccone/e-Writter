@@ -143,7 +143,8 @@ quando ausente ou indisponível, aparece o estado “Sem capa”. O link inteiro
 recebe foco e é acionável por teclado e toque. Título, autor e metadata longos
 são limitados visualmente sem alterar seus textos no DOM.
 Na Home, `js/pages/home-books.js` usa os services públicos para preencher esse
-grid com livros publicados e vincula cada card ao primeiro capítulo disponível.
+grid com livros publicados e vincula cada card à página pública da obra.
+`book.html` lista os capítulos publicados para continuar a leitura.
 
 ### Navegação
 

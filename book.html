@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#34251d">
+  <title>Obra · e-Writter</title>
+  <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/book-detail.css">
+  <script type="module" src="./js/components/site-layout.js"></script>
+  <script type="module" src="./js/pages/book-detail.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <header class="site-header" data-site-header></header>
+  <main id="conteudo" class="page-container book-detail">
+    <a href="./index.html#home-books-title">← Voltar ao catálogo</a>
+    <div id="book-state" role="status" aria-live="polite">Carregando obra…</div>
+    <article id="book-content" hidden>
+      <p class="book-detail__eyebrow">Obra publicada</p>
+      <h1 id="book-title"></h1>
+      <p id="book-author"></p>
+      <p id="book-genres"></p>
+      <p id="book-description"></p>
+      <h2>Capítulos</h2>
+      <ol id="book-chapters"></ol>
+    </article>
+    <button class="button button--secondary" id="book-retry" type="button" hidden>Tentar novamente</button>
+  </main>
+  <footer class="site-footer" data-site-footer></footer>
+</body>
+</html>

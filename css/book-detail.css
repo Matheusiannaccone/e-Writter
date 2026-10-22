@@ -1,0 +1,11 @@
+.book-detail { min-height: 65vh; padding-block: var(--space-4) var(--space-5); }
+.book-detail > a { display: inline-flex; min-height: 44px; align-items: center; color: var(--color-primary); }
+.book-detail article { max-width: 52rem; padding-block: var(--space-3); }
+.book-detail h1 { margin: 0; overflow-wrap: anywhere; font: 600 clamp(2.7rem, 9vw, 5rem)/1 var(--font-reading); }
+.book-detail h2 { margin-top: var(--space-5); font: 600 2.4rem/1 var(--font-reading); }
+.book-detail__eyebrow { color: var(--color-primary); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+#book-author, #book-genres { color: var(--color-text-muted); }
+#book-description { white-space: pre-line; overflow-wrap: anywhere; }
+#book-chapters { padding-left: 1.5rem; }
+#book-chapters li { border-bottom: 1px solid var(--color-border); }
+#book-chapters a { display: flex; min-height: 48px; align-items: center; padding-block: .5rem; color: var(--color-primary); }
