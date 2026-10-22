@@ -162,6 +162,17 @@ mesma base com texto que explique o estado. O componente `.card` fornece
 superfície, borda, espaçamento e raio para conteúdo genérico; cards de livro
 continuam usando `createBookCard`.
 
+A implementação compartilhada está em `js/components/feedback.js`, com estilos em
+`css/components.css`. `showFeedback(elemento, texto, tipo)` aceita `error`,
+`success`, `warning`, `loading` e `empty`; o texto sempre explica o estado e
+recebe um rótulo, sem depender só da cor. Use `clearFeedback` antes de uma nova
+tentativa, `setFieldError` para erro junto ao campo e `setProcessing` no botão
+durante uma requisição. Campos inválidos usam `aria-invalid` e
+`aria-describedby`; mensagens de erro usam `role="alert"`. Para uma lista vazia,
+exiba uma mensagem concreta como “Nenhuma obra encontrada” com `empty` e,
+quando couber, uma ação de próximo passo. Esses mesmos helpers servem para os
+formulários de Auth e para o perfil quando sua página for implementada.
+
 ### Layout responsivo
 
 Comece com uma coluna e `.page-container` (margem lateral de 16 px).
