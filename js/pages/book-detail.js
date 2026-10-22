@@ -36,6 +36,12 @@ async function loadBook() {
       } catch { /* Perfil opcional para leitura pública. */ }
     }
     document.querySelector("#book-author").textContent = author;
+    try {
+      const { createFavoriteButton } = await import("../components/favorite-button.js");
+      document.querySelector("#book-favorite").replaceChildren(createFavoriteButton(book));
+    } catch {
+      document.querySelector("#book-favorite").textContent = "Biblioteca temporariamente indisponível.";
+    }
     const list = document.querySelector("#book-chapters");
     list.replaceChildren();
     const chapters = (chaptersResult.data || []).filter((chapter) => chapter.status === "published").sort((a, b) => a.position - b.position);
