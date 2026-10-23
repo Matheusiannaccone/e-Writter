@@ -111,6 +111,23 @@
   text-align: center;
 }
 
+.obra-cover-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.capa-inicial {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  font-family: var(--font-reading);
+  font-size: clamp(4rem, 10vw, 6rem);
+  font-weight: 600;
+  color: var(--color-on-primary);
+}
+
 .cover-small {
   font-family: var(--font-reading);
   font-size: 13px;

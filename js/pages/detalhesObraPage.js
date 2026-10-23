@@ -1,3 +1,4 @@
+import { getBookCoverUrl } from "../services/imageService.js";
 import { getBookById } from "../services/bookService.js";
 import { getChaptersByBook } from "../services/chapterService.js";
 import { getProfile } from "../services/profileService.js";
@@ -62,28 +63,53 @@ function showError(message) {
   setStatus(message, true);
 }
 
-function renderCover(book) {
-  elements.capa.replaceChildren();
-
-  if (book.coverPath) {
-    const image = document.createElement("img");
-    image.src = book.coverPath;
-    image.alt = `Capa de ${book.title}`;
-    image.onerror = () => renderCoverPlaceholder(book.title);
-    elements.capa.appendChild(image);
-    return;
-  }
-
-  renderCoverPlaceholder(book.title);
-}
 
 function renderCoverPlaceholder(title) {
   elements.capa.replaceChildren();
+
   const initial = document.createElement("span");
   initial.className = "capa-inicial";
   initial.textContent = (title?.trim()?.[0] ?? "E").toUpperCase();
+
   elements.capa.appendChild(initial);
+  elements.capa.setAttribute("aria-label", `Capa ilustrativa de ${title || "obra sem título"}`);
 }
+
+async function renderCover(book) {
+  renderCoverPlaceholder(book.title);
+
+  if (!book.coverPath) {
+    return;
+  }
+
+  try {
+    const result = await getBookCoverUrl(book.coverPath);
+    const url = result.error ? null : result.data?.url;
+
+    if (!url) {
+      return;
+    }
+
+    const image = document.createElement("img");
+    image.className = "obra-cover-image";
+    image.alt = "";
+    image.src = url;
+
+    image.addEventListener("load", () => {
+      elements.capa.replaceChildren(image);
+      elements.capa.setAttribute("aria-label", `Capa de ${book.title}`);
+    });
+
+    image.addEventListener("error", () => {
+      renderCoverPlaceholder(book.title);
+    });
+
+  } catch (error) {
+    console.warn("Não foi possível carregar a capa:", error);
+    renderCoverPlaceholder(book.title);
+  }
+}
+
 
 function renderGenres(genres = []) {
   elements.generos.replaceChildren();
@@ -128,7 +154,7 @@ function renderChapters(chapters = []) {
 
     const link = document.createElement("a");
     link.className = "capitulo-link";
-    link.href = `./chapter?id=${encodeURIComponent(chapters[0].id)}`;
+    link.href = `./chapter?id=${encodeURIComponent(chapters.id)}`;
     link.textContent = `Capítulo ${chapter.position ?? index + 1} — ${chapter.title}`;
 
     const info = document.createElement("span");
