@@ -137,6 +137,28 @@ Deve suportar:
 - autor;
 - gênero ou metadado resumido.
 
+Implementação compartilhada: `createBookCard` em `js/components/book-card.js`, com
+estilos em `css/components.css`. Home, catálogo, busca e biblioteca devem usar
+esse componente dentro de `.book-grid`, sem repetir a marcação do card.
+
+```js
+import { createBookCard } from "./js/components/book-card.js";
+
+grid.append(await createBookCard(book, {
+  href: bookHref,
+  author: authorName,
+  genres: bookGenres,
+  metadata: book.publicationStatus === "ongoing" ? "Em andamento" : "Concluído"
+}));
+```
+
+O destino é fornecido pela página. A capa usa `getBookCoverUrl` do service;
+quando ausente ou indisponível, aparece o estado “Sem capa”. O link inteiro
+recebe foco e é acionável por teclado e toque. Título, autor e metadata longos
+são limitados visualmente sem alterar seus textos no DOM.
+Na Home, `js/pages/home-books.js` usa os services públicos para preencher esse
+grid com livros publicados e vincula cada card ao primeiro capítulo disponível.
+
 ### Navegação
 
 Deve possuir solução específica para mobile e não depender de hover.
