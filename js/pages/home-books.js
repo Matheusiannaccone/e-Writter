@@ -11,8 +11,7 @@ async function cardForBook(book, { createBookCard, getProfile }) {
       author = profileResult.data?.displayName || profileResult.data?.username || author;
     } catch { /* Perfil opcional para descoberta pública. */ }
   }
-  const href = new URL("./book.html", window.location.href);
-  href.searchParams.set("id", book.id);
+  const href = new URL("./detalhes-obra", window.location.href);  href.searchParams.set("id", book.id);
   if (new URLSearchParams(window.location.search).get("datasource") === "supabase") href.searchParams.set("datasource", "supabase");
 
   return createBookCard(book, {
