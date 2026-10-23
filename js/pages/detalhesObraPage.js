@@ -115,21 +115,20 @@ function renderChapters(chapters = []) {
     empty.className = "capitulos-vazio";
     empty.textContent = "Esta obra ainda não possui capítulos publicados.";
     elements.capitulosLista.appendChild(empty);
-    elements.btnComecar.setAttribute("disabled", "true");
+    elements.btnComecar.setAttribute("aria-disabled", "true");
     elements.btnComecar.removeAttribute("href");
     return;
   }
 
   elements.btnComecar.removeAttribute("aria-disabled");
-  elements.btnComecar.href = `./chapter?chapter=${encodeURIComponent(chapters[0].id)}`;
-
+  elements.btnComecar.href = `./chapter?id=${encodeURIComponent(chapters[0].id)}`;
   chapters.forEach((chapter, index) => {
     const item = document.createElement("article");
     item.className = "capitulo-item";
 
     const link = document.createElement("a");
     link.className = "capitulo-link";
-    link.href = `./chapter?chapter=${encodeURIComponent(chapter.id)}`;
+    link.href = `./chapter?id=${encodeURIComponent(chapters[0].id)}`;
     link.textContent = `Capítulo ${chapter.position ?? index + 1} — ${chapter.title}`;
 
     const info = document.createElement("span");
@@ -232,8 +231,12 @@ async function loadPage() {
     return;
   }
 
+  const publishedChapters = (chaptersResult.data ?? [])
+  .filter((chapter) => chapter.status === "published")
+  .sort((a, b) => a.position - b.position);
+
   renderBook(currentBook, authorResult.data);
-  renderChapters(chaptersResult.data ?? []);
+  renderChapters(publishedChapters);
   setStatus("");
   elements.status.hidden = true;
 
