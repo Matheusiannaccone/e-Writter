@@ -18,15 +18,15 @@
     </a>
 
     <nav class="user-page-nav" aria-label="Navegação da conta">
-      <a href="./pagesHTML/perfil.html" aria-current="page">Perfil</a>
+      <a href="perfil.html" aria-current="page">Perfil</a>
       <a href="meus-livros.html">Meus livros</a>
       <a href="livros-favoritos.html">Favoritos</a>
-      <a href="BookEditor.html">Escrever</a>
+      <a href="book-editor.html">Escrever</a>
     </nav>
   </header>
 
   <main class="user-page-main">
-    <a class="user-page-back" href="BookEditor.html">← Voltar para a área do escritor</a>
+    <a class="user-page-back" href="book-editor.html">← Voltar para a área do escritor</a>
 
     <section class="user-page-heading">
       <span class="user-page-eyebrow">SUA CONTA</span>
@@ -47,7 +47,7 @@
 <section class="user-page-card">
   <h2>Informações da conta</h2>
 
-  <form id="profile-form">
+  <form id="profile-form" method="post">
     <div class="profile-detail">
       <label for="profile-display-name-input">
         Nome de exibição
@@ -56,7 +56,7 @@
         type="text"
         id="profile-display-name-input"
         name="displayName"
-        maxlength="80"
+        maxlength="60"
         required
         placeholder="Como deseja ser chamado?"
       >
@@ -95,13 +95,12 @@
     </div>
 
     <p
-      class="user-page-note"
       id="profile-message"
+      class="feedback"
       role="status"
       aria-live="polite"
-    >
-      Carregando informações da conta...
-    </p>
+      hidden
+    ></p>
 
     <div class="profile-actions">
       <button type="submit" id="profile-save-button">
@@ -132,6 +131,6 @@
 
   <footer class="user-page-footer">E-writter — histórias esperando para serem contadas.</footer>
 
-  <script type="module" src="../js/pages/profilePage.js"></script>
+  <script type="module" src="./js/pages/profilePage.js"></script>
 </body>
 </html>

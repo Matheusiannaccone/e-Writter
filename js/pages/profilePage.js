@@ -1,4 +1,4 @@
-
+import { showFeedbackm, clearFeedback, setProcessing } from "../components/feedback.js";
 import { getCurrentUser } from "../services/authService.js";
 import {
   getMyProfile,
@@ -19,8 +19,8 @@ const cancelButton = document.querySelector("#profile-cancel-button");
 
 let savedProfile = null;
 
-function showMessage(message) {
-  profileMessage.textContent = message;
+function showMessage(message, type = "error") {
+  showFeedback(profileMessage, message, type);
 }
 
 function fillForm(profile) {
@@ -38,6 +38,7 @@ function updateProfileHeader(profile, email) {
 }
 
 async function loadProfile() {
+  showMessage("Carregando informações do perfil...", "loading");
   try {
     const [userResult, profileResult] = await Promise.all([
       getCurrentUser(),
@@ -45,7 +46,7 @@ async function loadProfile() {
     ]);
 
     if (userResult?.error || !userResult?.data) {
-      window.location.replace("../index.html?next=pagesHTML/perfil.html");
+      window.location.replace("./index.html?next=perfil.html");
       return;
     }
 
@@ -70,7 +71,7 @@ async function loadProfile() {
     fillForm(savedProfile);
     updateProfileHeader(savedProfile, email);
 
-    showMessage("Suas informações estão prontas para edição.");
+    clearFeedback(profileMessage);
   } catch (error) {
     console.error("Não foi possível carregar o perfil:", error);
     showMessage("Ocorreu um erro ao carregar seu perfil.");
@@ -110,8 +111,8 @@ profileForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  saveButton.disabled = true;
-  showMessage("Salvando alterações...");
+  setProcessing(saveButton, true, "Salvando...");
+  showMessage("Salvando alterações...", "loading");
 
   try {
     const result = await updateMyProfile(data);
@@ -136,12 +137,12 @@ profileForm.addEventListener("submit", async (event) => {
       detailEmail.textContent
     );
 
-    showMessage("Perfil atualizado com sucesso!");
+    showMessage("Perfil atualizado com sucesso!", "success");
   } catch (error) {
     console.error("Erro ao salvar o perfil:", error);
     showMessage("Ocorreu um erro ao salvar. Tente novamente.");
   } finally {
-    saveButton.disabled = false;
+    setProcessing(saveButton, false);
   }
 });
 
@@ -149,7 +150,7 @@ cancelButton.addEventListener("click", () => {
   if (!savedProfile) return;
 
   fillForm(savedProfile);
-  showMessage("Alterações não salvas foram descartadas.");
+  showMessage("Alterações não salvas foram descartadas.", "warning");
 });
 
 loadProfile();
