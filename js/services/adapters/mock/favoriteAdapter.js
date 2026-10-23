@@ -10,6 +10,22 @@ import {
 
 import { mockAuthAdapter } from "./authAdapter.js";
 
+const FAVORITES_KEY = "e-writter-mock-favorites-v1";
+try {
+  const saved = JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+  if (Array.isArray(saved)) {
+    mockFavorites.splice(0, mockFavorites.length, ...saved.filter((item) =>
+      typeof item?.userId === "string" && isValidUuid(item?.bookId) && typeof item?.createdAt === "string"
+    ));
+  }
+} catch {
+  // O mock permanece utilizável sem armazenamento local.
+}
+
+function persistFavorites() {
+  try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(mockFavorites)); } catch {}
+}
+
 // Cria um erro no formato padrão dos services.
 function createError(code, message) {
   return {
@@ -266,6 +282,7 @@ export const mockFavoriteAdapter = {
     mockFavorites.push(
       favorite
     );
+    persistFavorites();
 
     return {
       data:
@@ -313,6 +330,7 @@ export const mockFavoriteAdapter = {
       index,
       1
     );
+    persistFavorites();
 
     return {
       data: {

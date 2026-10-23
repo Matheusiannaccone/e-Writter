@@ -1,3 +1,4 @@
+import { createFavoriteButton } from "./favorite-button.js";
 import { getBookCoverUrl } from "../services/imageService.js";
 
 // Use o mesmo card nas listas da Home, do catálogo, da busca e da biblioteca.
@@ -64,5 +65,6 @@ export async function createBookCard(book, { href, author, genres = [], metadata
 
   link.append(cover, content);
   card.append(link);
+  if (book.status === "published") card.append(createFavoriteButton(book));
   return card;
 }
