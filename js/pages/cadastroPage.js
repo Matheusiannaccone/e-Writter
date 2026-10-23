@@ -1,18 +1,18 @@
+import { showFeedback, clearFeedback, setFieldError, setProcessing } from '../components/feedback.js';
 import { signUp } from "../services/authService.js";
 
 const form=document.querySelector('#signup-form')
 
 const button=document.querySelector('#signup-button'), message=document.querySelector('#signup-message');
 
-const showMessage = (text,type='error') => {
-  message.textContent=text;
-  message.hidden=false;message.dataset.type=type;
-}
+const showMessage = (text, type = 'error') => showFeedback(message, text, type);
 
 form.addEventListener('submit',async e=>{
   e.preventDefault();
-  message.hidden=true;
+  clearFeedback(message);
 
+ setFieldError(form.elements.passwordConfirm, '');
+ setFieldError(form.elements.username, '');
  const displayName = form.elements.displayName.value.trim()
  const username=form.elements.username.value.trim()
  const email=form.elements.email.value.trim()
@@ -20,18 +20,19 @@ form.addEventListener('submit',async e=>{
  const confirm=form.elements.passwordConfirm.value;
 
  if(password!==confirm){
+  setFieldError(form.elements.passwordConfirm, 'As senhas não coincidem.');
   showMessage('As senhas não coincidem.');
   return;
 }
 
  if(username!==username.toLowerCase()||!/^[a-z0-9._]{3,30}$/.test(username))
  {
-  showMessage('O nome de usuário deve ter 3 a 30 caracteres: letras minúsculas, números, ponto ou sublinhado.');
+  setFieldError(form.elements.username, 'Use 3 a 30 caracteres: letras minúsculas, números, ponto ou sublinhado.');
+  showMessage('Confira o nome de usuário.');
   return;
 }
 
- button.disabled = true;
- button.textContent='Criando conta...';
+ setProcessing(button, true, 'Criando conta...');
 
    try{
     const result=await signUp({email,password,username,displayName});
@@ -50,7 +51,7 @@ form.addEventListener('submit',async e=>{
   showMessage('Não foi possível conectar. Tente novamente.');
 }
 
-finally{button.disabled=false;button.innerHTML='Criar minha conta <span aria-hidden="true">→</span>';}
+finally{setProcessing(button, false);}
 
 });
 

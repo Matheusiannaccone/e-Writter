@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#34251d">
   <meta name="description" content="Entre no E-writter e descubra histórias para ler e compartilhar.">
-  <link rel="stylesheet" href="css/global.css"><link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/global.css"><link rel="stylesheet" href="css/styles.css"><link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/responsive.css">
   <title>Entrar | E-writter</title>
 </head>
@@ -43,7 +43,7 @@
           <p class="card-description">Entre na sua conta para continuar de onde parou.</p>
         </div>
 
-        <form class="login-form" id="login-form">
+        <form class="login-form" id="login-form" method="post">
           <div class="form-field">
             <label for="email">E-mail</label>
             <input id="email" name="email" type="email" placeholder="voce@exemplo.com" autocomplete="email" required>
@@ -69,58 +69,6 @@
     </section>
   </main>
 
-  <script type="module">
-    import { signIn } from "./js/services/authService.js";
-
-    const form = document.querySelector("#login-form");
-    const emailInput = document.querySelector("#email");
-    const passwordInput = document.querySelector("#password");
-    const submitButton = document.querySelector("#login-button");
-    const message = document.querySelector("#login-message");
-
-    function showMessage(text, type = "error") {
-      message.textContent = text;
-      message.hidden = false;
-      message.dataset.type = type;
-    }
-
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      message.hidden = true;
-      message.textContent = "";
-
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-
-      if (!email || !password) {
-        showMessage("Preencha o e-mail e a senha.");
-        return;
-      }
-
-      submitButton.disabled = true;
-      submitButton.setAttribute("aria-busy", "true");
-      submitButton.textContent = "Entrando...";
-
-      try {
-        const result = await signIn({ email, password });
-
-        if (result?.error) {
-          showMessage(result.error.message || "Não foi possível entrar. Confira seus dados.");
-          return;
-        }
-
-        showMessage("Login realizado com sucesso! Sua sessão está ativa.", "success");
-        // Quando a página principal da biblioteca estiver pronta, redirecione aqui.
-        // Exemplo: window.location.href = "pages/biblioteca.html";
-      } catch (error) {
-        console.error("Erro ao realizar login:", error);
-        showMessage("Não foi possível conectar. Verifique sua conexão e tente novamente.");
-      } finally {
-        submitButton.disabled = false;
-        submitButton.removeAttribute("aria-busy");
-        submitButton.innerHTML = 'Entrar na biblioteca <span aria-hidden="true">→</span>';
-      }
-    });
-  </script>
+  <script type="module" src="./js/pages/loginPage.js"></script>
 </body>
 </html>
