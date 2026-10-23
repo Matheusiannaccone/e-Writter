@@ -10,7 +10,7 @@
 
 .obra-shell {
   width: min(1120px, calc(100% - 40px));
-  min-height: 65  vh;
+  min-height: 65vh;
   margin: 0 auto;
   padding: 28px 0 34px;
 }

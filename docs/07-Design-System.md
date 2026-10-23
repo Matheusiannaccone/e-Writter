@@ -144,7 +144,7 @@ recebe foco e é acionável por teclado e toque. Título, autor e metadata longo
 são limitados visualmente sem alterar seus textos no DOM.
 Na Home, `js/pages/home-books.js` usa os services públicos para preencher esse
 grid com livros publicados e vincula cada card à página pública da obra.
-`book.html` lista os capítulos publicados para continuar a leitura.
+`detalhes-obra.html` apresenta as informações públicas da obra, seus capítulos publicados e as ações de leitura e favoritos.s
 
 ### Navegação
 
