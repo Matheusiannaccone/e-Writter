@@ -270,8 +270,19 @@ async function loadPage() {
   setStatus("Carregando obra...");
 
   const bookResult = await getBookById(bookId);
+
   if (bookResult.error || !bookResult.data) {
-    showError(bookResult.error?.message || "Não foi possível carregar a obra.");
+    showError(
+      bookResult.error?.code === "NOT_FOUND" ||
+      bookResult.error?.code === "VALIDATION_ERROR"
+        ? "Obra não encontrada."
+        : "Não foi possível carregar a obra."
+    );
+    return;
+  }
+
+  if (bookResult.data.status !== "published") {
+    showError("Obra não encontrada.");
     return;
   }
 
