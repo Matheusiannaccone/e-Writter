@@ -1,4 +1,4 @@
-import { showFeedbackm, clearFeedback, setProcessing } from "../components/feedback.js";
+import { showFeedback, clearFeedback, setProcessing } from "../components/feedback.js";
 import { getCurrentUser } from "../services/authService.js";
 import {
   getMyProfile,
