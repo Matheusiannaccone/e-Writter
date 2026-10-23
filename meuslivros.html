@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus livros | E-writter</title>
+  <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/user-pages.css">
+</head>
+<body class="user-page">
+  <header class="user-page-header">
+    <a class="user-page-brand" href="./index.html">
+      <span class="user-page-brand-mark">E</span>
+      <span>E-writter</span>
+    </a>
+
+    <nav class="user-page-nav" aria-label="Navegação da conta">
+      <a href="./perfil.html">Perfil</a>
+      <a href="./meuslivros.html" aria-current="page">Meus livros</a>
+      <a href="./book-editor.html">Escrever</a>
+    </nav>
+  </header>
+
+  <main class="user-page-main">
+    <a class="user-page-back" href="./book-editor.html">← Voltar para a área do escritor</a>
+
+    <section class="user-page-heading">
+      <span class="user-page-eyebrow">BIBLIOTECA DO AUTOR</span>
+      <h1>Meus livros</h1>
+      <p>Organize suas histórias e acompanhe suas obras.</p>
+    </section>
+
+    <section class="library-toolbar">
+      <div>
+        <h2>Suas obras</h2>
+        <p id="my-books-count" role="status" aria-live="polite">
+          Carregando suas obras...
+        </p>
+      </div>
+      <a class="user-page-primary-button" href="./book-editor.html">＋ Escrever um livro</a>
+    </section>
+
+    <p
+      id="my-books-message"
+      class="feedback"
+      role="status"
+      aria-live="polite"
+      hidden
+    ></p>
+    <section class="user-page-card library-empty" id="my-books-empty" hidden>
+      <div class="empty-book-icon" aria-hidden="true">📖</div>
+      <h2>Sua estante está esperando</h2>
+      <p>Quando você criar ou publicar livros, eles poderão aparecer nesta página.</p>
+      <a class="user-page-primary-button" href="./book-editor.html">Começar uma história</a>
+    </section>
+
+    <section class="book-list" id="my-books-list" aria-label="Lista dos meus livros" hidden></section>
+  </main>
+
+  <footer class="user-page-footer">E-writter — cada escritor tem uma história para contar.</footer>
+
+  <script type="module" src="./js/pages/myBooksPage.js"></script>
+</body>
+</html>

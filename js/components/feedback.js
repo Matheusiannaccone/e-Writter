@@ -27,7 +27,7 @@ export function setFieldError(field, text) {
     wrapper.append(error);
   }
   if (error) { error.textContent = text; error.hidden = !text; }
-  const describedby = field.getAttribute('aria-describedby') || ''.split(/\s+/).filter(Boolean);
+  const describedby = (field.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
   const filteredIds = describedby.filter(id => id !== error?.id);
   if (text && error) {
     filteredIds.push(error.id);

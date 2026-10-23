@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu perfil | E-writter</title>
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/user-pages.css">
+  </head>
+  
+<body class="user-page">
+  <header class="user-page-header">
+    <a class="user-page-brand" href="index.html">
+      <span class="user-page-brand-mark">E</span>
+      <span>E-writter</span>
+    </a>
+
+    <nav class="user-page-nav" aria-label="Navegação da conta">
+      <a href="perfil.html" aria-current="page">Perfil</a>
+      <a href="meuslivros.html">Meus livros</a>
+      <a href="livrosfavoritos.html">Favoritos</a>
+      <a href="book-editor.html">Escrever</a>
+    </nav>
+  </header>
+
+  <main class="user-page-main">
+    <a class="user-page-back" href="book-editor.html">← Voltar para a área do escritor</a>
+
+    <section class="user-page-heading">
+      <span class="user-page-eyebrow">SUA CONTA</span>
+      <h1>Meu perfil</h1>
+      <p>Suas informações e sua jornada como escritor.</p>
+    </section>
+
+    <section class="profile-card">
+      <div class="profile-avatar" aria-hidden="true">♙</div>
+      <div class="profile-info">
+        <h2 id="profile-name">Carregando perfil...</h2>
+        <p id="profile-email">Verificando sua sessão</p>
+        <span class="profile-status">Conta E-writter</span>
+      </div>
+    </section>
+
+   
+<section class="user-page-card">
+  <h2>Informações da conta</h2>
+
+  <form id="profile-form" method="post">
+    <div class="profile-detail">
+      <label for="profile-display-name-input">
+        Nome de exibição
+      </label>
+      <input
+        type="text"
+        id="profile-display-name-input"
+        name="displayName"
+        maxlength="60"
+        required
+        placeholder="Como deseja ser chamado?"
+      >
+    </div>
+
+    <div class="profile-detail">
+      <label for="profile-username-input">
+        Nome de usuário
+      </label>
+      <input
+        type="text"
+        id="profile-username-input"
+        name="username"
+        maxlength="30"
+        required
+        placeholder="Escolha seu nome de usuário"
+      >
+    </div>
+
+    <div class="profile-detail">
+      <label for="profile-bio-input">
+        Biografia
+      </label>
+      <textarea
+        id="profile-bio-input"
+        name="bio"
+        maxlength="500"
+        rows="4"
+        placeholder="Conte um pouco sobre você e suas histórias."
+      ></textarea>
+    </div>
+
+    <div class="profile-detail">
+      <span>E-mail</span>
+      <strong id="profile-detail-email">—</strong>
+    </div>
+
+    <p
+      id="profile-message"
+      class="feedback"
+      role="status"
+      aria-live="polite"
+      hidden
+    ></p>
+
+    <div class="profile-actions">
+      <button type="submit" id="profile-save-button">
+        Salvar alterações
+      </button>
+
+      <button type="button" id="profile-cancel-button">
+        Cancelar
+      </button>
+    </div>
+  </form>
+</section>
+
+
+    <section class="user-page-shortcuts">
+      <a class="user-page-shortcut" href="./meuslivros.html">
+        <span aria-hidden="true">📚</span>
+        <span><strong>Meus livros</strong><small>Veja suas obras</small></span>
+        <span aria-hidden="true">→</span>
+      </a>
+      <a class="user-page-shortcut" href="./livrosfavoritos.html">
+        <span aria-hidden="true">♥</span>
+        <span><strong>Livros favoritos</strong><small>Encontre suas leituras salvas</small></span>
+        <span aria-hidden="true">→</span>
+      </a>
+    </section>
+  </main>
+
+  <footer class="user-page-footer">E-writter — histórias esperando para serem contadas.</footer>
+
+  <script type="module" src="./js/pages/profilePage.js"></script>
+</body>
+</html>
