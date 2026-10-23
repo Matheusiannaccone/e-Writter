@@ -70,8 +70,8 @@ async function loadMyBooks() {
 
     const cards = await Promise.all(
       books.map((book) => {
-        const href = new URL("./book-editor.html", window.location.href);
-        href.searchParams.set("id", book.id);
+        const href = new URL("./book-editor", window.location.href);
+        href.searchParams.set("book", book.id);
 
         return createBookCard(book, {
           href: href.href,
