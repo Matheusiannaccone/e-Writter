@@ -23,14 +23,21 @@ export function setFieldError(field, text) {
     error = document.createElement('small');
     error.className = 'field__error';
     error.id = `${field.id}-error`;
+    error.setAttribute('role', 'alert');
     wrapper.append(error);
   }
   if (error) { error.textContent = text; error.hidden = !text; }
-  if (text) {
+  const describedby = field.getAttribute('aria-describedby') || ''.split(/\s+/).filter(Boolean);
+  const filteredIds = describedby.filter(id => id !== error?.id);
+  if (text && error) {
+    filteredIds.push(error.id);
     field.setAttribute('aria-invalid', 'true');
-    field.setAttribute('aria-describedby', error.id);
   } else {
     field.removeAttribute('aria-invalid');
+  }
+  if (filteredIds.length) {
+    field.setAttribute('aria-describedby', filteredIds.join(' '));
+  } else {
     field.removeAttribute('aria-describedby');
   }
 }
