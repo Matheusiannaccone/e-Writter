@@ -1,23 +1,18 @@
+import { showFeedback, clearFeedback, setProcessing } from '../components/feedback.js';
 import { resetPasswordForEmail } from "../services/authService.js";
 
 const form=document.querySelector('#reset-form')
 const button=document.querySelector('#reset-button')
 const message=document.querySelector('#reset-message');
 
-const showMessage = (text,type='error') =>
-{
-    message.textContent=text;
-    message.hidden=false;
-    message.dataset.type=type;
-}
+const showMessage = (text, type = 'error') => showFeedback(message, text, type);
 
 form.addEventListener('submit',async e=>
 {
     e.preventDefault();
-    message.hidden=true;
+    clearFeedback(message);
     const email=form.elements.email.value.trim();
-    button.disabled=true;
-    button.textContent='Enviando...';
+    setProcessing(button, true, 'Enviando...');
 
     try{
         const result=await resetPasswordForEmail({email});
@@ -35,7 +30,7 @@ form.addEventListener('submit',async e=>
     }
     finally
     {
-        button.disabled=false;button.innerHTML='Enviar instruções <span aria-hidden="true">→</span>';
+        setProcessing(button, false);
     }
 });
 for(const a of document.querySelectorAll('[data-page-link]'))

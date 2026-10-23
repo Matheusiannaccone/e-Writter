@@ -15,9 +15,38 @@
 .site-footer__inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-1) var(--space-3); }
 .site-footer p { margin: 0; }
 .site-footer a:hover { color: var(--color-primary); }
-.button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .65rem 1.1rem; border: 1px solid var(--color-primary); border-radius: var(--radius-sm); background: var(--color-primary); color: #fff; font-weight: 700; text-decoration: none; cursor: pointer; }
+.button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .65rem 1.1rem; border: 1px solid var(--color-primary); border-radius: var(--radius-sm); background: var(--color-primary); color: var(--color-on-primary); font-weight: 700; text-decoration: none; cursor: pointer; }
 .button:hover { background: var(--color-primary-hover); }
 .button--secondary { background: transparent; color: var(--color-primary); }
 .button--secondary:hover { background: #f3e4c9; }
-.button:disabled { opacity: .6; cursor: not-allowed; }
+.button--text { border-color: transparent; background: transparent; color: var(--color-primary); text-decoration: underline; text-underline-offset: .2em; }
+.button--text:hover { background: #f3e4c9; }
+.button--danger { border-color: var(--color-danger); background: var(--color-danger); }
+.button--danger:hover { background: var(--color-danger-hover); }
+.button:disabled, .button[aria-disabled='true'] { opacity: .6; cursor: not-allowed; }
+.button[aria-busy='true'] { cursor: progress; }
+.field { display: grid; gap: var(--space-1); }
+.field label { font-weight: 700; }
+.field input:not([type='checkbox']):not([type='radio']):not([type='file']), .field textarea, .field select { width: 100%; min-height: 48px; padding: .75rem 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-input-bg); color: var(--color-text); }
+.field :is(input, textarea, select)[aria-invalid='true'] { border-color: var(--color-danger); }
+.field__error { color: var(--color-danger); font-size: .875rem; }
+.card { min-width: 0; padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.feedback { padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); }
+.feedback[hidden], .field__error[hidden] { display: none }
 @media (min-width: 768px) { .site-header__inner { min-height: 6rem; flex-wrap: nowrap; } .site-nav-toggle { display: none; } .site-nav, .site-nav[hidden] { display: block !important; width: auto; margin-left: auto; } .site-nav__list { flex-direction: row; align-items: center; padding: 0; } .site-nav__link[aria-current='page'] { box-shadow: inset 0 -3px #e8c991; } }
+/* Estados reutilizáveis em formulários, listas e páginas de perfil. */
+.feedback { display: flex; align-items: flex-start; gap: .6rem; overflow-wrap: anywhere; line-height: 1.45; }
+.feedback::before { content: 'ℹ'; flex: none; font-weight: 700; }
+.feedback[data-type='error'] { border-color: var(--color-danger); background: #f8e5df; color: #6b2922; }
+.feedback[data-type='error']::before { content: '!'; }
+.feedback[data-type='success'] { border-color: var(--color-success); background: #e8f0e2; color: var(--color-success); }
+.feedback[data-type='success']::before { content: '✓'; }
+.feedback[data-type='warning'] { border-color: var(--color-warning); background: #fff4e5; color: #6b4c1e; }
+.feedback[data-type='warning']::before { content: '⚠'; }
+.feedback[data-type='loading']::before { content: '…'; }
+.feedback[data-type='empty'] { border-style: dashed; }
+.feedback-spinner { display: inline-block; width: 1em; height: 1em; margin-right: .5em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: feedback-spin .8s linear infinite; vertical-align: -.15em; }
+@keyframes feedback-spin { to { transform: rotate(360deg); } }
+.form-field [aria-invalid='true'], .field [aria-invalid='true'] { border: 2px solid var(--color-danger); background: #fff9f6; }
+.form-field .field__error, .field .field__error { display: block; margin-top: .35rem; color: #6b2922; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .feedback-spinner { animation: none; border-style: double; } }
