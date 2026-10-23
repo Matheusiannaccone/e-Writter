@@ -65,7 +65,6 @@ function showError(message, canRetry = false) {
   setStatus(message, true);
 }
 
-
 function renderCoverPlaceholder(title) {
   elements.capa.replaceChildren();
 
@@ -112,7 +111,6 @@ async function renderCover(book) {
   }
 }
 
-
 function renderGenres(genres = []) {
   elements.generos.replaceChildren();
 
@@ -132,6 +130,20 @@ function renderGenres(genres = []) {
   });
 }
 
+function getChapterUrl(chapterId) {
+  const url = new URL("./chapter", window.location.href);
+
+  url.searchParams.set("id", chapterId);
+
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("datasource") === "supabase") {
+    url.searchParams.set("datasource", "supabase");
+  }
+
+  return url.href;
+}
+
 function renderChapters(chapters = []) {
   currentChapters = chapters;
   elements.capitulosLista.replaceChildren();
@@ -149,14 +161,14 @@ function renderChapters(chapters = []) {
   }
 
   elements.btnComecar.removeAttribute("aria-disabled");
-  elements.btnComecar.href = `./chapter?id=${encodeURIComponent(chapters[0].id)}`;
+  elements.btnComecar.href = getChapterUrl(chapters[0].id);
   chapters.forEach((chapter, index) => {
     const item = document.createElement("article");
     item.className = "capitulo-item";
 
     const link = document.createElement("a");
     link.className = "capitulo-link";
-    link.href = `./chapter?id=${encodeURIComponent(chapter.id)}`;
+    link.href = getChapterUrl(chapter.id);
     link.textContent = `Capítulo ${chapter.position ?? index + 1} — ${chapter.title}`;
 
     const info = document.createElement("span");
