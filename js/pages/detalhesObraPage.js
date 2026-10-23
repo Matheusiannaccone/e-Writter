@@ -262,7 +262,31 @@ async function toggleFavorite() {
   }
 }
 
+async function loadAuthor(authorId) {
+  if (!authorId) {
+    return null;
+  }
 
+  try {
+    const result = await getProfile(authorId);
+
+    if (result?.error) {
+      console.warn(
+        "Não foi possível consultar o perfil do autor:",
+        result.error
+      );
+      return null;
+    }
+
+    return result?.data ?? null;
+  } catch (error) {
+    console.warn(
+      "Erro inesperado ao consultar o perfil do autor:",
+      error
+    );
+    return null;
+  }
+}
 
 async function loadPage() {
   elements.retry.hidden = true;
@@ -300,10 +324,8 @@ async function loadPage() {
 
     currentBook = bookResult.data;
 
-    const [authorResult, chaptersResult] = await Promise.all([
-      currentBook.authorId
-        ? getProfile(currentBook.authorId)
-        : Promise.resolve({ data: null, error: null }),
+    const [author, chaptersResult] = await Promise.all([
+      loadAuthor(currentBook.authorId),
       getChaptersByBook(currentBook.id)
     ]);
 
@@ -323,7 +345,7 @@ async function loadPage() {
       .filter((chapter) => chapter.status === "published")
       .sort((a, b) => a.position - b.position);
 
-    renderBook(currentBook, authorResult?.data ?? null);
+    renderBook(currentBook, author);
     renderChapters(publishedChapters);
 
     setStatus("");
