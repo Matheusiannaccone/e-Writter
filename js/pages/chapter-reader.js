@@ -111,6 +111,12 @@ async function loadChapter() {
     }
 
     document.getElementById("book-title").textContent = book.title;
+    try {
+      const { createFavoriteButton } = await import("../components/favorite-button.js");
+      document.getElementById("reader-favorite").replaceChildren(createFavoriteButton(book));
+    } catch {
+      document.getElementById("reader-favorite").textContent = "Biblioteca temporariamente indisponível.";
+    }
     document.getElementById("chapter-title").textContent = chapter.title;
     document.getElementById("chapter-position").textContent = `Capítulo ${chapter.position}`;
     document.title = `${chapter.title} · ${book.title} · e-Writter`;

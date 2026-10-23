@@ -126,3 +126,8 @@ Uma tarefa operacional só deve ser considerada concluída quando cumprir os cri
 - responsividade verificada;
 - documentação atualizada;
 - PR revisado conforme `09-Git-e-Versionamento.md`.
+
+## Pendência para avaliação de Matheus — favoritos (0.42.0)
+
+- Validar a persistência de favoritos no ambiente mock após recarga: o adapter mock passou a guardar a lista por usuário no `localStorage`, mantendo a checagem de duplicidade existente. Isso é somente para prévia local; confirmar a integração real com Supabase/RLS antes da entrega em produção.
+- Avaliar no serviço/adapters a normalização de erros de autorização do Supabase (`42501`/RLS) para `FORBIDDEN`; a interface atual trata a falha genericamente sem interromper a página.
