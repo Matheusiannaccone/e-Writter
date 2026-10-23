@@ -1,19 +1,19 @@
 const grid = document.querySelector("#home-books-grid");
 const state = document.querySelector("#home-books-state");
 
-async function cardForBook(book, { createBookCard, getChaptersByBook, getProfile }) {
-  const chaptersResult = await getChaptersByBook(book.id);
-  if (chaptersResult.error) return null;
+const retry = document.querySelector("#home-books-retry");
 
-  const firstChapter = (chaptersResult.data || [])
-    .filter((chapter) => chapter.status === "published")
-    .sort((a, b) => a.position - b.position)[0];
-  if (!firstChapter) return null;
-
-  const profileResult = await getProfile(book.authorId);
-  const author = profileResult.data?.displayName || profileResult.data?.username || "Autor não informado";
-  const href = new URL("./chapter.html", window.location.href);
-  href.searchParams.set("id", firstChapter.id);
+async function cardForBook(book, { createBookCard, getProfile }) {
+  let author = "Autor não informado";
+  if (book.authorId) {
+    try {
+      const profileResult = await getProfile(book.authorId);
+      author = profileResult.data?.displayName || profileResult.data?.username || author;
+    } catch { /* Perfil opcional para descoberta pública. */ }
+  }
+  const href = new URL("./detalhes-obra", window.location.href);
+  href.searchParams.set("id", book.id);
+  if (new URLSearchParams(window.location.search).get("datasource") === "supabase") href.searchParams.set("datasource", "supabase");
 
   return createBookCard(book, {
     href: href.href,
@@ -24,25 +24,32 @@ async function cardForBook(book, { createBookCard, getChaptersByBook, getProfile
 }
 
 async function loadBooks() {
+  grid.replaceChildren();
+  state.textContent = "Carregando livros…";
+  state.hidden = false;
+  retry.hidden = true;
   try {
-    const [cardModule, booksModule, chaptersModule, profilesModule] = await Promise.all([
+    const [cardModule, booksModule, profilesModule] = await Promise.all([
       import("../components/book-card.js"),
       import("../services/bookService.js"),
-      import("../services/chapterService.js"),
       import("../services/profileService.js")
     ]);
-    const services = { ...cardModule, ...chaptersModule, ...profilesModule };
+    const services = { ...cardModule, ...profilesModule };
     const { getBooks } = booksModule;
     const result = await getBooks();
     if (result.error) throw result.error;
-    const cards = await Promise.all((result.data || []).map((book) => cardForBook(book, services)));
-    const available = cards.filter(Boolean);
-    grid.replaceChildren(...available);
-    state.textContent = available.length ? "" : "Ainda não há livros disponíveis para leitura.";
-    state.hidden = available.length > 0;
+    const books = (result.data || []).filter((book) => book.status === "published");
+    const cards = await Promise.all(books.map((book) => cardForBook(book, services)));
+    grid.replaceChildren(...cards);
+    state.textContent = cards.length ? "" : "Ainda não há livros publicados. Volte em breve para descobrir novas histórias.";
+    state.hidden = cards.length > 0;
   } catch {
     state.textContent = "Não foi possível carregar os livros agora.";
+    retry.hidden = false;
   }
 }
 
-if (grid && state) loadBooks();
+if (grid && state && retry) {
+  retry.addEventListener("click", loadBooks);
+  loadBooks();
+}

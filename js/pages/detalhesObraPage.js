@@ -23,7 +23,8 @@ const elements = {
   capitulosLista: document.querySelector("#chapter-list"),
   btnComecar: document.querySelector("#start-reading"),
   btnFavorito: document.querySelector("#favorite-button"),
-  favoritoFeedback: document.querySelector("#favorite-status")
+  favoritoFeedback: document.querySelector("#favorite-status"),
+  retry: document.querySelector("#obra-retry")
 };
 
 
@@ -37,7 +38,7 @@ let favoriteState = false;
 function setStatus(message, isError = false) {
   elements.status.textContent = message;
   elements.status.classList.toggle("is-error", isError);
-  elements.status.hidden = false;
+  elements.status.hidden = !message;
 }
 
 function formatLanguage(language) {
@@ -58,11 +59,11 @@ function formatPublicationStatus(status) {
   return statuses[status] ?? status ?? "Não informado";
 }
 
-function showError(message) {
+function showError(message, canRetry = false) {
   elements.content.hidden = true;
+  elements.retry.hidden = !canRetry;
   setStatus(message, true);
 }
-
 
 function renderCoverPlaceholder(title) {
   elements.capa.replaceChildren();
@@ -110,7 +111,6 @@ async function renderCover(book) {
   }
 }
 
-
 function renderGenres(genres = []) {
   elements.generos.replaceChildren();
 
@@ -130,6 +130,20 @@ function renderGenres(genres = []) {
   });
 }
 
+function getChapterUrl(chapterId) {
+  const url = new URL("./chapter", window.location.href);
+
+  url.searchParams.set("id", chapterId);
+
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("datasource") === "supabase") {
+    url.searchParams.set("datasource", "supabase");
+  }
+
+  return url.href;
+}
+
 function renderChapters(chapters = []) {
   currentChapters = chapters;
   elements.capitulosLista.replaceChildren();
@@ -147,14 +161,14 @@ function renderChapters(chapters = []) {
   }
 
   elements.btnComecar.removeAttribute("aria-disabled");
-  elements.btnComecar.href = `./chapter?id=${encodeURIComponent(chapters[0].id)}`;
+  elements.btnComecar.href = getChapterUrl(chapters[0].id);
   chapters.forEach((chapter, index) => {
     const item = document.createElement("article");
     item.className = "capitulo-item";
 
     const link = document.createElement("a");
     link.className = "capitulo-link";
-    link.href = `./chapter?id=${encodeURIComponent(chapter.id)}`;
+    link.href = getChapterUrl(chapter.id);
     link.textContent = `Capítulo ${chapter.position ?? index + 1} — ${chapter.title}`;
 
     const info = document.createElement("span");
@@ -260,8 +274,37 @@ async function toggleFavorite() {
   }
 }
 
+async function loadAuthor(authorId) {
+  if (!authorId) {
+    return null;
+  }
+
+  try {
+    const result = await getProfile(authorId);
+
+    if (result?.error) {
+      console.warn(
+        "Não foi possível consultar o perfil do autor:",
+        result.error
+      );
+      return null;
+    }
+
+    return result?.data ?? null;
+  } catch (error) {
+    console.warn(
+      "Erro inesperado ao consultar o perfil do autor:",
+      error
+    );
+    return null;
+  }
+}
 
 async function loadPage() {
+  elements.retry.hidden = true;
+  elements.content.hidden = true;
+  currentBook = null;
+
   if (!bookId) {
     showError("Não foi informado o ID da obra.");
     return;
@@ -269,44 +312,64 @@ async function loadPage() {
 
   setStatus("Carregando obra...");
 
-  const bookResult = await getBookById(bookId);
-  if (bookResult.error || !bookResult.data) {
-    showError(bookResult.error?.message || "Não foi possível carregar a obra.");
-    return;
+  try {
+    const bookResult = await getBookById(bookId);
+
+    if (
+      bookResult?.error?.code === "NOT_FOUND" ||
+      bookResult?.error?.code === "VALIDATION_ERROR" ||
+      (!bookResult?.error && !bookResult?.data)
+    ) {
+      showError("Obra não encontrada.");
+      return;
+    }
+
+    if (bookResult?.error) {
+      showError("Não foi possível carregar a obra.", true);
+      return;
+    }
+
+    if (bookResult.data.status !== "published") {
+      showError("Obra não encontrada.");
+      return;
+    }
+
+    currentBook = bookResult.data;
+
+    const [author, chaptersResult] = await Promise.all([
+      loadAuthor(currentBook.authorId),
+      getChaptersByBook(currentBook.id)
+    ]);
+
+    if (chaptersResult?.error) {
+      if (
+        chaptersResult.error.code === "NOT_FOUND" ||
+        chaptersResult.error.code === "VALIDATION_ERROR"
+      ) {
+        showError("Obra não encontrada.");
+      } else {
+        showError("Não foi possível carregar os capítulos.", true);
+      }
+      return;
+    }
+
+    const publishedChapters = (chaptersResult?.data ?? [])
+      .filter((chapter) => chapter.status === "published")
+      .sort((a, b) => a.position - b.position);
+
+    renderBook(currentBook, author);
+    renderChapters(publishedChapters);
+
+    setStatus("");
+    await loadFavorite();
+  } catch (error) {
+    console.error("Erro ao carregar detalhes da obra:", error);
+    showError("Ocorreu um erro ao carregar a obra.", true);
   }
-
-  currentBook = bookResult.data;
-
-  const [authorResult, chaptersResult] = await Promise.all([
-    getProfile(currentBook.authorId),
-    getChaptersByBook(currentBook.id)
-  ]);
-
-  if (authorResult.error && authorResult.error.code !== "NOT_FOUND") {
-    showError(authorResult.error.message || "Não foi possível carregar o autor.");
-    return;
-  }
-
-  if (chaptersResult.error) {
-    showError(chaptersResult.error.message || "Não foi possível carregar os capítulos.");
-    return;
-  }
-
-  const publishedChapters = (chaptersResult.data ?? [])
-  .filter((chapter) => chapter.status === "published")
-  .sort((a, b) => a.position - b.position);
-
-  renderBook(currentBook, authorResult.data);
-  renderChapters(publishedChapters);
-  setStatus("");
-  elements.status.hidden = true;
-
-  await loadFavorite();
 }
 
-elements.btnFavorito.addEventListener("click", toggleFavorite);
 
-loadPage().catch((error) => {
-  console.error(error);
-  showError("Ocorreu um erro inesperado ao carregar a obra.");
-});
+elements.btnFavorito.addEventListener("click", toggleFavorite);
+elements.retry.addEventListener("click", loadPage);
+
+loadPage();
