@@ -23,7 +23,8 @@ const elements = {
   capitulosLista: document.querySelector("#chapter-list"),
   btnComecar: document.querySelector("#start-reading"),
   btnFavorito: document.querySelector("#favorite-button"),
-  favoritoFeedback: document.querySelector("#favorite-status")
+  favoritoFeedback: document.querySelector("#favorite-status"),
+  retry: document.querySelector("#obra-retry")
 };
 
 
@@ -37,7 +38,7 @@ let favoriteState = false;
 function setStatus(message, isError = false) {
   elements.status.textContent = message;
   elements.status.classList.toggle("is-error", isError);
-  elements.status.hidden = false;
+  elements.status.hidden = !message;
 }
 
 function formatLanguage(language) {
@@ -58,8 +59,9 @@ function formatPublicationStatus(status) {
   return statuses[status] ?? status ?? "Não informado";
 }
 
-function showError(message) {
+function showError(message, canRetry = false) {
   elements.content.hidden = true;
+  elements.retry.hidden = !canRetry;
   setStatus(message, true);
 }
 
@@ -261,7 +263,12 @@ async function toggleFavorite() {
 }
 
 
+
 async function loadPage() {
+  elements.retry.hidden = true;
+  elements.content.hidden = true;
+  currentBook = null;
+
   if (!bookId) {
     showError("Não foi informado o ID da obra.");
     return;
@@ -269,55 +276,66 @@ async function loadPage() {
 
   setStatus("Carregando obra...");
 
-  const bookResult = await getBookById(bookId);
+  try {
+    const bookResult = await getBookById(bookId);
 
-  if (bookResult.error || !bookResult.data) {
-    showError(
-      bookResult.error?.code === "NOT_FOUND" ||
-      bookResult.error?.code === "VALIDATION_ERROR"
-        ? "Obra não encontrada."
-        : "Não foi possível carregar a obra."
-    );
-    return;
+    if (
+      bookResult?.error?.code === "NOT_FOUND" ||
+      bookResult?.error?.code === "VALIDATION_ERROR" ||
+      (!bookResult?.error && !bookResult?.data)
+    ) {
+      showError("Obra não encontrada.");
+      return;
+    }
+
+    if (bookResult?.error) {
+      showError("Não foi possível carregar a obra.", true);
+      return;
+    }
+
+    if (bookResult.data.status !== "published") {
+      showError("Obra não encontrada.");
+      return;
+    }
+
+    currentBook = bookResult.data;
+
+    const [authorResult, chaptersResult] = await Promise.all([
+      currentBook.authorId
+        ? getProfile(currentBook.authorId)
+        : Promise.resolve({ data: null, error: null }),
+      getChaptersByBook(currentBook.id)
+    ]);
+
+    if (chaptersResult?.error) {
+      if (
+        chaptersResult.error.code === "NOT_FOUND" ||
+        chaptersResult.error.code === "VALIDATION_ERROR"
+      ) {
+        showError("Obra não encontrada.");
+      } else {
+        showError("Não foi possível carregar os capítulos.", true);
+      }
+      return;
+    }
+
+    const publishedChapters = (chaptersResult?.data ?? [])
+      .filter((chapter) => chapter.status === "published")
+      .sort((a, b) => a.position - b.position);
+
+    renderBook(currentBook, authorResult?.data ?? null);
+    renderChapters(publishedChapters);
+
+    setStatus("");
+    await loadFavorite();
+  } catch (error) {
+    console.error("Erro ao carregar detalhes da obra:", error);
+    showError("Ocorreu um erro ao carregar a obra.", true);
   }
-
-  if (bookResult.data.status !== "published") {
-    showError("Obra não encontrada.");
-    return;
-  }
-
-  currentBook = bookResult.data;
-
-  const [authorResult, chaptersResult] = await Promise.all([
-    getProfile(currentBook.authorId),
-    getChaptersByBook(currentBook.id)
-  ]);
-
-  if (authorResult.error && authorResult.error.code !== "NOT_FOUND") {
-    showError(authorResult.error.message || "Não foi possível carregar o autor.");
-    return;
-  }
-
-  if (chaptersResult.error) {
-    showError(chaptersResult.error.message || "Não foi possível carregar os capítulos.");
-    return;
-  }
-
-  const publishedChapters = (chaptersResult.data ?? [])
-  .filter((chapter) => chapter.status === "published")
-  .sort((a, b) => a.position - b.position);
-
-  renderBook(currentBook, authorResult.data);
-  renderChapters(publishedChapters);
-  setStatus("");
-  elements.status.hidden = true;
-
-  await loadFavorite();
 }
 
-elements.btnFavorito.addEventListener("click", toggleFavorite);
 
-loadPage().catch((error) => {
-  console.error(error);
-  showError("Ocorreu um erro inesperado ao carregar a obra.");
-});
+elements.btnFavorito.addEventListener("click", toggleFavorite);
+elements.retry.addEventListener("click", loadPage);
+
+loadPage();
