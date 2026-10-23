@@ -5,26 +5,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meus livros | E-writter</title>
-  <link rel="stylesheet" href="../css/styles.css">
-  <link rel="stylesheet" href="../css/user-pages.css">
+  <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/user-pages.css">
 </head>
 <body class="user-page">
   <header class="user-page-header">
-    <a class="user-page-brand" href="../index.html">
+    <a class="user-page-brand" href="./index.html">
       <span class="user-page-brand-mark">E</span>
       <span>E-writter</span>
     </a>
 
     <nav class="user-page-nav" aria-label="Navegação da conta">
-      <a href="perfil.html">Perfil</a>
-      <a href="meus-livros.html" aria-current="page">Meus livros</a>
-      <a href="livros-favoritos.html">Favoritos</a>
-      <a href="../BookEditor.html">Escrever</a>
+      <a href="./perfil.html">Perfil</a>
+      <a href="./meuslivros.html" aria-current="page">Meus livros</a>
+      <a href="./book-editor.html">Escrever</a>
     </nav>
   </header>
 
   <main class="user-page-main">
-    <a class="user-page-back" href="../BookEditor.html">← Voltar para a área do escritor</a>
+    <a class="user-page-back" href="./book-editor.html">← Voltar para a área do escritor</a>
 
     <section class="user-page-heading">
       <span class="user-page-eyebrow">BIBLIOTECA DO AUTOR</span>
@@ -35,16 +35,25 @@
     <section class="library-toolbar">
       <div>
         <h2>Suas obras</h2>
-        <p id="my-books-count">Seus livros aparecerão aqui.</p>
+        <p id="my-books-count" role="status" aria-live="polite">
+          Carregando suas obras...
+        </p>
       </div>
-      <a class="user-page-primary-button" href="../BookEditor.html">＋ Escrever um livro</a>
+      <a class="user-page-primary-button" href="./book-editor.html">＋ Escrever um livro</a>
     </section>
 
-    <section class="user-page-card library-empty" id="my-books-empty">
+    <p
+      id="my-books-message"
+      class="feedback"
+      role="status"
+      aria-live="polite"
+      hidden
+    ></p>
+    <section class="user-page-card library-empty" id="my-books-empty" hidden>
       <div class="empty-book-icon" aria-hidden="true">📖</div>
       <h2>Sua estante está esperando</h2>
       <p>Quando você criar ou publicar livros, eles poderão aparecer nesta página.</p>
-      <a class="user-page-primary-button" href="../BookEditor.html">Começar uma história</a>
+      <a class="user-page-primary-button" href="./book-editor.html">Começar uma história</a>
     </section>
 
     <section class="book-list" id="my-books-list" aria-label="Lista dos meus livros" hidden></section>
@@ -52,6 +61,6 @@
 
   <footer class="user-page-footer">E-writter — cada escritor tem uma história para contar.</footer>
 
-  <script type="module" src="../js/pages/myBooksPage.js"></script>
+  <script type="module" src="./js/pages/myBooksPage.js"></script>
 </body>
 </html>
