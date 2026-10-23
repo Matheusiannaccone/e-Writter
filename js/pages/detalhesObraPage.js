@@ -10,20 +10,21 @@ import {
 const elements = {
   status: document.querySelector("#obra-status"),
   content: document.querySelector("#obra-content"),
-  capa: document.querySelector("#obra-capa"),
-  titulo: document.querySelector("#obra-titulo"),
-  autor: document.querySelector("#obra-autor"),
-  generos: document.querySelector("#obra-generos"),
-  statusPublicacao: document.querySelector("#obra-status-publicacao"),
-  idioma: document.querySelector("#obra-idioma"),
-  quantidadeCapitulos: document.querySelector("#obra-qtd-capitulos"),
-  sinopse: document.querySelector("#obra-sinopse"),
-  capitulosResumo: document.querySelector("#capitulos-resumo"),
-  capitulosLista: document.querySelector("#capitulos-lista"),
-  btnComecar: document.querySelector("#btn-comecar"),
-  btnFavorito: document.querySelector("#btn-favorito"),
-  favoritoFeedback: document.querySelector("#favorito-feedback")
+  capa: document.querySelector("#obra-cover"),
+  titulo: document.querySelector("#obra-title"),
+  autor: document.querySelector("#obra-author"),
+  generos: document.querySelector("#obra-tags"),
+  statusPublicacao: document.querySelector("#obra-publication-status"),
+  idioma: document.querySelector("#obra-language"),
+  quantidadeCapitulos: document.querySelector("#obra-chapter-count"),
+  sinopse: document.querySelector("#obra-description"),
+  capitulosResumo: document.querySelector("#chapter-count-label"),
+  capitulosLista: document.querySelector("#chapter-list"),
+  btnComecar: document.querySelector("#start-reading"),
+  btnFavorito: document.querySelector("#favorite-button"),
+  favoritoFeedback: document.querySelector("#favorite-status")
 };
+
 
 const params = new URLSearchParams(window.location.search);
 const bookId = params.get("id");
@@ -114,11 +115,13 @@ function renderChapters(chapters = []) {
     empty.className = "capitulos-vazio";
     empty.textContent = "Esta obra ainda não possui capítulos publicados.";
     elements.capitulosLista.appendChild(empty);
-    elements.btnComecar.disabled = true;
+    elements.btnComecar.setAttribute("disabled", "true");
+    elements.btnComecar.removeAttribute("href");
     return;
   }
 
-  elements.btnComecar.disabled = false;
+  elements.btnComecar.removeAttribute("aria-disabled");
+  elements.btnComecar.href = `./chapter?chapter=${encodeURIComponent(chapters[0].id)}`;
 
   chapters.forEach((chapter, index) => {
     const item = document.createElement("article");
@@ -126,7 +129,7 @@ function renderChapters(chapters = []) {
 
     const link = document.createElement("a");
     link.className = "capitulo-link";
-    link.href = `leitor.html?bookId=${encodeURIComponent(currentBook.id)}&chapterId=${encodeURIComponent(chapter.id)}`;
+    link.href = `./chapter?chapter=${encodeURIComponent(chapter.id)}`;
     link.textContent = `Capítulo ${chapter.position ?? index + 1} — ${chapter.title}`;
 
     const info = document.createElement("span");
@@ -198,13 +201,6 @@ async function toggleFavorite() {
   elements.btnFavorito.disabled = false;
 }
 
-function startReading() {
-  const firstChapter = currentChapters[0];
-  if (!firstChapter || !currentBook) return;
-
-  window.location.href = `leitor.html?bookId=${encodeURIComponent(currentBook.id)}&chapterId=${encodeURIComponent(firstChapter.id)}`;
-}
-
 async function loadPage() {
   if (!bookId) {
     showError("Não foi informado o ID da obra.");
@@ -245,7 +241,6 @@ async function loadPage() {
 }
 
 elements.btnFavorito.addEventListener("click", toggleFavorite);
-elements.btnComecar.addEventListener("click", startReading);
 
 loadPage().catch((error) => {
   console.error(error);
