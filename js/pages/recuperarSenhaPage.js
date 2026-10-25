@@ -1,5 +1,6 @@
 import { showFeedback, setProcessing, prepareFormValidation } from '../components/feedback.js';
 import { resetPasswordForEmail } from "../services/authService.js";
+import { isValidEmail } from '../validation/email.js';
 
 const form=document.querySelector('#reset-form')
 const button=document.querySelector('#reset-button')
@@ -7,7 +8,9 @@ const message=document.querySelector('#reset-message');
 
 const showMessage = (text, type = 'error') => showFeedback(message, text, type);
 
-const validation = prepareFormValidation(form, message);
+const validation = prepareFormValidation(form, message, {
+    email: value => isValidEmail(value) ? '' : 'Informe um e-mail válido.'
+});
 
 form.addEventListener('submit',async e=>
 {
@@ -25,7 +28,7 @@ form.addEventListener('submit',async e=>
             showMessage(result.error.message||'Não foi possível enviar as instruções.');
             return;
         }
-        showMessage('Se houver uma conta associada a esse e-mail, você receberá as instruções de recuperação. Verifique também a caixa de spam.','success');
+        showMessage(result.data?.message || 'Se houver uma conta associada a esse e-mail, você receberá as instruções de recuperação. Verifique também a caixa de spam.','success');
     }
     catch(err){
         console.error(err);

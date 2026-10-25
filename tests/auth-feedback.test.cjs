@@ -36,7 +36,8 @@ class Element {
   focus() { this.doc.activeElement = this; }
   reset() { this.fields.forEach(field => { field.value = ''; }); }
   get validity() {
-    return { valid: !(this.required && !this.value) && !(this.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value)) && !(this.minLength && this.value.length < this.minLength) };
+    // A gramática completa é verificada também no navegador real.
+    return { valid: !(this.required && !this.value) && !(this.type === 'email' && !/^[^\s@]+@[^\s@]+$/.test(this.value)) && !(this.minLength && this.value.length < this.minLength) };
   }
   get validationMessage() { return 'Confira o formato e o tamanho deste campo.'; }
 }
@@ -55,6 +56,7 @@ function environment(extra = {}) {
     return el;
   }
   const run = file => vm.runInContext(read(file).replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];\s*/gm, '').replace(/^export /gm, ''), context);
+  run('js/validation/email.js');
   run('js/components/feedback.js');
   run('js/components/navigation-context.js');
   return { context, document, location, element, field, run, $: id => elements.get(`#${id}`) };
@@ -157,6 +159,15 @@ test('recuperação comunica envio, sucesso neutro, erro retornado e exceção',
     assert.equal(h.message.dataset.type, result.error === null ? 'success' : 'error');
     if (result.error === null) assert.match(h.message.textContent, /Se houver uma conta/);
   }
+});
+
+test('recuperação usa a política compartilhada antes do service e apresenta a simulação sem prometer e-mail', async () => {
+  let calls = 0;
+  const h = authPage('recovery', { resetPasswordForEmail: async () => { calls++; return ok({ message: 'Solicitação simulada. Nenhum e-mail foi enviado.' }); } });
+  h.form.elements.email.value = 'a@-b'; await h.form.fire('submit');
+  assert.equal(calls, 0); assert.equal(h.document.activeElement, h.form.elements.email);
+  h.form.elements.email.value = 'a@b'; await h.form.elements.email.fire('input'); await h.form.fire('submit');
+  assert.equal(calls, 1); assert.match(h.message.textContent, /simulada.*Nenhum e-mail/);
 });
 
 test('Perfil bloqueia carga, save e cancelamento concorrentes e restaura controles no sucesso', async () => {
