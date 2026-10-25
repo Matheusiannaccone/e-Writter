@@ -3,11 +3,15 @@
 export function withDataSource(path) {
   const current = new URL(window.location.href);
   const url = new URL(path, current);
-  if (url.origin === current.origin && (current.pathname === "/" || /\/[^/.]+\/?$/.test(current.pathname))) {
-    url.pathname = url.pathname.replace(/\.html$/, "");
+
+  const source = new URLSearchParams(
+    window.location.search
+  ).get("datasource");
+
+  if (source === "mock" || source === "supabase") {
+    url.searchParams.set("datasource", source);
   }
-  const source = new URLSearchParams(window.location.search).get("datasource");
-  if (source === "mock" || source === "supabase") url.searchParams.set("datasource", source);
+
   return url;
 }
 
