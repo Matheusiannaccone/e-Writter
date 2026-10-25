@@ -259,6 +259,7 @@ test('login redireciona para Biblioteca com datasource e falha mantém formulár
       const context = vm.createContext({
         document: { querySelector: id => elements.get(id), querySelectorAll: () => [] }, window: { location }, URL, URLSearchParams,
         clearFeedback() {}, showFeedback() {}, setFieldError() {}, setProcessing() {},
+        prepareFormValidation: () => ({ validate: () => true }),
         signIn: async () => success ? ok({}) : fail('NETWORK_ERROR')
       });
       for (const file of ['js/components/navigation-context.js', 'js/pages/loginPage.js']) {

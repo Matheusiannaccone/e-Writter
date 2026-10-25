@@ -1,4 +1,4 @@
-import { showFeedback, clearFeedback, setProcessing } from "../components/feedback.js";
+import { showFeedback, clearFeedback, setProcessing, prepareFormValidation } from "../components/feedback.js";
 import { getCurrentUser } from "../services/authService.js";
 import { withDataSource } from "../components/navigation-context.js";
 import {
@@ -19,6 +19,28 @@ const saveButton = document.querySelector("#profile-save-button");
 const cancelButton = document.querySelector("#profile-cancel-button");
 
 let savedProfile = null;
+let busy = false;
+const retryButton = document.querySelector('#profile-retry');
+const fields = [displayNameInput, usernameInput, bioInput];
+const validation = prepareFormValidation(profileForm, profileMessage, {
+  displayName: value => value.trim().length < 1 || value.trim().length > 60 ? 'O nome de exibição deve ter entre 1 e 60 caracteres.' : '',
+  username: value => /^[a-z0-9._]{3,30}$/.test(value.trim().toLowerCase()) ? '' : 'Use 3 a 30 caracteres: letras, números, ponto ou sublinhado.',
+  bio: value => value.length > 500 ? 'A biografia deve conter no máximo 500 caracteres.' : ''
+});
+
+function lock(locked) {
+  fields.forEach(field => { field.disabled = locked; });
+  saveButton.disabled = locked;
+  cancelButton.disabled = locked;
+}
+
+function loadFailure(text) {
+  profileName.textContent = 'Perfil indisponível';
+  profileEmail.textContent = 'Não foi possível carregar as informações.';
+  detailEmail.textContent = 'Indisponível';
+  showMessage(text);
+  retryButton.hidden = false;
+}
 
 function showMessage(message, type = "error") {
   showFeedback(profileMessage, message, type);
@@ -39,6 +61,11 @@ function updateProfileHeader(profile, email) {
 }
 
 async function loadProfile() {
+  if (busy) return;
+  busy = true;
+  lock(true);
+  retryButton.hidden = true;
+  retryButton.disabled = true;
   showMessage("Carregando informações do perfil...", "loading");
   try {
     const [userResult, profileResult] = await Promise.all([
@@ -46,13 +73,22 @@ async function loadProfile() {
       getMyProfile()
     ]);
 
-    if (userResult?.error || !userResult?.data) {
-      window.location.replace(withDataSource("./index.html?next=perfil.html").href);
+    if (userResult?.error?.code === 'UNAUTHENTICATED' || (!userResult?.error && !userResult?.data)) {
+      profileName.textContent = 'Sessão encerrada';
+      profileEmail.textContent = 'Entre para acessar seu perfil.';
+      detailEmail.textContent = 'Indisponível';
+      clearFeedback(profileMessage);
+      window.location.replace(withDataSource("./login.html?next=perfil.html").href);
+      return;
+    }
+
+    if (userResult?.error) {
+      loadFailure(userResult.error.message || 'Não foi possível verificar sua sessão. Tente novamente.');
       return;
     }
 
     if (profileResult?.error || !profileResult?.data) {
-      showMessage(
+      loadFailure(
         profileResult?.error?.message ||
         "Não foi possível carregar os dados do perfil."
       );
@@ -75,12 +111,17 @@ async function loadProfile() {
     clearFeedback(profileMessage);
   } catch (error) {
     console.error("Não foi possível carregar o perfil:", error);
-    showMessage("Ocorreu um erro ao carregar seu perfil.");
+    loadFailure("Não foi possível carregar seu perfil. Verifique a conexão e tente novamente.");
+  } finally {
+    busy = false;
+    retryButton.disabled = false;
+    lock(!savedProfile);
   }
 }
 
 profileForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (busy || !savedProfile || !validation.validate()) return;
 
   const data = {
     displayName: displayNameInput.value.trim(),
@@ -88,30 +129,8 @@ profileForm.addEventListener("submit", async (event) => {
     bio: bioInput.value.trim()
   };
 
-  if (data.displayName.length < 1 || data.displayName.length > 60) {
-    showMessage("O nome de exibição deve ter entre 1 e 60 caracteres.");
-    displayNameInput.focus();
-    return;
-  }
-
-  if (
-    data.username.length < 3 ||
-    data.username.length > 30 ||
-    !/^[a-z0-9._]+$/.test(data.username)
-  ) {
-    showMessage(
-      "O nome de usuário deve ter entre 3 e 30 caracteres e usar apenas letras sem acento, números, ponto ou sublinhado."
-    );
-    usernameInput.focus();
-    return;
-  }
-
-  if (data.bio.length > 500) {
-    showMessage("A biografia deve conter no máximo 500 caracteres.");
-    bioInput.focus();
-    return;
-  }
-
+  busy = true;
+  lock(true);
   setProcessing(saveButton, true, "Salvando...");
   showMessage("Salvando alterações...", "loading");
 
@@ -143,15 +162,23 @@ profileForm.addEventListener("submit", async (event) => {
     console.error("Erro ao salvar o perfil:", error);
     showMessage("Ocorreu um erro ao salvar. Tente novamente.");
   } finally {
+    busy = false;
     setProcessing(saveButton, false);
+    lock(false);
   }
 });
 
 cancelButton.addEventListener("click", () => {
-  if (!savedProfile) return;
+  if (busy || !savedProfile) return;
+  validation.clear();
 
   fillForm(savedProfile);
   showMessage("Alterações não salvas foram descartadas.", "warning");
 });
 
+retryButton.addEventListener("click", async () => {
+  await loadProfile();
+  if (savedProfile) displayNameInput.focus();
+  else if (!retryButton.hidden) retryButton.focus();
+});
 loadProfile();

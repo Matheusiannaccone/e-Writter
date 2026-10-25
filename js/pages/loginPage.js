@@ -1,4 +1,4 @@
-import { showFeedback, clearFeedback, setFieldError, setProcessing } from '../components/feedback.js';
+import { showFeedback, setProcessing, prepareFormValidation } from '../components/feedback.js';
 import { signIn } from "../services/authService.js";
 import { withDataSource, preserveDataSource } from "../components/navigation-context.js";
 
@@ -10,25 +10,19 @@ preserveDataSource(document.querySelectorAll('a[href]'));
     const submitButton = document.querySelector("#login-button");
     const message = document.querySelector("#login-message");
 
+    const validation = prepareFormValidation(form, message);
+
     function showMessage(text, type = "error") { showFeedback(message, text, type); }
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      clearFeedback(message);
+      if (submitButton.disabled || !validation.validate()) return;
 
-      setFieldError(emailInput, "");
-      setFieldError(passwordInput, "");
       const email = emailInput.value.trim();
       const password = passwordInput.value;
 
-      if (!email || !password) {
-        setFieldError(emailInput, email ? "" : "Informe seu e-mail.");
-        setFieldError(passwordInput, password ? "" : "Informe sua senha.");
-        showMessage("Preencha o e-mail e a senha.");
-        return;
-      }
-
       setProcessing(submitButton, true, "Entrando...");
+      showMessage("Entrando na biblioteca...", "loading");
 
       try {
         const result = await signIn({ email, password });
@@ -38,7 +32,7 @@ preserveDataSource(document.querySelectorAll('a[href]'));
           return;
         }
 
-        showMessage("Login realizado com sucesso! Sua sessão está ativa.", "success");
+        // A navegação conclui o login; não anunciar sucesso fugaz antes de sair.
         window.location.assign(withDataSource("./biblioteca.html").href);
       } catch (error) {
         console.error("Erro ao realizar login:", error);

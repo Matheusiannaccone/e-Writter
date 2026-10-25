@@ -251,3 +251,37 @@ próprio. O estado ativo usa `aria-current="page"`; o menu informa
 
 A paleta em pergaminho e vinho segue a identidade já presente nas páginas.
 Os valores continuam sujeitos à aprovação visual do grupo.
+
+## 14. Feedback de formulários
+
+Importar os helpers de `js/components/feedback.js` e os estilos de
+`css/components.css`. Auth e Perfil usam a mesma apresentação, com tokens,
+texto identificando o estado e suporte a movimento reduzido.
+
+- `showFeedback(element, text, kind = 'error')`: mostra texto seguro com prefixo
+  e variante `error`, `success`, `warning`, `loading` ou `empty`. Usa uma única
+  região `role="status"`, `aria-live="polite"`, `aria-atomic="true"` por formulário.
+  Criar essa região vazia no HTML, com `data-feedback-region`, sem `hidden`.
+- `clearFeedback(element)`: limpa texto e variante. Regiões com
+  `data-feedback-region` continuam na árvore de acessibilidade, sem caixa visual
+  enquanto vazias. Destinos antigos sem esse atributo voltam a ficar ocultos.
+- `setFieldError(field, text)`: mostra erro próximo a campos com `id` único,
+  dentro de `.form-field`, `.field` ou `.profile-detail`; controla `aria-invalid`
+  e acrescenta/remove somente o ID do erro em `aria-describedby`, preservando
+  descrições anteriores. Texto vazio limpa o erro. Não cria um segundo alerta.
+- `setProcessing(button, processing, label)`: desabilita o botão, controla
+  `aria-busy`, mostra indicador decorativo e texto; ao finalizar, restaura a
+  marcação original. A página controla o bloqueio dos demais campos e ações
+  concorrentes, e o anúncio de progresso pela região de feedback.
+- `prepareFormValidation(form, message, validators = {})`: inicia a região
+  estável e retorna `validate()` e `clear()`. Validadores por `name` retornam
+  texto de erro ou string vazia; restrições HTML continuam sendo consultadas.
+  `validate()` associa erros e foca o primeiro campo inválido, sem repetir a
+  mesma informação na região global. Eventos `input` revalidam erros existentes
+  e dependentes. `clear()` remove os erros locais. Sem JS, a validação HTML
+  nativa permanece disponível.
+
+Em validações locais, o foco e `aria-describedby` comunicam o erro. Em operações
+assíncronas, usar a região global para progresso e resultado. Não duplicar
+o mesmo erro em ambos. `empty` é destinado à ausência de conteúdo quando
+aplicável, não a campos obrigatórios vazios.

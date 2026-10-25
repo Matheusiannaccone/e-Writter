@@ -178,6 +178,7 @@
 
 .profile-detail {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 20px;
   padding: 15px 0;
@@ -185,6 +186,12 @@
   font-family: Arial, sans-serif;
   font-size: 14px;
 }
+
+.profile-detail input, .profile-detail textarea { width: 60%; min-width: 0; min-height: 48px; padding: .65rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-input-bg); color: var(--color-text); }
+.profile-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.profile-actions .button { gap: var(--space-1); }
+.profile-detail :disabled { opacity: .7; cursor: wait; }
+@media (max-width: 650px) { .profile-detail input, .profile-detail textarea { width: 100%; } .profile-actions .button { flex: 1 1 100%; } }
 
 .profile-detail span {
   color: #786656;

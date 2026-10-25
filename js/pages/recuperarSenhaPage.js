@@ -1,4 +1,4 @@
-import { showFeedback, clearFeedback, setProcessing } from '../components/feedback.js';
+import { showFeedback, setProcessing, prepareFormValidation } from '../components/feedback.js';
 import { resetPasswordForEmail } from "../services/authService.js";
 
 const form=document.querySelector('#reset-form')
@@ -7,12 +7,15 @@ const message=document.querySelector('#reset-message');
 
 const showMessage = (text, type = 'error') => showFeedback(message, text, type);
 
+const validation = prepareFormValidation(form, message);
+
 form.addEventListener('submit',async e=>
 {
     e.preventDefault();
-    clearFeedback(message);
+    if (button.disabled || !validation.validate()) return;
     const email=form.elements.email.value.trim();
     setProcessing(button, true, 'Enviando...');
+    showMessage('Enviando instruções...', 'loading');
 
     try{
         const result=await resetPasswordForEmail({email});

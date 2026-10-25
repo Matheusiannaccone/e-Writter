@@ -54,7 +54,7 @@
       </label>
       <input
         type="text"
-        id="profile-display-name-input"
+        id="profile-display-name-input" disabled
         name="displayName"
         maxlength="60"
         required
@@ -68,7 +68,7 @@
       </label>
       <input
         type="text"
-        id="profile-username-input"
+        id="profile-username-input" disabled
         name="username"
         maxlength="30"
         required
@@ -81,7 +81,7 @@
         Biografia
       </label>
       <textarea
-        id="profile-bio-input"
+        id="profile-bio-input" disabled
         name="bio"
         maxlength="500"
         rows="4"
@@ -97,17 +97,17 @@
     <p
       id="profile-message"
       class="feedback"
-      role="status"
-      aria-live="polite"
-      hidden
+      role="status" aria-live="polite" aria-atomic="true" data-feedback-region
     ></p>
 
+    <button type="button" id="profile-retry" class="button button--secondary" hidden>Tentar carregar novamente</button>
+
     <div class="profile-actions">
-      <button type="submit" id="profile-save-button">
+      <button type="submit" id="profile-save-button" disabled class="button">
         Salvar alterações
       </button>
 
-      <button type="button" id="profile-cancel-button">
+      <button type="button" id="profile-cancel-button" disabled class="button button--secondary">
         Cancelar
       </button>
     </div>

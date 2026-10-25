@@ -45,3 +45,17 @@
 .favorite-button:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
 .favorite-button:disabled { opacity: .6; cursor: wait; }
 .favorite-feedback { min-height: 1.25em; color: var(--color-text-muted); font-size: .85rem; }
+
+/* Feedback funcional compartilhado por Auth e Perfil. */
+.feedback { margin: var(--space-1) 0; padding: var(--space-2); border: 1px solid currentColor; border-inline-start-width: 4px; border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); font: 400 .95rem/1.5 var(--font-body); overflow-wrap: anywhere; }
+.feedback:empty { margin: 0; padding: 0; border: 0; }
+.feedback[data-type="error"] { color: var(--color-danger); }
+.feedback[data-type="success"] { color: var(--color-success); }
+.feedback[data-type="warning"] { color: var(--color-warning); }
+.feedback[data-type="loading"] { color: var(--color-text); }
+.feedback[data-type="empty"] { color: var(--color-text-muted); }
+.field__error { display: block; flex-basis: 100%; color: var(--color-danger); font: 400 .875rem/1.5 var(--font-body); overflow-wrap: anywhere; }
+.form-field [aria-invalid="true"], .profile-detail [aria-invalid="true"] { border: 2px solid var(--color-danger); }
+.feedback-spinner { display: inline-block; flex: 0 0 auto; width: 1em; height: 1em; margin-inline-end: .4em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: feedback-spin .8s linear infinite; }
+@keyframes feedback-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .feedback-spinner { animation: none; } }

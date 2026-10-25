@@ -1,4 +1,4 @@
-import { showFeedback, clearFeedback, setFieldError, setProcessing } from '../components/feedback.js';
+import { showFeedback, setProcessing, prepareFormValidation } from '../components/feedback.js';
 import { signUp } from "../services/authService.js";
 
 const form=document.querySelector('#signup-form')
@@ -7,32 +7,22 @@ const button=document.querySelector('#signup-button'), message=document.querySel
 
 const showMessage = (text, type = 'error') => showFeedback(message, text, type);
 
+const validation = prepareFormValidation(form, message, {
+  displayName: value => value.trim().length < 1 ? 'Informe seu nome de exibição.' : '',
+  username: value => /^[a-z0-9._]{3,30}$/.test(value) ? '' : 'Use 3 a 30 caracteres: letras minúsculas, números, ponto ou sublinhado.',
+  passwordConfirm: value => value === form.elements.password.value ? '' : 'As senhas não coincidem.'
+});
+
 form.addEventListener('submit',async e=>{
   e.preventDefault();
-  clearFeedback(message);
+  if (button.disabled || !validation.validate()) return;
 
- setFieldError(form.elements.passwordConfirm, '');
- setFieldError(form.elements.username, '');
  const displayName = form.elements.displayName.value.trim()
  const username=form.elements.username.value.trim()
  const email=form.elements.email.value.trim()
  const password=form.elements.password.value
- const confirm=form.elements.passwordConfirm.value;
-
- if(password!==confirm){
-  setFieldError(form.elements.passwordConfirm, 'As senhas não coincidem.');
-  showMessage('As senhas não coincidem.');
-  return;
-}
-
- if(username!==username.toLowerCase()||!/^[a-z0-9._]{3,30}$/.test(username))
- {
-  setFieldError(form.elements.username, 'Use 3 a 30 caracteres: letras minúsculas, números, ponto ou sublinhado.');
-  showMessage('Confira o nome de usuário.');
-  return;
-}
-
  setProcessing(button, true, 'Criando conta...');
+ showMessage('Criando sua conta...', 'loading');
 
    try{
     const result=await signUp({email,password,username,displayName});
@@ -42,7 +32,7 @@ form.addEventListener('submit',async e=>{
       return;
     }
 
- showMessage('Conta criada com sucesso!', 'success');
+ showMessage(result.data?.session ? 'Conta criada! Sua sessão está ativa. Você já pode acessar a biblioteca.' : 'Cadastro recebido. Verifique seu e-mail para confirmar a conta antes de entrar.', 'success');
 
  }
  catch(err)
