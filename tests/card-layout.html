@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regressão local — cards e validação de e-mail</title>
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/biblioteca.css">
+<link rel="stylesheet" href="../css/user-pages.css">
+<main class="page-container">
+  <h1>Regressão dos cards</h1>
+  <p>Fixture local: não aciona favoritos, cadastro ou gravações.</p>
+  <pre id="layout-result" style="white-space:pre-wrap;overflow-wrap:anywhere" role="status">Preparando…</pre>
+  <section><h2>Home: favoritos e mensagens</h2><div id="home-grid" class="book-grid"></div></section>
+  <section class="library-page"><h2>Biblioteca: ação externa ao link</h2><div id="library-grid" class="book-grid"></div></section>
+  <section class="user-page"><h2>Meus livros: publicados e rascunhos</h2><div id="my-grid" class="book-grid"></div></section>
+</main>
+<script type="module">
+  import { createBookCard } from '../js/components/book-card.js';
+  import { isValidEmail } from '../js/validation/email.js';
+  if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Fixture somente local.');
+  const result = document.querySelector('#layout-result');
+  for (const group of ['home', 'library', 'my']) {
+    for (let index = 0; index < 6; index++) {
+      const card = await createBookCard({ id: `fixture-${group}-${index}`, title: index % 2 ? 'Título curto' : 'Título longo para conferir as alturas do grid e a quebra de texto', status: group === 'my' && index % 2 ? 'draft' : 'published' }, {
+        href: '#layout-result', author: 'Autoria de demonstração', genres: ['Fantasia'], showFavoriteButton: group !== 'library'
+      });
+      if (group === 'library') {
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'button button--secondary'; button.textContent = 'Remover da Biblioteca';
+        card.append(button);
+      }
+      document.querySelector(`#${group}-grid`).append(card);
+    }
+  }
+  await document.fonts.ready;
+  await new Promise(requestAnimationFrame);
+  document.querySelectorAll('.favorite-feedback').forEach((node, index) => {
+    node.textContent = index % 2 ? 'Obra adicionada à biblioteca.' : 'Não foi possível atualizar sua biblioteca. Tente novamente. Mensagem longa para verificar a quebra em telas estreitas.';
+  });
+  function inspect() {
+    const errors = [];
+    if (document.documentElement.scrollWidth > innerWidth) errors.push('Overflow horizontal da página');
+    const cards = [...document.querySelectorAll('.book-card')];
+    for (const [index, card] of cards.entries()) {
+      const outer = card.getBoundingClientRect();
+      for (const child of card.querySelectorAll('.book-card__link, .favorite-control, button, .favorite-feedback')) {
+        const inner = child.getBoundingClientRect();
+        if (inner.left < outer.left - 1 || inner.right > outer.right + 1 || inner.top < outer.top - 1 || inner.bottom > outer.bottom + 1) errors.push(`Conteúdo fora do card ${index}`);
+      }
+      for (const sibling of [...card.parentElement.children].filter(item => item !== card)) {
+        const other = sibling.getBoundingClientRect();
+        if (outer.left < other.right - 1 && outer.right > other.left + 1 && outer.top < other.bottom - 1 && outer.bottom > other.top + 1) errors.push(`Cards intersectam ${index}`);
+      }
+      if (!card.querySelector('a[href]')) errors.push(`Card sem link ${index}`);
+    }
+    for (const value of ['a@b', 'ausente@example.test', 'nome+tag@sub.example.test', '', 'invalido', 'a@@b', 'a@-b', 'a@b..c']) {
+      const input = document.createElement('input'); input.type = 'email'; input.required = true; input.value = value;
+      if (input.validity.valid !== isValidEmail(value)) errors.push(`Política de e-mail diverge do navegador: ${value}`);
+    }
+    result.textContent = JSON.stringify({ passed: !errors.length, width: innerWidth, cards: cards.length, favoriteControls: document.querySelectorAll('.favorite-control').length, errors }, null, 2);
+  }
+  addEventListener('resize', () => requestAnimationFrame(inspect));
+  inspect();
+</script>
+</html>
