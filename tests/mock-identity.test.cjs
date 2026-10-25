@@ -57,7 +57,7 @@ test('snapshot tem versão, IDs distintos, verificadores com salts distintos e n
   assert.notEqual(verifiers[0].digest, verifiers[1].digest);
   assert.equal(verifiers[0].algorithm, 'PBKDF2'); assert.equal(verifiers[0].digest.length, 64);
   assert.ok(!serialized.includes(account.password)); assert.ok(!serialized.includes('"password"'));
-  assert.equal(JSON.stringify(JSON.parse(page.session.getItem('e-writter-mock-user'))), JSON.stringify({ id: (await page.auth.getCurrentUser()).data.id }));
+  assert.equal(JSON.stringify(JSON.parse(page.session.getItem('e-writter-mock-user'))), JSON.stringify({ id: (await page.auth.getCurrentUser()).data.id, expires_at: (await page.auth.getSession()).data.expires_at }));
 });
 
 test('duplicidades de e-mail/username e colisões com fixtures são recusadas após restauração', async () => {
