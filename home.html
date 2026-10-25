@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="description" content="Explore histórias, descubra novos autores e encontre sua próxima leitura no E-writter.">
+
+  <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <title>E-writter | Uma biblioteca de histórias</title>
+</head>
+
+<body class="home-page">
+
+  <!-- Cabeçalho -->
+  <header class="home-header">
+    <a class="home-brand" href="home.html" aria-label="E-writter, página inicial">
+      <span class="home-brand-mark" aria-hidden="true">E</span>
+      <span>E-writter</span>
+    </a>
+
+    <nav class="home-navigation" aria-label="Navegação principal">
+      <a class="nav-current" href="home.html">Início</a>
+      <a href="#catalogo">Explorar obras</a>
+      <a href="pagesHTML/livrosfavoritos.html">Favoritos</a>
+      <a href="pagesHTML/meuslivros.html">Meus livros</a>
+    </nav>
+
+    <div class="home-header-actions">
+      <a class="home-login-link" href="index.html">Entrar</a>
+      <a class="home-writer-button" href="BookEditor.html">
+        Área do escritor <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Apresentação -->
+    <section class="home-hero">
+      <div class="hero-decoration hero-decoration-one" aria-hidden="true">❦</div>
+      <div class="hero-decoration hero-decoration-two" aria-hidden="true">✦</div>
+
+      <div class="hero-copy">
+        <p class="home-eyebrow">
+          <span aria-hidden="true">✧</span>
+          UMA BIBLIOTECA DE POSSIBILIDADES
+        </p>
+
+        <h1>
+          Toda história<br>
+          merece <em>ser descoberta.</em>
+        </h1>
+
+        <p class="hero-description">
+          Entre em um universo de imaginação, conheça novos autores
+          e encontre histórias que merecem fazer parte da sua estante.
+        </p>
+
+        <a class="hero-button" href="#catalogo">
+          Descobrir histórias
+          <span aria-hidden="true">→</span>
+        </a>
+
+        <p class="hero-note">
+          <span aria-hidden="true">✒</span>
+          Um lugar para quem ama ler e escrever.
+        </p>
+      </div>
+
+      <div class="hero-book-area" aria-hidden="true">
+        <div class="hero-book-back"></div>
+
+        <div class="hero-book">
+          <div class="hero-book-border">
+            <span class="hero-book-small">E-WRITTER COLLECTION</span>
+            <span class="hero-book-ornament">❦</span>
+            <span class="hero-book-title">Histórias<br>sem fim</span>
+            <span class="hero-book-rule"></span>
+            <span class="hero-book-subtitle">Cada página, um novo mundo</span>
+            <span class="hero-book-bottom">EST. MMXXVI</span>
+          </div>
+        </div>
+
+        <span class="hero-floating-star star-one">✦</span>
+        <span class="hero-floating-star star-two">✧</span>
+      </div>
+    </section>
+
+    <!-- Catálogo -->
+    <section class="home-catalog" id="catalogo">
+      <div class="catalog-heading">
+        <div>
+          <p class="home-eyebrow">A ESTANTE DA COMUNIDADE</p>
+          <h2>Histórias para descobrir</h2>
+          <p class="catalog-description">
+            Obras publicadas por autores da comunidade E-writter.
+          </p>
+        </div>
+
+        <span class="catalog-decoration" aria-hidden="true">❦</span>
+      </div>
+
+      <p
+        id="catalog-status"
+        class="catalog-status"
+        role="status"
+        aria-live="polite"
+      >
+        Abrindo as portas da biblioteca...
+      </p>
+
+      <div
+        id="book-grid"
+        class="book-grid"
+        aria-label="Catálogo de obras publicadas"
+      ></div>
+    </section>
+
+    <!-- Convite para escritores -->
+    <section class="writer-invitation">
+      <div class="writer-invitation-ornament" aria-hidden="true">✒</div>
+
+      <div>
+        <p class="home-eyebrow">SUA HISTÓRIA TAMBÉM IMPORTA</p>
+        <h2>As próximas páginas podem ser suas.</h2>
+        <p>
+          Transforme suas ideias em histórias e compartilhe seu universo
+          com outros leitores.
+        </p>
+      </div>
+
+      <a href="BookEditor.html" class="writer-invitation-button">
+        Começar a escrever <span aria-hidden="true">→</span>
+      </a>
+    </section>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="home-footer">
+    <a class="footer-brand" href="home.html">E-writter</a>
+    <p>Feito para quem ama histórias.</p>
+    <span>© 2026 E-writter</span>
+  </footer>
+
+  <script type="module" src="js/pages/homePage.js"></script>
+</body>
+</html>
