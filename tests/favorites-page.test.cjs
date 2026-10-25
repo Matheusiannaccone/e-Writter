@@ -66,7 +66,7 @@ async function harness(overrides = {}, source = 'mock', route = 'biblioteca.html
 }
 
 test('lista usa card real, metadados e bookId do registro, sem consultas por card', async () => {
-  const h = await harness({ listFavorites: async () => ok([favorite(idA, { id: idB })]) });
+  const h = await harness({ listFavorites: async () => ok([favorite(idA)]) });
   assert.equal(h.cards().length, 1);
   const card = h.cards()[0];
   const link = card.querySelectorAll('a')[0];
@@ -190,14 +190,24 @@ test('logout descarta listagem ou remoção atrasada', async () => {
   assert.equal(other.$('message').hidden, true);
 });
 
-test('book nulo continua removível; inválidos e duplicados não quebram outros cards', async () => {
-  const h = await harness({ listFavorites: async () => ok([null, {}, { bookId: 'invalid' }, { bookId: idA, book: null }, favorite(idA), favorite(idB)]) });
+test('B10: resposta mista ignora obras inválidas antes de deduplicar e conta apenas cards apresentados', async () => {
+  const h = await harness({ listFavorites: async () => ok([
+    null, {}, { bookId: 'invalid' },
+    { bookId: idA, book: null }, { bookId: idA, book: undefined },
+    favorite(idA, { id: undefined }), favorite(idA, { id: 'invalid' }),
+    favorite(idA, { id: idB }), favorite(idA), favorite(idA), favorite(idB)
+  ]) });
   assert.equal(h.cards().length, 2);
   assert.equal(h.$('count').textContent, '2 livros favoritos.');
   assert.equal(h.$('message').dataset.type, 'warning');
-  assert.ok(h.cards()[0].querySelectorAll('span').some(el => el.textContent === 'Obra indisponível'));
+  assert.equal(h.$('empty').hidden, true);
+  assert.equal(h.$('list').hidden, false);
+  const ids = h.cards().map(card => new URL(card.querySelectorAll('a')[0].href).searchParams.get('id'));
+  assert.deepEqual(ids, [idA, idB]);
   await h.button(0).fire('click');
   assert.deepEqual(h.calls.remove, [idA]);
+  assert.equal(h.cards().length, 1);
+  assert.equal(h.$('count').textContent, '1 livro favorito.');
 });
 
 test('falha no service de capas e imagem quebrada preservam lista e placeholder', async () => {
@@ -316,7 +326,7 @@ async function destinationPage(file, url, overrides = {}) {
 
 test('B05: cards reais de duas obras abrem detalhes consultando o bookId correto em ambas as rotas', async () => {
   for (const route of ['biblioteca', 'biblioteca.html']) {
-    const h = await harness({ listFavorites: async () => ok([favorite(idA, { id: idB }), favorite(idB)]) }, 'mock', route);
+    const h = await harness({ listFavorites: async () => ok([favorite(idA), favorite(idB)]) }, 'mock', route);
     for (const [index, expected] of [idA, idB].entries()) {
       const url = new URL(h.cards()[index].querySelectorAll('a')[0].href);
       assert.equal(url.pathname, route.endsWith('.html') ? '/detalhes-obra.html' : '/detalhes-obra');
@@ -382,15 +392,35 @@ test('B09: imagem carregada esconde placeholder e erro posterior restaura fallba
   assert.equal(h.cards()[0].querySelectorAll('img').length, 0);
 });
 
-test('book inválido é apresentado como indisponível, continua removível e não interrompe coleção', async () => {
-  for (const book of [null, false, 42, 'inválido', [], {}, { title: {} }]) {
+test('B10: book inválido não gera card nem link e não interrompe favoritos válidos', async () => {
+  for (const book of [null, undefined, false, 42, 'inválido', [], {}, { title: 'Sem ID' }, { id: '' }, { id: 42 }, { id: 'invalid' }]) {
     const h = await harness({ listFavorites: async () => ok([{ bookId: idA, book }, favorite(idB)]) });
-    assert.equal(h.cards().length, 2);
-    assert.ok(h.cards()[0].querySelectorAll('span').some(el => el.textContent === 'Obra indisponível'));
-    await h.button(0).fire('click');
     assert.equal(h.cards().length, 1);
-    assert.deepEqual(h.calls.remove, [idA]);
+    assert.equal(h.$('count').textContent, '1 livro favorito.');
+    assert.equal(new URL(h.cards()[0].querySelectorAll('a')[0].href).searchParams.get('id'), idB);
+    await h.button(0).fire('click');
+    assert.equal(h.cards().length, 0);
+    assert.deepEqual(h.calls.remove, [idB]);
   }
+});
+
+test('B10: todos os registros inválidos mostram informação de indisponibilidade sem cards ou links', async () => {
+  const h = await harness({ listFavorites: async () => ok([
+    null, { bookId: idA, book: null }, { bookId: idB },
+    favorite(idA, { id: null }), favorite(idB, { id: 'invalid' }),
+    favorite(idA, { id: idB })
+  ]) });
+  assert.equal(h.cards().length, 0);
+  assert.equal(h.$('list').querySelectorAll('a').length, 0);
+  assert.equal(h.$('list').hidden, true);
+  assert.equal(h.$('count').textContent, '0 livros favoritos.');
+  assert.equal(h.$('empty').hidden, true);
+  assert.equal(h.$('session').hidden, true);
+  assert.equal(h.$('message').hidden, false);
+  assert.equal(h.$('message').dataset.type, 'warning');
+  assert.match(h.$('message').textContent, /Nenhuma obra disponível/);
+  assert.equal(h.$('retry').hidden, true);
+  assert.equal(h.$('list').attributes['aria-busy'], 'false');
 });
 
 test('recuperação de falha na remoção permite nova tentativa sem nova listagem', async () => {

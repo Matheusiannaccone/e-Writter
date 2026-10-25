@@ -80,21 +80,22 @@ async function loadFavorites() {
     if (result?.error?.code === "UNAUTHENTICATED") { showSession(); return; }
     if (result?.error || !Array.isArray(result?.data)) throw result?.error;
     const seen = new Set();
+    const isBookId = (id) => typeof id === "string"
+      && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
     const valid = result.data.filter((entry) => {
-      if (typeof entry?.bookId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entry.bookId) || seen.has(entry.bookId)) return false;
+      const book = entry?.book;
+      if (!isBookId(entry?.bookId) || !book || typeof book !== "object" || Array.isArray(book)
+        || !isBookId(book.id) || book.id !== entry.bookId || seen.has(entry.bookId)) return false;
       seen.add(entry.bookId);
       return true;
     });
     const cards = await Promise.all(valid.map(async (entry) => {
-      const available = entry.book && typeof entry.book === "object" && !Array.isArray(entry.book)
-        && typeof entry.book.title === "string" && entry.book.title.trim();
-      const book = available ? { ...entry.book, id: entry.bookId } : { id: entry.bookId, title: "Obra indisponível" };
+      const book = entry.book;
       const href = bookDetailsUrl(entry.bookId);
       const card = await createBookCard(book, {
         href: href.href,
         author: typeof book.author === "string" ? book.author : book.author?.displayName || book.author?.username,
         genres: book.genres,
-        metadata: available ? undefined : "Os dados desta obra não estão disponíveis.",
         showFavoriteButton: false
       });
       const button = document.createElement("button");
@@ -110,7 +111,12 @@ async function loadFavorites() {
     entries = valid;
     favoritesList.replaceChildren(...cards);
     paintCollection();
-    if (valid.length !== result.data.length) showFeedback(message, "Alguns registros inválidos ou repetidos não foram exibidos.", "warning");
+    if (result.data.length && !valid.length) {
+      emptyState.hidden = true;
+      showFeedback(message, "Nenhuma obra disponível para exibir. Os favoritos retornados estão indisponíveis ou são inválidos.", "warning");
+    } else if (valid.length !== result.data.length) {
+      showFeedback(message, "Alguns registros inválidos ou repetidos não foram exibidos.", "warning");
+    }
   } catch {
     if (version !== generation) return;
     favoritesCount.textContent = "Não foi possível carregar sua Biblioteca.";
