@@ -59,3 +59,13 @@
 .feedback-spinner { display: inline-block; flex: 0 0 auto; width: 1em; height: 1em; margin-inline-end: .4em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: feedback-spin .8s linear infinite; }
 @keyframes feedback-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .feedback-spinner { animation: none; } }
+
+.session-nav, .session-nav__actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.session-nav { padding: .5rem 0; }
+.session-nav__status { font-size: .875rem; }
+.session-nav__status:empty { display: none; }
+.session-nav__action { border: 0; background: transparent; font: inherit; cursor: pointer; }
+.session-nav__action:disabled { opacity: .6; cursor: wait; }
+.session-nav__action:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.site-nav { align-items: center; }
+@media (min-width: 768px) { .site-nav { display: flex !important; gap: 1rem; } }
