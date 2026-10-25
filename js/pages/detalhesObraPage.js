@@ -10,19 +10,19 @@ import {
 const elements = {
   status: document.querySelector("#obra-status"),
   content: document.querySelector("#obra-content"),
-  capa: document.querySelector("#obra-capa"),
-  titulo: document.querySelector("#obra-titulo"),
-  autor: document.querySelector("#obra-autor"),
-  generos: document.querySelector("#obra-generos"),
-  statusPublicacao: document.querySelector("#obra-status-publicacao"),
-  idioma: document.querySelector("#obra-idioma"),
-  quantidadeCapitulos: document.querySelector("#obra-qtd-capitulos"),
-  sinopse: document.querySelector("#obra-sinopse"),
-  capitulosResumo: document.querySelector("#capitulos-resumo"),
-  capitulosLista: document.querySelector("#capitulos-lista"),
-  btnComecar: document.querySelector("#btn-comecar"),
-  btnFavorito: document.querySelector("#btn-favorito"),
-  favoritoFeedback: document.querySelector("#favorito-feedback")
+  capa: document.querySelector("#obra-cover"),
+  titulo: document.querySelector("#obra-title"),
+  autor: document.querySelector("#obra-author"),
+  generos: document.querySelector("#obra-tags"),
+  statusPublicacao: document.querySelector("#obra-publication-status"),
+  idioma: document.querySelector("#obra-language"),
+  quantidadeCapitulos: document.querySelector("#obra-chapter-count"),
+  sinopse: document.querySelector("#obra-description"),
+  capitulosResumo: document.querySelector("#chapter-count-label"),
+  capitulosLista: document.querySelector("#chapter-list"),
+  btnComecar: document.querySelector("#start-reading"),
+  btnFavorito: document.querySelector("#favorite-button"),
+  favoritoFeedback: document.querySelector("#favorite-status")
 };
 
 const params = new URLSearchParams(window.location.search);
@@ -61,20 +61,42 @@ function showError(message) {
   setStatus(message, true);
 }
 
-function renderCover(book) {
-  elements.capa.replaceChildren();
+const renderCover = (book) => {
+ elements.capa.replaceChildren();
 
   if (book.coverPath) {
     const image = document.createElement("img");
+
     image.src = book.coverPath;
     image.alt = `Capa de ${book.title}`;
+
     image.onerror = () => renderCoverPlaceholder(book.title);
+
     elements.capa.appendChild(image);
     return;
   }
 
   renderCoverPlaceholder(book.title);
 }
+
+function renderCoverPlaceholder(title) {
+  elements.capa.replaceChildren();
+
+  const coverTitle = document.createElement("span");
+  coverTitle.className = "cover-title";
+  coverTitle.textContent = title || "E-writter";
+
+  const ornament = document.createElement("span");
+  ornament.className = "cover-ornament";
+  ornament.setAttribute("aria-hidden", "true");
+  ornament.textContent = "✦";
+
+  const small = document.createElement("span");
+  small.className = "cover-small";
+  small.textContent = "E-writter";
+
+  elements.capa.append(small, coverTitle, ornament);
+};
 
 function renderCoverPlaceholder(title) {
   elements.capa.replaceChildren();
@@ -103,7 +125,7 @@ function renderGenres(genres = []) {
   });
 }
 
-function renderChapters(chapters = []) {
+const renderChapters = (chapters = []) => {
   currentChapters = chapters;
   elements.capitulosLista.replaceChildren();
   elements.quantidadeCapitulos.textContent = String(chapters.length);
@@ -118,7 +140,23 @@ function renderChapters(chapters = []) {
     return;
   }
 
-  elements.btnComecar.disabled = false;
+  if (!chapters.length) {
+  const empty = document.createElement("p");
+
+  empty.className = "capitulos-vazio";
+  empty.textContent =
+    "Esta obra ainda não possui capítulos publicados.";
+
+  elements.capitulosLista.appendChild(empty);
+
+  elements.btnComecar.setAttribute("aria-disabled", "true");
+  elements.btnComecar.href = "#capitulos";
+
+  return;
+}
+
+elements.btnComecar.removeAttribute("aria-disabled");
+elements.btnComecar.href = "#capitulos";
 
   chapters.forEach((chapter, index) => {
     const item = document.createElement("article");
