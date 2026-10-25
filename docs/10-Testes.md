@@ -181,3 +181,48 @@ Preferir GitHub Issues.
 - **Alta:** fluxo principal quebrado;
 - **Média:** funcionalidade secundária incorreta;
 - **Baixa:** problema visual ou inconveniente não bloqueante.
+
+## 10. Integração do editor de capítulos — 0.43.1 em diante
+
+A página `chapter-editor.html` usa o script de Lucas Emmanoel recuperado do PR #44
+no commit 0.43.0. A integração mantém esse commit e a página `book-editor.html`.
+
+Validação automatizada, sem dependências adicionais:
+
+```sh
+npm run test:chapter-editor
+node --check js/pages/chapterEditorPage.js
+node --check js/pages/book-editor.js
+git diff --check
+```
+
+Os testes executam os handlers reais das páginas em um DOM mínimo com services
+controlados. Cobrem IDs e assets locais, sessão ausente/expirada, obra indisponível,
+estados vazios, falhas retornadas/exceções, respostas fora de ordem, bloqueio durante
+save, prevenção de submit duplicado, atualização da lista, preservação de texto em
+erro e navegação com `bookId`/`datasource`. Não substituem testes em navegador ou RLS.
+O comando `npm test` anterior continua sendo um placeholder que termina com erro.
+
+Contratos conferidos com `14-Contrato-Front-Services.md`, seções 10.2, 10.4 e 10.5,
+e com os adapters mock/Supabase: `getChaptersByBook(bookId)`,
+`createChapter(bookId, { title, content })` e `updateChapter(id, { title, content })`.
+Nenhuma chamada envia posição, status ou campos de autoria. A posição e as
+permissões continuam nos services/adapters. A validação de título/conteúdo
+obrigatórios já presente no script de Lucas foi mantida; os services permitem
+rascunhos incompletos. As restrições de capítulos publicados continuam no backend.
+
+Pendências de teste manual:
+
+- Em mock local e com `?datasource=supabase`, criar uma obra, abrir o editor,
+  criar/editar capítulos e voltar ao ateliê com a mesma obra e fonte de dados.
+- Repetir T-010, T-011, T-014, T-020, T-021, T-022 e T-023; incluir upload/remoção
+  de capa, publicação/retirada de publicação e conteúdo publicado de 499/500/15.000
+  caracteres. Conferir persistência após recarregar e os bloqueios existentes.
+- Repetir a matriz com autor A, usuário B e visitante no Supabase real; verificar
+  que `bookId` alheio não concede acesso e que a sessão expirada não grava dados.
+- Simular rede lenta/offline, alternar rapidamente entre obras e salvar durante
+  latência. Confirmar mensagens e lista da obra atual. Se o save confirmar e a
+  atualização da lista falhar, confirmar o aviso e selecionar novamente a obra.
+- Validar em 320px, mobile, tablet e desktop: ausência de overflow, título longo,
+  textarea, header/footer, menu, foco visível, ordem de tabulação, skip link,
+  labels e anúncios das mensagens com leitor de tela. Conferir Chrome e Firefox.
