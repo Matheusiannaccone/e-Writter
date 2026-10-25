@@ -21,9 +21,10 @@ function deferred() {
 class Element {
   constructor(tag = 'div') {
     Object.assign(this, { tag, children: [], attributes: {}, handlers: {}, dataset: {}, hidden: false, disabled: false, textContent: '' });
-    this.classList = { add() {} };
+    this.classList = { add() {}, toggle() {} };
   }
   append(...items) { for (const item of items) { item.parent = this; this.children.push(item); } }
+  appendChild(item) { this.append(item); }
   replaceChildren(...items) { this.children.forEach(child => { child.parent = null; }); this.children = []; this.append(...items); }
   setAttribute(key, value) { this.attributes[key] = value; }
   getAttribute(key) { return this.attributes[key]; }
@@ -35,7 +36,7 @@ class Element {
   remove() { if (this.parent) this.parent.children = this.parent.children.filter(child => child !== this); this.parent = null; }
   focus() { this.doc.activeElement = this; }
 }
-async function harness(overrides = {}, source = 'mock') {
+async function harness(overrides = {}, source = 'mock', route = 'biblioteca.html') {
   const elements = new Map();
   const document = { activeElement: null, querySelector: id => elements.get(id), querySelectorAll: () => links, createElement: tag => make(tag) };
   function make(tag) { const el = new Element(tag); el.doc = document; return el; }
@@ -45,7 +46,7 @@ async function harness(overrides = {}, source = 'mock') {
   let auth;
   const calls = { list: 0, remove: [], favoriteButton: 0 };
   const context = vm.createContext({
-    document, window: { location: new URL(`http://localhost/biblioteca.html?datasource=${source}`) },
+    document, window: { location: new URL(`http://localhost/${route}?datasource=${source}`) },
     URL, URLSearchParams, setTimeout,
     listFavorites: async () => { calls.list++; return ok([favorite()]); },
     removeFavorite: async id => { calls.remove.push(id); return ok({ bookId: id }); },
@@ -246,7 +247,7 @@ test('login redireciona para Biblioteca com datasource e falha mantém formulár
       const location = new URL(`http://localhost/login.html?datasource=${source}`);
       location.assign = value => { assigned = value; };
       const context = vm.createContext({
-        document: { querySelector: id => elements.get(id) }, window: { location }, URL, URLSearchParams,
+        document: { querySelector: id => elements.get(id), querySelectorAll: () => [] }, window: { location }, URL, URLSearchParams,
         clearFeedback() {}, showFeedback() {}, setFieldError() {}, setProcessing() {},
         signIn: async () => success ? ok({}) : fail('NETWORK_ERROR')
       });
@@ -281,4 +282,137 @@ test('logout durante resolução de capa impede publicação tardia do card', as
   cover.resolve(ok({ url: null })); await flush();
   assert.equal(h.cards().length, 0);
   assert.equal(h.$('session').hidden, false);
+});
+
+// Executa os módulos de destino com services simulados, sem importar adapters.
+async function destinationPage(file, url, overrides = {}) {
+  const elements = new Map();
+  const document = {
+    querySelector(selector) {
+      // Home não inicia imports dinâmicos; cardForBook é exercitado explicitamente.
+      if (file === 'home-books.js') return null;
+      if (!elements.has(selector)) { const el = new Element(); el.doc = document; elements.set(selector, el); }
+      return elements.get(selector);
+    },
+    getElementById(id) { return this.querySelector(`#${id}`); },
+    createElement(tag) { const el = new Element(tag); el.doc = document; return el; }
+  };
+  const calls = [];
+  const context = vm.createContext({
+    document, window: { location: new URL(url) }, URL, URLSearchParams,
+    console: { warn() {}, error() {} },
+    getBookById: async id => { calls.push(id); return ok({ id, title: `Obra ${id}`, status: 'published', genres: [] }); },
+    getChaptersByBook: async () => ok([{ id: 'chapter-1', position: 1, title: 'Primeiro', status: 'published' }]),
+    getProfile: async () => ok(null), getBookCoverUrl: async () => ok({ url: null }),
+    isFavorite: async () => ok(true), addFavorite: async () => ok({}), removeFavorite: async () => ok({}),
+    ...overrides
+  });
+  for (const source of ['js/components/navigation-context.js', `js/pages/${file}`]) {
+    vm.runInContext(read(source).replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];\s*/gm, '').replace(/^export /gm, ''), context);
+  }
+  await flush();
+  return { context, calls, $: id => document.getElementById(id) };
+}
+
+test('B05: cards reais de duas obras abrem detalhes consultando o bookId correto em ambas as rotas', async () => {
+  for (const route of ['biblioteca', 'biblioteca.html']) {
+    const h = await harness({ listFavorites: async () => ok([favorite(idA, { id: idB }), favorite(idB)]) }, 'mock', route);
+    for (const [index, expected] of [idA, idB].entries()) {
+      const url = new URL(h.cards()[index].querySelectorAll('a')[0].href);
+      assert.equal(url.pathname, route.endsWith('.html') ? '/detalhes-obra.html' : '/detalhes-obra');
+      assert.equal(url.searchParams.get('id'), expected);
+      assert.equal(url.searchParams.get('datasource'), 'mock');
+      const details = await destinationPage('detalhesObraPage.js', url.href);
+      assert.deepEqual(details.calls, [expected]);
+      assert.equal(details.$('obra-title').textContent, `Obra ${expected}`);
+      assert.equal(details.$('obra-content').hidden, false);
+    }
+  }
+});
+
+test('A08: Biblioteca, Home, Detalhes e capítulos preservam mock sem passar pelo redirect .html', async () => {
+  for (const suffix of ['', '.html']) {
+    const h = await harness({}, 'mock', `biblioteca${suffix}`);
+    const home = await destinationPage('home-books.js', `http://localhost/index${suffix}?datasource=mock`);
+    const homeCard = await vm.runInContext(`cardForBook({id: '${idB}'}, { createBookCard: async (book, options) => options, getProfile: async () => ({data: null}) })`, home.context);
+    const detailUrls = [h.cards()[0].querySelectorAll('a')[0].href, homeCard.href];
+    for (const detailUrl of detailUrls) {
+      const details = await destinationPage('detalhesObraPage.js', detailUrl);
+      const chapterLinks = [details.$('start-reading').href, details.$('chapter-list').querySelectorAll('a')[0].href];
+      for (const href of chapterLinks) {
+        const chapterUrl = new URL(href);
+        assert.equal(chapterUrl.pathname, `/chapter${suffix}`);
+        assert.equal(chapterUrl.searchParams.get('id'), 'chapter-1');
+        assert.equal(chapterUrl.searchParams.get('datasource'), 'mock');
+      }
+    }
+    // Sem id inicial, o leitor não importa services nem executa chamadas de rede.
+    const reader = await destinationPage('chapter-reader.js', `http://localhost/chapter${suffix}?datasource=mock`);
+    vm.runInContext(`setNeighbor('next-chapter', 'next-title', {id: 'chapter-2', title: 'Segundo'})`, reader.context);
+    const next = new URL(reader.$('next-chapter').href);
+    assert.equal(next.pathname, `/chapter${suffix}`);
+    assert.equal(next.searchParams.get('id'), 'chapter-2');
+    assert.equal(next.searchParams.get('datasource'), 'mock');
+    const back = new URL(vm.runInContext(`withDataSource('./biblioteca.html').href`, reader.context));
+    assert.equal(back.pathname, `/biblioteca${suffix}`);
+    assert.equal(back.searchParams.get('datasource'), 'mock');
+  }
+});
+
+test('B09: capa ausente não consulta service; falha retornada mantém placeholder', async () => {
+  let calls = 0;
+  const h = await harness({ getBookCoverUrl: async () => { calls++; return fail('NETWORK_ERROR'); } });
+  assert.equal(calls, 0);
+  assert.equal(h.cards()[0].querySelectorAll('img').length, 0);
+  assert.ok(h.cards()[0].querySelectorAll('span').some(el => el.textContent === 'Sem capa' && !el.hidden));
+  const failing = await harness({ listFavorites: async () => ok([favorite(idA, { coverPath: 'simulada' })]), getBookCoverUrl: async () => fail('NETWORK_ERROR') });
+  assert.equal(failing.cards().length, 1);
+  assert.equal(failing.cards()[0].querySelectorAll('img').length, 0);
+  assert.ok(failing.cards()[0].querySelectorAll('span').some(el => el.textContent === 'Sem capa' && !el.hidden));
+});
+
+test('B09: imagem carregada esconde placeholder e erro posterior restaura fallback', async () => {
+  const h = await harness({ listFavorites: async () => ok([favorite(idA, { coverPath: 'simulada' })]), getBookCoverUrl: async () => ok({ url: 'https://example.invalid/not-fetched.jpg' }) });
+  const image = h.cards()[0].querySelectorAll('img')[0];
+  const placeholder = h.cards()[0].querySelectorAll('span').find(el => el.textContent === 'Sem capa');
+  await image.fire('load');
+  assert.equal(placeholder.hidden, true);
+  await image.fire('error');
+  assert.equal(placeholder.hidden, false);
+  assert.equal(h.cards()[0].querySelectorAll('img').length, 0);
+});
+
+test('book inválido é apresentado como indisponível, continua removível e não interrompe coleção', async () => {
+  for (const book of [null, false, 42, 'inválido', [], {}, { title: {} }]) {
+    const h = await harness({ listFavorites: async () => ok([{ bookId: idA, book }, favorite(idB)]) });
+    assert.equal(h.cards().length, 2);
+    assert.ok(h.cards()[0].querySelectorAll('span').some(el => el.textContent === 'Obra indisponível'));
+    await h.button(0).fire('click');
+    assert.equal(h.cards().length, 1);
+    assert.deepEqual(h.calls.remove, [idA]);
+  }
+});
+
+test('recuperação de falha na remoção permite nova tentativa sem nova listagem', async () => {
+  let attempts = 0;
+  const h = await harness({ removeFavorite: async () => ++attempts === 1 ? fail('NETWORK_ERROR') : ok({}) });
+  await h.button(0).fire('click');
+  assert.equal(h.cards().length, 1);
+  assert.equal(h.$('message').dataset.type, 'error');
+  await h.button(0).fire('click');
+  assert.equal(h.cards().length, 0);
+  assert.equal(h.$('empty').hidden, false);
+  assert.equal(h.$('message').dataset.type, 'success');
+  assert.equal(h.calls.list, 1);
+});
+
+test('Home na raiz preserva fonte e IDs sem gerar .html em servidor de rotas limpas', async () => {
+  const home = await destinationPage('home-books.js', 'http://localhost:3000/?datasource=mock');
+  const url = new URL(vm.runInContext(`bookDetailsUrl('${idA}').href`, home.context));
+  assert.equal(url.pathname, '/detalhes-obra');
+  assert.equal(url.searchParams.get('id'), idA);
+  assert.equal(url.searchParams.get('datasource'), 'mock');
+  const library = new URL(vm.runInContext(`withDataSource('./biblioteca.html').href`, home.context));
+  assert.equal(library.pathname, '/biblioteca');
+  assert.equal(library.searchParams.get('datasource'), 'mock');
 });

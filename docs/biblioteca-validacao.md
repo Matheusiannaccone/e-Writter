@@ -9,7 +9,7 @@ a barra com contagem e exploração, o estado vazio e a estante. O commit
 
 - A página consulta somente `listFavorites()` e remove com `removeFavorite(bookId)`.
   Services e adapters não foram alterados; não houve acesso direto ao Supabase.
-- O `bookId` do registro determina o destino `detalhes-obra.html?id=...` e a remoção.
+- O `bookId` do registro determina o destino `detalhes-obra[.html]?id=...` e a remoção.
   IDs inválidos e duplicados são ignorados com aviso. Obras indisponíveis continuam
   identificáveis e removíveis; a contagem corresponde aos registros válidos exibidos.
 - `createBookCard()` recebeu a opção `showFavoriteButton`, com padrão `true`.
@@ -61,3 +61,62 @@ sem conectar ao serviço.
 7. Posteriormente, executar a integração real com datasource=supabase usando contas
    de teste: isolamento por sessão/RLS, listagem, remoção, persistência, sessão
    expirada, falha de rede e preservação da fonte nos links e redirecionamentos.
+
+## Revisão após testes manuais — 0.44.4 / 0.44.5
+
+### Causas confirmadas
+
+- **B05:** a Biblioteca gerava corretamente `id=bookId`, `createBookCard()` atribuía
+  essa URL ao link, e Detalhes lia `params.get("id")`. O servidor local na porta
+  3000 respondia a `/detalhes-obra.html?id=...&datasource=mock` com **301** e
+  `Location: /detalhes-obra`, descartando a query inteira. O mesmo acontecia com
+  `/biblioteca.html?datasource=mock` → `/biblioteca`. A falha estava no redirecionamento
+  entre formatos de rota, e não no nome do parâmetro.
+- **A08:** além desse redirect, Home, Detalhes e leitor propagavam explicitamente
+  apenas `datasource=supabase`. Os links de Meus livros para o editor, o redirecionamento
+  de Perfil sem sessão e a entrada pelo botão de favorito também perdiam a fonte.
+- **B09:** os dados Mock não têm imagens reais. O estado esperado é o placeholder.
+  Falhas de service e eventos de imagem precisam ser simulados separadamente;
+  uma lista sem capas não demonstra que o fallback de erro da imagem foi exercitado.
+
+### Correções
+
+O helper de navegação acompanha o formato da URL atual: páginas `.html` continuam
+usando arquivos `.html`; páginas sem extensão e a Home `/` usam rotas sem extensão.
+Isso evita o 301 que remove os parâmetros no servidor observado. Biblioteca e Home
+compartilham `bookDetailsUrl(bookId)`; capítulos e links relacionados preservam a
+fonte com o helper existente. Servidores estáticos sem suporte a rotas limpas devem
+ser acessados por `index.html`/`biblioteca.html`, mantendo esse formato na navegação.
+
+Objetos de livro sem título válido, arrays e valores primitivos são tratados como
+obra indisponível e continuam removíveis. Os listeners de imagem são registrados
+antes de atribuir `src`, preservando os fallbacks mesmo com carregamento imediato.
+Nenhuma capa foi inventada ou adicionada aos dados Mock.
+
+### Validação executada nesta revisão
+
+- **Automatizada:** `npm test`: 47 testes aprovados (23 existentes de capítulos e
+  24 da suíte da Biblioteca). A ligação de card real → URL → página real de detalhes
+  consulta o ID de duas obras distintas usando services simulados, em ambos os
+  formatos de rota. O fluxo Home → Detalhes → leitor/próximo capítulo preserva mock.
+- Cobertura simulada de `book` nulo/inválido, falha de listagem sem estado vazio,
+  retry bem-sucedido, remoção recusada sem retirar card, nova tentativa de remoção,
+  sessão ausente/expirada, login posterior, logout e resultados atrasados.
+- Capas: ausência sem consulta ao service, erro retornado, exceção, load e error
+  simulados. Nenhuma imagem externa foi baixada.
+- **Estática:** sintaxe dos módulos JavaScript modificados, sintaxe da suíte e
+  `git diff --check` aprovados.
+- **Diagnóstico HTTP local (sem executar JavaScript):** confirmado 301 sem query
+  nos caminhos `.html` acima; os destinos corrigidos `/detalhes-obra?id=...&datasource=mock`,
+  `/chapter?id=...&datasource=mock`, `/?datasource=mock` e `/biblioteca?datasource=mock`
+  responderam **200 sem Location**. Isso verifica roteamento, não o carregamento de
+  dados nem o comportamento visual da página.
+- **Manual em navegador:** nenhum novo cenário foi marcado como aprovado nesta revisão.
+  Reexecutar B05/A08 por clique e os cenários B09, B10, C10, D02, D05 e D06 no roteiro
+  original, incluindo teclado, foco e layout responsivo. As simulações automatizadas
+  complementam esses testes, sem substituí-los.
+
+Nenhuma conexão/teste real com Supabase foi realizado. A suíte existente inclui
+verificações de strings `datasource=supabase` em URLs, sempre com services simulados.
+FavoriteService, adapters, migrations e RLS não foram modificados. Logout continua
+fora desta branch; nenhum controle novo de autenticação foi implementado.
