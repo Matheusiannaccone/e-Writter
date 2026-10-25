@@ -1,6 +1,7 @@
 // Implementação original de Lucas Emmanoel, recuperada do PR #44 em 0.43.0.
 // Integração da página e proteção dos estados assíncronos adicionadas posteriormente.
 import { getMyBooks } from "../services/bookService.js";
+import { editorUrl, syncEditorLinks } from "../components/editor-navigation.js";
 import {
   getChaptersByBook,
   createChapter,
@@ -50,12 +51,7 @@ function syncControls() {
 }
 
 function syncBackLink() {
-  const link = document.querySelector("#chapter-back-link");
-  const url = new URL("./book-editor.html", window.location.href);
-  const datasource = new URLSearchParams(window.location.search).get("datasource");
-  if (datasource !== null) url.searchParams.set("datasource", datasource);
-  if (bookSelect.value) url.searchParams.set("book", bookSelect.value);
-  link.href = url.href;
+  syncEditorLinks(bookSelect.value);
 }
 
 function showFormMessage(message, type = "error") {
@@ -301,8 +297,6 @@ async function loadMyBooks() {
       books.some((book) => book.id === requestedBookId)
     ) {
       bookSelect.value = requestedBookId;
-    } else if (!requestedBookId && books.length === 1) {
-      bookSelect.value = books[0].id;
     }
 
     bookSelect.disabled = books.length === 0;
@@ -340,22 +334,8 @@ async function loadMyBooks() {
 
 bookSelect.addEventListener("change", () => {
   if (isSaving || sessionExpired) return;
-  const params = new URLSearchParams(window.location.search);
-
-  if (bookSelect.value) {
-    params.set("bookId", bookSelect.value);
-  } else {
-    params.delete("bookId");
-  }
-
-  const query = params.toString();
-
-  const nextUrl =
-    `${window.location.pathname}` +
-    `${query ? `?${query}` : ""}` +
-    `${window.location.hash}`;
-
-  window.history.replaceState({}, "", nextUrl);
+  const nextUrl = editorUrl(window.location.href, bookSelect.value);
+  window.history.replaceState({}, "", nextUrl.href);
   syncBackLink();
 
   loadChapters(bookSelect.value);

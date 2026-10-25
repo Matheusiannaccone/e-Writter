@@ -3,6 +3,7 @@ import { getChaptersByBook, publishChapter, unpublishChapter } from '../services
 import { bookBlockers, chapterBlockers } from './publication-rules.js';
 import { getGenres } from '../services/genreService.js';
 import { uploadBookCover, removeBookCover, getBookCoverUrl } from '../services/imageService.js';
+import { editorUrl, getRequestedBookId, syncEditorLinks } from '../components/editor-navigation.js';
 
 const $ = (selector) => document.querySelector(selector);
 const form = $('#book-form');
@@ -107,15 +108,13 @@ function setBusy(value) {
 }
 function syncChapterEditorButton() {
   const persisted = books.some((book) => book.id === picker.value);
+  syncEditorLinks(persisted ? picker.value : '');
   chapterEditorButton.hidden = !persisted;
   chapterEditorButton.disabled = !persisted || busy || pendingEdits;
 }
 chapterEditorButton.addEventListener('click', () => {
   if (busy || pendingEdits || !books.some((book) => book.id === picker.value)) return;
-  const url = new URL('./chapter-editor.html', window.location.href);
-  url.searchParams.set('bookId', picker.value);
-  const datasource = new URLSearchParams(window.location.search).get('datasource');
-  if (datasource !== null) url.searchParams.set('datasource', datasource);
+  const url = editorUrl('./chapter-editor.html', picker.value);
   window.location.assign(url.href);
 });
 function renderPicker(selectedId = '') {
@@ -317,7 +316,7 @@ async function load() {
       const text = document.createElement('span'); text.textContent = genre.name;
       label.append(input, text); options.append(label);
     });
-    const requestedId = new URLSearchParams(location.search).get('book');
+    const requestedId = getRequestedBookId();
     renderPicker(books.some((book) => book.id === requestedId) ? requestedId : '');
     $('#editor-content').hidden = false;
     fillForm();

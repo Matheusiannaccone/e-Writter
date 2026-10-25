@@ -31,6 +31,11 @@ class Element {
   querySelectorAll(selector) {
     return this.children.flatMap((child) => [...(selector === child.tag ? [child] : []), ...child.querySelectorAll(selector)]);
   }
+  querySelector(selector) {
+    this.slots ??= new Map();
+    if (!this.slots.has(selector)) this.slots.set(selector, new Element());
+    return this.slots.get(selector);
+  }
   focus() { this.focused = true; }
 }
 function harness(overrides = {}, url = 'http://localhost/chapter-editor.html?bookId=book-a&datasource=mock') {
@@ -43,13 +48,19 @@ function harness(overrides = {}, url = 'http://localhost/chapter-editor.html?boo
   const location = new URL(url);
   location.assign = (value) => { location.assigned = value; };
   const context = vm.createContext({
-    document: { querySelector: $, querySelectorAll: () => [], createElement: (tag) => new Element(tag) },
+    document: {
+      querySelector: $, getElementById: (id) => $(`#${id}`),
+      querySelectorAll: (selector) => selector === '[data-editor-link]' ? [$('#chapter-back-link'), $('#header-editor-link')] : [],
+      createElement: (tag) => new Element(tag)
+    },
     window: { location, history: { replaceState: (_, __, value) => { location.href = new URL(value, location).href; } } },
     location, URL, URLSearchParams, console: { error() {} },
     Option: function (text, value) { const option = new Element('option'); option.textContent = text; option.value = value; return option; },
     getMyBooks: async () => ok(books), getChaptersByBook: async () => ok([chapter]),
+    getGenres: async () => ok([]), bookBlockers: () => [], chapterBlockers: () => [],
     createChapter: async () => ok(chapter), updateChapter: async () => ok(chapter), ...overrides
   });
+  vm.runInContext(read('js/components/editor-navigation.js').replace(/^export /gm, ''), context);
   function run(file) {
     // Substitui apenas imports; o corpo da página é executado integralmente.
     vm.runInContext(read(file).replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];\s*/gm, ''), context);
@@ -126,7 +137,7 @@ test('respostas e erros atrasados não substituem a obra atual', async () => {
     assert.equal(h.$('#chapter-list').children[0].children[0].children[0].textContent, 'Obra B');
     assert.equal(h.$('#chapter-save-button').disabled, false);
     assert.equal(h.location.searchParams.get('datasource'), 'mock');
-    assert.equal(new URL(h.$('#chapter-back-link').href).searchParams.get('book'), 'book-b');
+    assert.equal(new URL(h.$('#chapter-back-link').href).searchParams.get('bookId'), 'book-b');
   }
 });
 
@@ -250,4 +261,140 @@ test('ateliê navega somente com obra persistida, sem alterações ou operação
   assert.equal(target.pathname, '/chapter-editor.html');
   assert.equal(target.searchParams.get('bookId'), 'book-a');
   assert.equal(target.searchParams.get('datasource'), 'supabase');
+});
+
+test('A01: seleciona bookId somente depois de getMyBooks confirmar a obra', async () => {
+  const pendingBooks = deferred();
+  const reads = [];
+  const h = await editor({ getMyBooks: () => pendingBooks.promise, getChaptersByBook: async (id) => { reads.push(id); return ok([]); } });
+  assert.equal(h.$('#chapter-book-select').value, '');
+  assert.equal(h.$('#chapter-book-select').disabled, true);
+  assert.deepEqual(reads, []);
+  pendingBooks.resolve(ok(books));
+  await flush();
+  assert.equal(h.$('#chapter-book-select').value, 'book-a');
+  assert.deepEqual(reads, ['book-a']);
+});
+
+test('A01: sem bookId mantém seletor vazio, inclusive com uma única obra', async () => {
+  for (const ownBooks of [[books[0]], books]) {
+    let reads = 0;
+    const h = await editor({ getMyBooks: async () => ok(ownBooks), getChaptersByBook: async () => { reads++; return ok([]); } }, 'http://localhost:3000/chapter-editor?datasource=mock');
+    assert.equal(h.$('#chapter-book-select').value, '');
+    assert.equal(h.$('#chapter-book-select').disabled, false);
+    assert.equal(h.$('#chapter-save-button').disabled, true);
+    assert.equal(reads, 0);
+  }
+});
+
+test('A01/D06: botão, seleção inicial e ambos os retornos preservam contexto em rotas .html e limpas', async () => {
+  for (const extension of ['', '.html']) {
+    for (const datasource of ['mock', 'supabase', null]) {
+      const initial = new URL(`http://localhost:3000/livros/book-editor${extension}`);
+      initial.searchParams.set('bookId', 'book-a');
+      if (datasource) initial.searchParams.set('datasource', datasource);
+      initial.searchParams.set('context', 'valor com espaços & acentos: ação');
+      initial.searchParams.append('tag', 'um');
+      initial.searchParams.append('tag', 'dois');
+      const bookPage = harness({}, initial.href);
+      bookPage.run('js/pages/book-editor.js');
+      await flush();
+      assert.equal(bookPage.$('#book-picker').value, 'book-a');
+      assert.equal(bookPage.$('#open-chapter-editor').disabled, false);
+      bookPage.$('#open-chapter-editor').fire('click');
+      const target = new URL(bookPage.location.assigned);
+      assert.equal(target.pathname, `/livros/chapter-editor${extension}`);
+      assert.equal(target.searchParams.get('bookId'), 'book-a');
+      assert.equal(target.searchParams.get('datasource'), datasource);
+      assert.equal(target.searchParams.get('context'), initial.searchParams.get('context'));
+      assert.deepEqual(target.searchParams.getAll('tag'), ['um', 'dois']);
+      const chapterPage = await editor({}, target.href);
+      assert.equal(chapterPage.$('#chapter-book-select').value, 'book-a');
+      chapterPage.$('#chapter-book-select').value = 'book-b';
+      chapterPage.$('#chapter-book-select').fire('change');
+      await flush();
+      for (const selector of ['#chapter-back-link', '#header-editor-link']) {
+        const back = new URL(chapterPage.$(selector).href);
+        assert.equal(back.pathname, `/livros/book-editor${extension}`);
+        assert.deepEqual(back.searchParams.getAll('bookId'), ['book-b']);
+        assert.equal(back.searchParams.has('book'), false);
+        assert.equal(back.searchParams.get('datasource'), datasource);
+        assert.equal(back.searchParams.get('context'), initial.searchParams.get('context'));
+        assert.deepEqual(back.searchParams.getAll('tag'), ['um', 'dois']);
+        const returnedPage = harness({}, back.href);
+        returnedPage.run('js/pages/book-editor.js');
+        await flush();
+        assert.equal(returnedPage.$('#book-picker').value, 'book-b');
+      }
+    }
+  }
+});
+
+test('D06: parâmetros únicos não duplicam nem mudam datasource após várias navegações', () => {
+  const h = harness({}, 'http://localhost:3000/book-editor?book=old&bookId=book-a&bookId=wrong&datasource=supabase&datasource=mock&context=teste');
+  for (const target of ['./chapter-editor.html', './book-editor.html', './chapter-editor.html']) {
+    h.context.nextTarget = target;
+    const url = vm.runInContext('editorUrl(nextTarget, "book-b")', h.context);
+    assert.deepEqual(url.searchParams.getAll('datasource'), ['supabase']);
+    assert.deepEqual(url.searchParams.getAll('bookId'), ['book-b']);
+    assert.equal(url.searchParams.has('book'), false);
+    assert.equal(url.searchParams.get('context'), 'teste');
+    h.location.href = url.href;
+  }
+});
+
+test('D06: limpar seleção remove IDs antigos e mantém parâmetros e fragmento da página', async () => {
+  const h = await editor({}, 'http://localhost:3000/chapter-editor?bookId=book-a&book=old&datasource=mock&context=teste#conteudo');
+  h.$('#chapter-book-select').value = '';
+  h.$('#chapter-book-select').fire('change');
+  await flush();
+  assert.equal(h.location.searchParams.has('bookId'), false);
+  assert.equal(h.location.searchParams.has('book'), false);
+  assert.equal(h.location.searchParams.get('datasource'), 'mock');
+  assert.equal(h.location.searchParams.get('context'), 'teste');
+  assert.equal(h.location.hash, '#conteudo');
+  assert.equal(h.$('#chapter-save-button').disabled, true);
+});
+
+test('D06: header compartilhado preserva query também nas rotas sem extensão', () => {
+  for (const route of ['book-editor', 'chapter-editor', 'book-editor.html', 'chapter-editor.html']) {
+    const h = harness({}, `http://localhost:3000/${route}?bookId=book-a&datasource=supabase&context=teste`);
+    const link = h.$('#header-editor-link');
+    link.href = 'http://localhost:3000/book-editor.html';
+    const header = { querySelector: () => null, querySelectorAll: () => [link], innerHTML: '' };
+    h.context.document.querySelector = (selector) => selector === '[data-site-header]' ? header : null;
+    h.run('js/components/site-layout.js');
+    assert.match(header.innerHTML, /data-editor-link/);
+    const target = new URL(link.href);
+    assert.equal(target.pathname, route.endsWith('.html') ? '/book-editor.html' : '/book-editor');
+    assert.equal(target.searchParams.get('datasource'), 'supabase');
+    assert.equal(target.searchParams.get('bookId'), 'book-a');
+    assert.equal(target.searchParams.get('context'), 'teste');
+    assert.equal(link.attributes['aria-current'], route.startsWith('book-editor') ? 'page' : undefined);
+  }
+});
+
+test('links antigos com book continuam selecionando somente obras do usuário no ateliê', async () => {
+  for (const [requested, expected] of [['book-a', 'book-a'], ['other', '']]) {
+    const h = harness({}, `http://localhost:3000/book-editor?book=${requested}&datasource=mock`);
+    h.run('js/pages/book-editor.js');
+    await flush();
+    assert.equal(h.$('#book-picker').value, expected);
+  }
+});
+
+test('D06: regra real de getDataSource permanece igual após navegar', () => {
+  const source = read('js/services/dataSource.js')
+    .replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];\s*/gm, '')
+    .replace(/^export /gm, '');
+  const activeSource = (url) => vm.runInNewContext(`${source}\ngetDataSource();`, { window: { location: new URL(url) }, URLSearchParams });
+  for (const query of ['', '?datasource=mock', '?datasource=supabase', '?datasource=supabase&datasource=mock']) {
+    const h = harness({}, `http://localhost:3000/book-editor${query}`);
+    const before = activeSource(h.location.href);
+    for (const target of ['./chapter-editor.html', './book-editor.html']) {
+      h.context.nextTarget = target;
+      h.location.href = vm.runInContext('editorUrl(nextTarget, "book-a").href', h.context);
+      assert.equal(activeSource(h.location.href), before);
+    }
+  }
 });
