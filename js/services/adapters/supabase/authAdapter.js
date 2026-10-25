@@ -11,6 +11,19 @@ function normalizeAuthError(error) {
 
   const message = error.message?.toLowerCase() ?? "";
 
+  if (error.name === "AuthRetryableFetchError" || message.includes("network") || message.includes("fetch")) {
+    return { code: "NETWORK_ERROR", message: "Não foi possível conectar ao servidor. Tente novamente." };
+  }
+
+  if (["otp_expired", "session_expired", "refresh_token_not_found", "refresh_token_already_used", "bad_jwt"].includes(error.code) ||
+      message.includes("expired") || message.includes("invalid token")) {
+    return { code: "UNAUTHENTICATED", message: "Sessão inválida ou expirada. Entre novamente." };
+  }
+
+  if (["weak_password", "same_password"].includes(error.code)) {
+    return { code: "VALIDATION_ERROR", message: "Use uma senha diferente da anterior, com pelo menos 6 caracteres e que atenda aos requisitos de segurança." };
+  }
+
   if (message.includes("invalid login credentials")) {
     return {
       code: "UNAUTHENTICATED",
@@ -46,20 +59,17 @@ function normalizeAuthError(error) {
     };
   }
 
-  if (
-    message.includes("network") ||
-    message.includes("fetch")
-  ) {
-    return {
-      code: "NETWORK_ERROR",
-      message: "Não foi possível conectar ao servidor."
-    };
-  }
-
   return {
     code: "UNKNOWN_ERROR",
     message: "Ocorreu um erro inesperado."
   };
+}
+
+function normalizeRecoveryError(error) {
+  const normalized = normalizeAuthError(error);
+  return normalized?.code === 'UNAUTHENTICATED'
+    ? { code: 'INVALID_RECOVERY_LINK', message: 'Link inválido ou expirado. Solicite um novo link de recuperação.' }
+    : normalized;
 }
 
 export const supabaseAuthAdapter = {
@@ -91,10 +101,40 @@ export const supabaseAuthAdapter = {
   },
 
   async resetPasswordForEmail({ email }) {
-    const redirectTo = new URL("redefinir-senha.html", window.location.href).href;
+    const redirect = new URL("redefinir-senha.html", window.location.href);
+    if (new URLSearchParams(window.location.search).has("datasource")) redirect.searchParams.set("datasource", "supabase");
+    const redirectTo = redirect.href;
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     const normalizedError = normalizeAuthError(error);
     return normalizedError ? { data: null, error: normalizedError } : { data, error: null };
+  },
+
+  async getPasswordRecoverySession() {
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const query = new URLSearchParams(window.location.search);
+    if (hash.has("error") || hash.has("error_code") || query.has("error") || query.has("error_code")) {
+      return { data: null, error: { code: "INVALID_RECOVERY_LINK", message: "Link inválido ou expirado. Solicite um novo link de recuperação." } };
+    }
+    // getSession aguarda a inicialização do SDK e a sessão do redirect de recuperação.
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      return { data: null, error: normalizeRecoveryError(error) };
+    }
+    if (!data?.session || (data.session.expires_at && data.session.expires_at * 1000 <= Date.now())) {
+      return { data: null, error: { code: "INVALID_RECOVERY_LINK", message: "Link inválido ou expirado. Solicite um novo link de recuperação." } };
+    }
+    return { data: data.session, error: null };
+  },
+
+  async updatePassword({ password }) {
+    if (typeof password !== "string" || password.length < 6) {
+      return { data: null, error: { code: "VALIDATION_ERROR", message: "A senha deve conter pelo menos 6 caracteres." } };
+    }
+    const recovery = await this.getPasswordRecoverySession();
+    if (recovery.error) return recovery;
+    const { data, error } = await supabase.auth.updateUser({ password });
+    const normalized = normalizeRecoveryError(error);
+    return normalized ? { data: null, error: normalized } : { data: data.user, error: null };
   },
 
   async signIn({ email, password }) {

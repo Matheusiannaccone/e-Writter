@@ -172,16 +172,36 @@ export const mockAuthAdapter = {
     notifyAuthStateChange("SIGNED_IN", currentSession);
 
     return {
-        data: currentSession,
+        data: { user: currentUser, session: currentSession },
         error: null
     };
 },
 
   async resetPasswordForEmail({ email }) {
-    const exists = mockUsers.some((user) => user.email === email);
-    return exists
-      ? { data: { message: "Solicitação simulada." }, error: null }
-      : { data: null, error: { code: "NOT_FOUND", message: "Não encontramos uma conta com esse e-mail." } };
+    // O Mock não envia e-mails nem autentica a partir de um e-mail informado.
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { data: null, error: { code: "VALIDATION_ERROR", message: "Informe um e-mail válido." } };
+    }
+    return { data: { message: "Solicitação simulada." }, error: null };
+  },
+
+  async getPasswordRecoverySession() {
+    if (!currentUser || !currentSession || (currentSession.expires_at && currentSession.expires_at * 1000 <= Date.now())) {
+      return { data: null, error: { code: "INVALID_RECOVERY_LINK", message: "Link inválido ou expirado. No ambiente de demonstração, entre com uma conta de teste antes de abrir esta página." } };
+    }
+    return { data: currentSession, error: null };
+  },
+
+  async updatePassword({ password }) {
+    if (typeof password !== "string" || password.length < 6) {
+      return { data: null, error: { code: "VALIDATION_ERROR", message: "A senha deve conter pelo menos 6 caracteres." } };
+    }
+    const recovery = await this.getPasswordRecoverySession();
+    if (recovery.error) return recovery;
+    const user = mockUsers.find(item => item.id === currentUser.id);
+    if (!user) return { data: null, error: { code: "INVALID_RECOVERY_LINK", message: "Sessão de demonstração indisponível. Entre novamente." } };
+    user.password = password;
+    return { data: { id: user.id, email: user.email, message: "Senha atualizada na simulação. Os dados de demonstração são reiniciados ao recarregar a página." }, error: null };
   },
 
   async signIn({ email, password }) {
