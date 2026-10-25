@@ -3,7 +3,7 @@ import { getBookCoverUrl } from "../services/imageService.js";
 
 // Use o mesmo card nas listas da Home, do catálogo, da busca e da biblioteca.
 // A página fornece o destino e os dados de apresentação; a URL da capa vem do service.
-export async function createBookCard(book, { href, author, genres = [], metadata } = {}) {
+export async function createBookCard(book, { href, author, genres = [], metadata, showFavoriteButton = true } = {}) {
   if (!book || !href) throw new TypeError("O card precisa de um livro e de um destino.");
 
   const title = String(book.title || "Livro sem título").trim() || "Livro sem título";
@@ -29,11 +29,11 @@ export async function createBookCard(book, { href, author, genres = [], metadata
       if (url) {
         const image = document.createElement("img");
         image.className = "book-card__image";
-        image.src = url;
         image.alt = "";
         image.loading = "lazy";
         image.addEventListener("load", () => { placeholder.hidden = true; });
         image.addEventListener("error", () => { image.remove(); placeholder.hidden = false; });
+        image.src = url;
         cover.append(image);
       }
     } catch {
@@ -65,6 +65,6 @@ export async function createBookCard(book, { href, author, genres = [], metadata
 
   link.append(cover, content);
   card.append(link);
-  if (book.status === "published") card.append(createFavoriteButton(book));
+  if (showFavoriteButton && book.status === "published") card.append(createFavoriteButton(book));
   return card;
 }

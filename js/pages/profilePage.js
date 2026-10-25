@@ -1,5 +1,6 @@
 import { showFeedback, clearFeedback, setProcessing } from "../components/feedback.js";
 import { getCurrentUser } from "../services/authService.js";
+import { withDataSource } from "../components/navigation-context.js";
 import {
   getMyProfile,
   updateMyProfile
@@ -46,7 +47,7 @@ async function loadProfile() {
     ]);
 
     if (userResult?.error || !userResult?.data) {
-      window.location.replace("./index.html?next=perfil.html");
+      window.location.replace(withDataSource("./index.html?next=perfil.html").href);
       return;
     }
 

@@ -1,0 +1,15 @@
+/* Estrutura da coleção original de Lucas, com os tokens do Design System. */
+.library-main { min-height: 75vh; padding-block: var(--space-4) var(--space-5); }
+.library-heading { margin-block: var(--space-4); }
+.library-heading h1 { margin-block: var(--space-1); }
+.library-heading p, .library-toolbar p, .library-empty p { color: var(--color-text-muted); }
+.library-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); margin-block: var(--space-4) var(--space-3); }
+.library-toolbar h2 { margin: 0; }
+.library-empty { padding: var(--space-5) var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); text-align: center; }
+.library-empty p { max-width: 30rem; margin: var(--space-2) auto var(--space-3); }
+.empty-book-icon { font-size: 3rem; color: var(--color-primary); }
+.library-page .book-card { display: flex; flex-direction: column; gap: var(--space-1); }
+.library-page .book-card__link { height: auto; flex: 1; }
+.library-page .book-card .button { width: 100%; }
+#favorites-message { padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); }
+#favorites-retry { margin-bottom: var(--space-3); }

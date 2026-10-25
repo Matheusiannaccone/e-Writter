@@ -1,3 +1,5 @@
+import { withDataSource } from "../components/navigation-context.js";
+
 const state = document.querySelector("#reader-state");
 const chapterElement = document.querySelector("#chapter");
 const navigation = document.querySelector("#chapter-navigation");
@@ -46,10 +48,8 @@ function renderContent(content) {
 }
 
 function chapterUrl(id) {
-  const url = new URL("./chapter.html", window.location.href);
+  const url = withDataSource("./chapter.html");
   url.searchParams.set("id", id);
-  const dataSource = new URLSearchParams(window.location.search).get("datasource");
-  if (dataSource === "supabase") url.searchParams.set("datasource", "supabase");
   return url.href;
 }
 

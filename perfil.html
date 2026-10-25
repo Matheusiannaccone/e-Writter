@@ -20,7 +20,7 @@
     <nav class="user-page-nav" aria-label="Navegação da conta">
       <a href="perfil.html" aria-current="page">Perfil</a>
       <a href="meuslivros.html">Meus livros</a>
-      <a href="livrosfavoritos.html">Favoritos</a>
+      <a href="./biblioteca.html" data-library-link>Biblioteca</a>
       <a href="book-editor.html">Escrever</a>
     </nav>
   </header>
@@ -121,7 +121,7 @@
         <span><strong>Meus livros</strong><small>Veja suas obras</small></span>
         <span aria-hidden="true">→</span>
       </a>
-      <a class="user-page-shortcut" href="./livrosfavoritos.html">
+      <a class="user-page-shortcut" href="./biblioteca.html" data-library-link>
         <span aria-hidden="true">♥</span>
         <span><strong>Livros favoritos</strong><small>Encontre suas leituras salvas</small></span>
         <span aria-hidden="true">→</span>
@@ -132,5 +132,6 @@
   <footer class="user-page-footer">E-writter — histórias esperando para serem contadas.</footer>
 
   <script type="module" src="./js/pages/profilePage.js"></script>
+  <script type="module" src="./js/components/library-navigation.js"></script>
 </body>
 </html>

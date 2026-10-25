@@ -24,6 +24,7 @@ class Element {
   addEventListener(type, handler) { this.handlers[type] = handler; }
   fire(type) { return this.handlers[type]?.({ preventDefault() {} }); }
   setAttribute(key, value) { this.attributes[key] = value; }
+  getAttribute(key) { return key === 'href' ? this.href : this.attributes[key]; }
   removeAttribute(key) { delete this.attributes[key]; }
   replaceChildren(...items) { this.children = items; if (this.tag === 'select') this.value = items[0]?.value ?? ''; }
   append(...items) { this.children.push(...items); }
@@ -61,6 +62,7 @@ function harness(overrides = {}, url = 'http://localhost/chapter-editor.html?boo
     createChapter: async () => ok(chapter), updateChapter: async () => ok(chapter), ...overrides
   });
   vm.runInContext(read('js/components/editor-navigation.js').replace(/^export /gm, ''), context);
+  vm.runInContext(read('js/components/navigation-context.js').replace(/^export /gm, ''), context);
   function run(file) {
     // Substitui apenas imports; o corpo da página é executado integralmente.
     vm.runInContext(read(file).replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];\s*/gm, ''), context);

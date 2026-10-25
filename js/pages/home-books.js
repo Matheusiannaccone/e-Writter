@@ -1,3 +1,5 @@
+import { bookDetailsUrl } from "../components/navigation-context.js";
+
 const grid = document.querySelector("#home-books-grid");
 const state = document.querySelector("#home-books-state");
 
@@ -11,9 +13,7 @@ async function cardForBook(book, { createBookCard, getProfile }) {
       author = profileResult.data?.displayName || profileResult.data?.username || author;
     } catch { /* Perfil opcional para descoberta pública. */ }
   }
-  const href = new URL("./detalhes-obra", window.location.href);
-  href.searchParams.set("id", book.id);
-  if (new URLSearchParams(window.location.search).get("datasource") === "supabase") href.searchParams.set("datasource", "supabase");
+  const href = bookDetailsUrl(book.id);
 
   return createBookCard(book, {
     href: href.href,

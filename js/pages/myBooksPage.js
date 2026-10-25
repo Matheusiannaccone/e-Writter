@@ -1,5 +1,6 @@
 
 import { getMyBooks } from "../services/bookService.js";
+import { withDataSource } from "../components/navigation-context.js";
 import { createBookCard } from "../components/book-card.js";
 import { showFeedback, clearFeedback } from "../components/feedback.js";
 
@@ -70,7 +71,7 @@ async function loadMyBooks() {
 
     const cards = await Promise.all(
       books.map((book) => {
-        const href = new URL("./book-editor", window.location.href);
+        const href = withDataSource("./book-editor.html");
         href.searchParams.set("book", book.id);
 
         return createBookCard(book, {
