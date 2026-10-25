@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { identityPage } = require('./helpers/mock-identity.cjs');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const flush = () => new Promise(setImmediate);
@@ -14,16 +15,16 @@ function adapter(file, globals, name) {
   return vm.runInContext(name, context);
 }
 test('Mock recupera sem enumerar contas e só altera senha de sessão autenticada válida', async () => {
-  const users = [{ id: '1', email: 'teste@example.test', password: 'antiga123' }];
-  const a = adapter('js/services/adapters/mock/authAdapter.js', { mockUsers: users, mockProfiles: [], sessionStorage: { getItem() {}, setItem() {} } }, 'mockAuthAdapter');
+  const users = [{ email: 'teste1@gmail.com', password: '090909' }];
+  const a = identityPage().auth;
   const known = await a.resetPasswordForEmail({ email: users[0].email });
   const unknown = await a.resetPasswordForEmail({ email: 'ausente@example.test' });
   assert.equal(JSON.stringify(known), JSON.stringify(unknown));
   assert.equal((await a.updatePassword({ password: 'nova123' })).error.code, 'INVALID_RECOVERY_LINK');
-  await a.signIn({ email: users[0].email, password: 'antiga123' });
+  await a.signIn({ email: users[0].email, password: '090909' });
   assert.equal((await a.updatePassword({ password: '123' })).error.code, 'VALIDATION_ERROR');
   assert.equal((await a.updatePassword({ password: 'nova123' })).error, null);
-  assert.equal((await a.signIn({ email: users[0].email, password: 'antiga123' })).error.code, 'UNAUTHENTICATED');
+  assert.equal((await a.signIn({ email: users[0].email, password: '090909' })).error.code, 'UNAUTHENTICATED');
   assert.equal((await a.signIn({ email: users[0].email, password: 'nova123' })).error, null);
   (await a.getSession()).data.expires_at = 1;
   assert.equal((await a.updatePassword({ password: 'outra123' })).error.code, 'INVALID_RECOVERY_LINK');
@@ -62,7 +63,7 @@ test('recuperação Supabase preserva datasource no redirect e getCurrentUser ma
 });
 
 test('cadastro Mock retorna usuário e sessão no mesmo contrato de signUp Supabase', async () => {
-  const a = adapter('js/services/adapters/mock/authAdapter.js', { mockUsers: [], mockProfiles: [], sessionStorage: { getItem() {}, setItem() {} } }, 'mockAuthAdapter');
+  const a = identityPage().auth;
   const result = await a.signUp({ email: 'nova@example.test', password: 'senha123', username: 'nova', displayName: 'Nova' });
   assert.equal(result.error, null);
   assert.equal(result.data.user.id, result.data.session.user.id);

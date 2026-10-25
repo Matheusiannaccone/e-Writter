@@ -3,7 +3,7 @@
 // As funções lançam erros indicando que não foram implementadas.
 
 import { mockAuthAdapter } from "./authAdapter.js";
-import { mockProfiles } from "./mockData.js";
+import { readIdentity, writeIdentity, identityFailure } from './identityStorage.js';
 
 // Cria um erro no formato padrão dos services.
 function createError(code, message) {
@@ -115,171 +115,44 @@ function normalizeProfileUpdate(data) {
   };
 }
 
-// Adapter Mock das operações de perfil.
+// Contas e perfis compartilham o mesmo snapshot; catálogo/favoritos não participam.
 export const mockProfileAdapter = {
-  // Busca um perfil pelo ID do usuário.
   async getProfile(userId) {
-    if (
-      typeof userId !== "string" ||
-      userId.trim() === ""
-    ) {
-      return createError(
-        "VALIDATION_ERROR",
-        "ID de usuário inválido."
-      );
-    }
-
-    const profile = mockProfiles.find(
-      (item) => item.id === userId
-    );
-
-    if (!profile) {
-      return createError(
-        "NOT_FOUND",
-        "Perfil não encontrado."
-      );
-    }
-
-    return {
-      data: { ...profile },
-      error: null
-    };
+    if (typeof userId !== 'string' || !userId.trim()) return createError('VALIDATION_ERROR', 'ID de usuário inválido.');
+    try {
+      const profile = readIdentity().profiles.find(item => item.id === userId);
+      return profile ? { data: { ...profile }, error: null } : createError('NOT_FOUND', 'Perfil não encontrado.');
+    } catch (error) { return identityFailure(error); }
   },
 
-  // Busca o perfil do usuário autenticado.
   async getMyProfile() {
-    const {
-      data: user,
-      error
-    } = await mockAuthAdapter.getCurrentUser();
-
-    if (error) {
-      return {
-        data: null,
-        error
-      };
-    }
-
-    const profile = mockProfiles.find(
-      (item) => item.id === user.id
-    );
-
-    if (!profile) {
-      return createError(
-        "NOT_FOUND",
-        "Perfil não encontrado."
-      );
-    }
-
-    return {
-      data: { ...profile },
-      error: null
-    };
+    const user = await mockAuthAdapter.getCurrentUser();
+    if (user.error) return user;
+    return this.getProfile(user.data.id);
   },
 
-  // Busca um perfil pelo username.
   async getProfileByUsername(username) {
-    if (typeof username !== "string") {
-      return createError(
-        "VALIDATION_ERROR",
-        "Nome de usuário inválido."
-      );
-    }
-
-    // Padroniza o valor antes da consulta.
-    const normalizedUsername =
-      username.trim().toLowerCase();
-
-    if (
-      normalizedUsername.length < 3 ||
-      normalizedUsername.length > 30 ||
-      !/^[a-z0-9._]+$/.test(normalizedUsername)
-    ) {
-      return createError(
-        "VALIDATION_ERROR",
-        "Nome de usuário inválido."
-      );
-    }
-
-    const profile = mockProfiles.find(
-      (item) => item.username === normalizedUsername
-    );
-
-    if (!profile) {
-      return createError(
-        "NOT_FOUND",
-        "Perfil não encontrado."
-      );
-    }
-
-    return {
-      data: { ...profile },
-      error: null
-    };
+    if (typeof username !== 'string' || !/^[a-z0-9._]{3,30}$/.test(username.trim().toLowerCase())) return createError('VALIDATION_ERROR', 'Nome de usuário inválido.');
+    try {
+      const profile = readIdentity().profiles.find(item => item.username === username.trim().toLowerCase());
+      return profile ? { data: { ...profile }, error: null } : createError('NOT_FOUND', 'Perfil não encontrado.');
+    } catch (error) { return identityFailure(error); }
   },
 
-  // Atualiza o perfil do usuário autenticado.
   async updateMyProfile(data) {
-    const {
-      data: user,
-      error: authError
-    } = await mockAuthAdapter.getCurrentUser();
-
-    if (authError) {
-      return {
-        data: null,
-        error: authError
-      };
-    }
-
-    const profile = mockProfiles.find(
-      (item) => item.id === user.id
-    );
-
-    if (!profile) {
-      return createError(
-        "NOT_FOUND",
-        "Perfil não encontrado."
-      );
-    }
-
-    // Valida os campos antes de alterar o perfil.
-    const {
-      data: update,
-      error: validationError
-    } = normalizeProfileUpdate(data);
-
-    if (validationError) {
-      return {
-        data: null,
-        error: validationError
-      };
-    }
-
-    // Impede que dois perfis utilizem o mesmo username.
-    if (update.username !== undefined) {
-      const usernameExists = mockProfiles.some(
-        (item) =>
-          item.username === update.username &&
-          item.id !== user.id
-      );
-
-      if (usernameExists) {
-        return createError(
-          "CONFLICT",
-          "Este nome de usuário já está em uso."
-        );
-      }
-    }
-
-    // Aplica as alterações e atualiza a data de modificação.
-    Object.assign(profile, update, {
-      updatedAt: new Date().toISOString()
-    });
-
-    return {
-      data: { ...profile },
-      error: null
-    };
+    const user = await mockAuthAdapter.getCurrentUser();
+    if (user.error) return user;
+    const normalized = normalizeProfileUpdate(data);
+    if (normalized.error) return normalized;
+    try {
+      const profile = await writeIdentity(state => {
+        const current = state.profiles.find(item => item.id === user.data.id);
+        if (!current) throw Object.assign(new Error('Perfil não encontrado.'), { code: 'NOT_FOUND' });
+        if (normalized.data.username && state.profiles.some(item => item.id !== user.data.id && item.username === normalized.data.username)) throw Object.assign(new Error('Este nome de usuário já está em uso.'), { code: 'CONFLICT' });
+        Object.assign(current, normalized.data, { updatedAt: new Date().toISOString() });
+        return { ...current };
+      });
+      return { data: profile, error: null };
+    } catch (error) { return identityFailure(error); }
   }
 };
