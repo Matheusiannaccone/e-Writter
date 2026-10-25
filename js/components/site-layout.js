@@ -54,11 +54,8 @@ if (header) {
     <div class="site-header__inner page-container">
       <a class="site-brand" href="./index.html" aria-label="e-Writter, início"><span class="site-brand__mark" aria-hidden="true">E</span><span>e-Writter</span></a>
       <button class="site-nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false">Menu</button>
-      <nav class="site-nav" id="site-nav" aria-label="Navegação principal"><ul class="site-nav__list"><li><a class="site-nav__link" href="./index.html">Início</a></li><li><a class="site-nav__link" href="./chapter.html">Leitura</a></li><li><a class="site-nav__link" data-editor-link href="./book-editor.html">Ateliê</a></li><li><a class="site-nav__link" href="./login.html">Entrar</a></li><li><a class="site-nav__link" href="./cadastro.html">Criar conta</a></li></ul></nav>
+      <nav class="site-nav" id="site-nav" aria-label="Navegação principal"><ul class="site-nav__list"><li><a class="site-nav__link" href="./index.html">Início</a></li><li><a class="site-nav__link" href="./chapter.html">Leitura</a></li><li><a class="site-nav__link" href="./biblioteca.html">Biblioteca</a></li><li><a class="site-nav__link" data-editor-link href="./book-editor.html">Ateliê</a></li><li><a class="site-nav__link" href="./login.html">Entrar</a></li><li><a class="site-nav__link" href="./cadastro.html">Criar conta</a></li></ul></nav>
     </div>`;
-  const libraryItem = document.createElement('li');
-  libraryItem.innerHTML = '<a class="site-nav__link" href="./biblioteca.html">Biblioteca</a>';
-  header.querySelector('.site-nav__list').append(libraryItem);
   initNavigation(header);
   if (/\/(?:book-editor|chapter-editor)(?:\.html)?\/?$/.test(window.location.pathname)) {
     syncEditorLinks();

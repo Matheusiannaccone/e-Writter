@@ -7,8 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test:chapter-editor": "node --test tests/chapter-editor.test.cjs"
+    "test": "node --test tests/*.test.cjs",
+    "test:chapter-editor": "node --test tests/chapter-editor.test.cjs",
+    "test:favorites": "node --test tests/favorites-page.test.cjs"
   },
   "keywords": [],
   "author": "",
