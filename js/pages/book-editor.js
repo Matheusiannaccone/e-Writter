@@ -16,6 +16,7 @@ const coverImage = $('#cover-image');
 const coverPreview = $('#cover-preview');
 const removeCover = $('#remove-cover');
 const saveButton = $('#save-book');
+const chapterEditorButton = $('#open-chapter-editor');
 let books = [];
 let chapters = [];
 let publicationRequest = 0;
@@ -101,8 +102,22 @@ function setBusy(value) {
   saveButton.disabled = value;
   document.querySelectorAll('[data-publication-action], #book-publication-action').forEach((button) => { button.disabled = value || button.dataset.blocked === 'true'; });
   picker.disabled = value;
+  syncChapterEditorButton();
   saveButton.textContent = value ? 'Salvando…' : picker.value ? 'Salvar alterações' : 'Criar rascunho';
 }
+function syncChapterEditorButton() {
+  const persisted = books.some((book) => book.id === picker.value);
+  chapterEditorButton.hidden = !persisted;
+  chapterEditorButton.disabled = !persisted || busy || pendingEdits;
+}
+chapterEditorButton.addEventListener('click', () => {
+  if (busy || pendingEdits || !books.some((book) => book.id === picker.value)) return;
+  const url = new URL('./chapter-editor.html', window.location.href);
+  url.searchParams.set('bookId', picker.value);
+  const datasource = new URLSearchParams(window.location.search).get('datasource');
+  if (datasource !== null) url.searchParams.set('datasource', datasource);
+  window.location.assign(url.href);
+});
 function renderPicker(selectedId = '') {
   picker.replaceChildren(new Option('Nova obra', ''));
   books.forEach((book) => picker.add(new Option(`${book.title} · ${book.status === 'published' ? 'Publicado' : 'Rascunho'}`, book.id)));
@@ -146,6 +161,7 @@ function renderReasons(container, reasons) {
   container.hidden = reasons.length === 0;
 }
 function renderPublication(book) {
+  syncChapterEditorButton();
   const panel = $('#publication-panel');
   panel.hidden = !book;
   if (!book) return;
