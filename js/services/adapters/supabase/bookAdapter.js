@@ -134,6 +134,13 @@ function normalizeSupabaseError(
     );
   }
 
+  if (message.includes("book is already draft")) {
+    return createError(
+      "VALIDATION_ERROR",
+      "A obra já é um rascunho."
+    );
+  }
+
   if (
     message.includes(
       "book title is required"
@@ -781,17 +788,13 @@ export const supabaseBookAdapter = {
     return fetchBookById(id);
   },
 
-  // Retira uma obra própria do catálogo público; RLS valida autoria.
+  // Retira uma obra própria do catálogo em uma função atômica do banco.
   async unpublishBook(id) {
     if (!isValidUuid(id)) return createError("VALIDATION_ERROR", "ID de livro inválido.");
     const auth = await getAuthenticatedUser();
     if (auth.error) return auth.error;
-    const { data, error } = await supabase.from("books")
-      .update({ status: "draft" })
-      .eq("id", id).eq("author_id", auth.user.id).eq("status", "published")
-      .select("id").maybeSingle();
+    const { error } = await supabase.rpc("unpublish_book", { p_book_id: id });
     if (error) return normalizeSupabaseError(error, "Não foi possível retirar a obra de publicação.");
-    if (!data) return createError("NOT_FOUND", "Obra publicada não encontrada ou ação não permitida.");
     return fetchBookById(id);
   },
 
