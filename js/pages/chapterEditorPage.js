@@ -1,3 +1,5 @@
+// Implementação original de Lucas Emmanoel, recuperada do PR #44 em 0.43.0.
+// Integração da página e proteção dos estados assíncronos adicionadas posteriormente.
 import { getMyBooks } from "../services/bookService.js";
 import {
   getChaptersByBook,
@@ -21,6 +23,40 @@ const cancelButton = document.querySelector("#chapter-cancel-button");
 
 let selectedChapterId = null;
 let isSaving = false;
+let chaptersReady = false;
+let isLoading = false;
+let chapterRequest = 0;
+let sessionExpired = false;
+
+function serviceMessage(error, fallback) {
+  if (error?.code === "UNAUTHENTICATED") {
+    sessionExpired = true;
+    return "Entre na sua conta para editar capítulos. Seu texto permanece no formulário; copie-o antes de sair.";
+  }
+  return error?.message || fallback;
+}
+
+function syncControls() {
+  const unavailable = isSaving || isLoading || !chaptersReady || !bookSelect.value || sessionExpired;
+  saveButton.disabled = unavailable;
+  cancelButton.disabled = unavailable;
+  newChapterButton.disabled = unavailable;
+  chapterTitle.disabled = unavailable;
+  chapterContent.disabled = unavailable;
+  if (sessionExpired) bookSelect.disabled = true;
+  chapterForm.setAttribute("aria-busy", String(isSaving));
+  chapterList.setAttribute("aria-busy", String(isLoading));
+  chapterList.querySelectorAll("button").forEach((button) => { button.disabled = unavailable; });
+}
+
+function syncBackLink() {
+  const link = document.querySelector("#chapter-back-link");
+  const url = new URL("./book-editor.html", window.location.href);
+  const datasource = new URLSearchParams(window.location.search).get("datasource");
+  if (datasource !== null) url.searchParams.set("datasource", datasource);
+  if (bookSelect.value) url.searchParams.set("book", bookSelect.value);
+  link.href = url.href;
+}
 
 function showFormMessage(message, type = "error") {
   formMessage.textContent = message;
@@ -54,8 +90,7 @@ function resetChapterForm() {
   saveButton.textContent = "Salvar rascunho";
 
   cancelButton.hidden = true;
-  chapterTitle.disabled = isSaving;
-  chapterContent.disabled = isSaving;
+  syncControls();
 
   clearFormMessage();
   updateCharacterCount();
@@ -64,12 +99,8 @@ function resetChapterForm() {
 function setFormBusy(busy) {
   isSaving = busy;
 
-  saveButton.disabled = busy;
-  cancelButton.disabled = busy;
-  newChapterButton.disabled = busy || !bookSelect.value;
   bookSelect.disabled = busy;
-  chapterTitle.disabled = busy;
-  chapterContent.disabled = busy;
+  syncControls();
 
   saveButton.textContent = busy
     ? "Salvando..."
@@ -101,7 +132,7 @@ function createChapterListItem(chapter) {
   details.append(title, metadata);
 
   const editButton = document.createElement("button");
-  editButton.className = "editor-secondary-button chapter-edit-button";
+  editButton.className = "button button--secondary chapter-edit-button";
   editButton.type = "button";
   editButton.textContent = "Editar";
   editButton.setAttribute(
@@ -144,6 +175,7 @@ function renderChapterList(chapters) {
 }
 
 function beginEditing(chapter) {
+  if (isSaving || isLoading || !chaptersReady || sessionExpired) return;
   selectedChapterId = chapter.id;
 
   chapterTitle.value = chapter.title ?? "";
@@ -164,41 +196,55 @@ function beginEditing(chapter) {
 }
 
 async function loadChapters(bookId) {
+  const request = ++chapterRequest;
+  chaptersReady = false;
+  isLoading = Boolean(bookId);
   resetChapterForm();
   chapterList.replaceChildren();
 
   if (!bookId) {
     setListState("Selecione uma obra para visualizar seus capítulos.");
-    newChapterButton.disabled = true;
-    return;
+    syncControls();
+    return false;
   }
 
   setListState("Carregando capítulos...");
-  newChapterButton.disabled = true;
+  syncControls();
 
   try {
     const result = await getChaptersByBook(bookId);
+    if (request !== chapterRequest || bookSelect.value !== bookId) return false;
 
     if (result?.error) {
       setListState(
-        result.error.message || "Não foi possível carregar os capítulos.",
+        serviceMessage(result.error, "Não foi possível carregar os capítulos."),
         "error"
       );
-      return;
+      return false;
     }
+
+    if (!Array.isArray(result?.data)) throw new Error("Resposta de capítulos inválida.");
 
     renderChapterList(
       Array.isArray(result?.data) ? result.data : []
     );
 
-    newChapterButton.disabled = false;
+    chaptersReady = true;
+    return true;
   } catch (error) {
+    if (request !== chapterRequest || bookSelect.value !== bookId) return false;
     console.error("Erro ao carregar capítulos:", error);
 
     setListState(
       "Ocorreu um erro ao carregar os capítulos. Tente novamente.",
       "error"
     );
+    return false;
+  } finally {
+    if (request === chapterRequest) {
+      isLoading = false;
+      syncControls();
+    }
   }
 }
 
@@ -220,13 +266,14 @@ async function loadMyBooks() {
       );
 
       setListState(
-        result.error.message || "Não foi possível carregar suas obras.",
+        serviceMessage(result.error, "Não foi possível carregar suas obras."),
         "error"
       );
       return;
     }
 
-    const books = Array.isArray(result?.data) ? result.data : [];
+    if (!Array.isArray(result?.data)) throw new Error("Resposta de obras inválida.");
+    const books = result.data;
 
     bookSelect.replaceChildren(
       new Option(
@@ -254,12 +301,12 @@ async function loadMyBooks() {
       books.some((book) => book.id === requestedBookId)
     ) {
       bookSelect.value = requestedBookId;
-    } else if (books.length === 1) {
+    } else if (!requestedBookId && books.length === 1) {
       bookSelect.value = books[0].id;
     }
 
-    bookSelect.disabled = false;
-    newChapterButton.disabled = !bookSelect.value;
+    bookSelect.disabled = books.length === 0;
+    syncBackLink();
 
     if (bookSelect.value) {
       await loadChapters(bookSelect.value);
@@ -268,6 +315,8 @@ async function loadMyBooks() {
         "Você precisa ter uma obra para começar a escrever capítulos.",
         "empty"
       );
+    } else if (requestedBookId) {
+      setListState("A obra solicitada não está entre suas obras. Selecione uma obra disponível.", "error");
     } else {
       setListState(
         "Selecione uma obra para visualizar seus capítulos."
@@ -284,10 +333,13 @@ async function loadMyBooks() {
       "Ocorreu um erro ao carregar suas obras. Tente novamente.",
       "error"
     );
+  } finally {
+    syncControls();
   }
 }
 
 bookSelect.addEventListener("change", () => {
+  if (isSaving || sessionExpired) return;
   const params = new URLSearchParams(window.location.search);
 
   if (bookSelect.value) {
@@ -304,17 +356,21 @@ bookSelect.addEventListener("change", () => {
     `${window.location.hash}`;
 
   window.history.replaceState({}, "", nextUrl);
+  syncBackLink();
 
   loadChapters(bookSelect.value);
 });
 
 newChapterButton.addEventListener("click", () => {
+  if (newChapterButton.disabled) return;
   resetChapterForm();
   chapterTitle.focus();
 });
 
 cancelButton.addEventListener("click", () => {
+  if (cancelButton.disabled) return;
   resetChapterForm();
+  chapterTitle.focus();
 });
 
 chapterContent.addEventListener("input", updateCharacterCount);
@@ -322,11 +378,11 @@ chapterContent.addEventListener("input", updateCharacterCount);
 chapterForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  if (isSaving) return;
+  if (isSaving || isLoading || sessionExpired) return;
 
   const bookId = bookSelect.value;
 
-  if (!bookId) {
+  if (!bookId || !chaptersReady) {
     showFormMessage("Selecione uma obra antes de salvar o capítulo.");
     return;
   }
@@ -367,17 +423,21 @@ chapterForm.addEventListener("submit", async (event) => {
 
     if (result?.error) {
       showFormMessage(
-        result.error.message || "Não foi possível salvar o capítulo."
+        serviceMessage(result.error, "Não foi possível salvar o capítulo.")
       );
       return;
     }
 
+    if (!result?.data?.id) throw new Error("Resposta de salvamento inválida.");
+
     resetChapterForm();
 
-    await loadChapters(bookId);
+    const refreshed = await loadChapters(bookId);
 
     showFormMessage(
-      wasEditing
+      !refreshed
+        ? "Capítulo salvo, mas a lista não pôde ser atualizada. Selecione a obra novamente ou recarregue a página antes de continuar."
+        : wasEditing
         ? "Alterações do capítulo salvas com sucesso."
         : "Rascunho do capítulo criado com sucesso.",
       "success"
@@ -393,4 +453,5 @@ chapterForm.addEventListener("submit", async (event) => {
   }
 });
 
+syncBackLink();
 loadMyBooks();
