@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +16,9 @@
 
 <body class="editor-page">
 
+  <!-- Cabeçalho -->
   <header class="editor-header">
+
     <a
       class="editor-brand"
       href="index.html"
@@ -99,17 +101,22 @@
           <span aria-hidden="true">↪</span>
           Sair da conta
         </button>
-      </div>
 
+      </div>
     </div>
+
   </header>
 
   <main class="editor-shell">
 
+    <!-- Título da página -->
     <div class="editor-page-heading">
+
       <div>
         <p class="editor-eyebrow">✦ OFICINA DE HISTÓRIAS</p>
+
         <h1>Editor de obra</h1>
+
         <p class="editor-subtitle">
           Dê forma à sua próxima história, uma página de cada vez.
         </p>
@@ -119,21 +126,32 @@
         <span aria-hidden="true">●</span>
         Rascunho
       </span>
+
     </div>
+
+    <!-- ==========================================
+         FORMULÁRIO PRINCIPAL DA OBRA
+         ========================================== -->
 
     <form class="editor-layout" id="book-editor-form">
 
+      <!-- Coluna lateral -->
       <aside class="editor-sidebar">
 
+        <!-- Capa -->
         <section class="editor-paper-card editor-cover-card">
+
           <p class="editor-section-kicker">A CAPA DA OBRA</p>
 
           <label class="editor-cover-upload" for="book-cover">
+
             <span class="editor-cover-art" aria-hidden="true">
               <span class="editor-cover-ornament">❧</span>
+
               <span class="editor-cover-placeholder-title">
                 Sua história<br>começa aqui
               </span>
+
               <span class="editor-cover-placeholder-author">
                 NOME DO AUTOR
               </span>
@@ -143,6 +161,7 @@
               <span aria-hidden="true">＋</span>
               Escolher imagem
             </span>
+
           </label>
 
           <input
@@ -156,38 +175,52 @@
           <p class="editor-help-text">
             Use uma imagem vertical para representar sua obra.
           </p>
+
         </section>
 
+        <!-- Dica -->
         <section class="editor-paper-card editor-tips-card">
+
           <p class="editor-section-kicker">✧ DICA DO ESCRITOR</p>
+
           <p>
             Uma boa sinopse desperta curiosidade sem revelar todos
             os segredos da história.
           </p>
+
           <span class="editor-tip-ornament" aria-hidden="true">❦</span>
+
         </section>
 
       </aside>
 
+      <!-- Informações principais da obra -->
       <section class="editor-paper-card editor-main-form">
 
         <div class="editor-section-heading">
+
           <span class="editor-section-number">01</span>
+
           <div>
             <h2>Sobre sua obra</h2>
+
             <p>
               Apresente os detalhes que vão ajudar leitores a encontrar
               sua história.
             </p>
           </div>
+
         </div>
 
         <div class="editor-fields">
 
+          <!-- Título -->
           <div class="editor-field editor-field-full">
+
             <label for="book-title">
               Título da obra <span>*</span>
             </label>
+
             <input
               id="book-title"
               name="title"
@@ -196,11 +229,18 @@
               placeholder="Ex.: A biblioteca das estrelas"
               required
             >
-            <small>Escolha um título fácil de lembrar.</small>
+
+            <small>
+              Escolha um título fácil de lembrar.
+            </small>
+
           </div>
 
+          <!-- Sinopse -->
           <div class="editor-field editor-field-full">
+
             <label for="book-description">Sinopse</label>
+
             <textarea
               id="book-description"
               name="description"
@@ -210,36 +250,55 @@
             ></textarea>
 
             <div class="editor-field-foot">
-              <small>Conte um pouco sobre sua história.</small>
-              <small>Até 2.000 caracteres</small>
+              <small>
+                Conte um pouco sobre sua história.
+              </small>
+
+              <small>
+                Até 2.000 caracteres
+              </small>
             </div>
+
           </div>
 
+          <!-- Idioma -->
           <div class="editor-field">
+
             <label for="book-language">Idioma</label>
+
             <select id="book-language" name="language">
               <option value="pt-BR">Português</option>
               <option value="en">Inglês</option>
               <option value="es">Espanhol</option>
             </select>
+
           </div>
 
+          <!-- Situação -->
           <div class="editor-field">
-            <label for="book-status">Situação da história</label>
+
+            <label for="book-status">
+              Situação da história
+            </label>
+
             <select id="book-status" name="publicationStatus">
               <option value="ongoing">Em andamento</option>
               <option value="completed">Concluída</option>
               <option value="discontinued">Interrompida</option>
             </select>
+
           </div>
 
+          <!-- Gêneros -->
           <fieldset class="editor-field editor-field-full editor-genres">
+
             <legend>
               Gêneros <span>*</span>
               <small>Escolha de 1 a 3 opções.</small>
             </legend>
 
             <div class="editor-genre-options">
+
               <label class="editor-genre-option">
                 <input type="checkbox" name="genres" value="1">
                 <span>Ação</span>
@@ -299,11 +358,14 @@
                 <input type="checkbox" name="genres" value="12">
                 <span>Fanfic</span>
               </label>
+
             </div>
+
           </fieldset>
 
         </div>
 
+        <!-- Mensagens do formulário da obra -->
         <div
           class="editor-form-message"
           id="editor-message"
@@ -311,183 +373,33 @@
           aria-live="polite"
           hidden
         ></div>
-      
-         <!-- Editor de capítulos -->
-<section
-  class="chapter-workspace editor-paper-card"
-  id="chapter-workspace"
-  aria-labelledby="chapter-workspace-title"
->
-  <div class="editor-section-heading chapter-workspace-heading">
-    <span class="editor-section-number">02</span>
 
-    <div>
-      <h2 id="chapter-workspace-title">Capítulos da obra</h2>
-      <p>
-        Selecione uma obra existente para criar um capítulo
-        ou editar um rascunho.
-      </p>
-    </div>
-  </div>
+        <!-- Ações da obra -->
+        <div class="editor-actions">
 
-  <div class="chapter-book-picker editor-field">
-    <label for="chapter-book-select">Obra</label>
-
-    <select id="chapter-book-select" name="chapterBook" required>
-      <option value="">Carregando suas obras...</option>
-    </select>
-
-    <small>
-      Os capítulos são vinculados à obra selecionada.
-    </small>
-  </div>
-
-  <div class="chapter-workspace-grid">
-
-    <!-- Lista de capítulos -->
-    <section
-      class="chapter-list-panel"
-      aria-labelledby="chapter-list-title"
-    >
-      <div class="chapter-panel-heading">
-        <h3 id="chapter-list-title">Capítulos existentes</h3>
-
-        <button
-          class="editor-secondary-button chapter-new-button"
-          id="chapter-new-button"
-          type="button"
-          disabled
-        >
-          + Novo capítulo
-        </button>
-      </div>
-
-      <p
-        class="chapter-state"
-        id="chapter-list-state"
-        role="status"
-        aria-live="polite"
-      >
-        Carregando capítulos...
-      </p>
-
-      <ol
-        class="chapter-list"
-        id="chapter-list"
-        aria-label="Lista de capítulos"
-      ></ol>
-    </section>
-
-    <!-- Formulário do capítulo -->
-    <section
-      class="chapter-form-panel"
-      aria-labelledby="chapter-form-title"
-    >
-      <div class="chapter-panel-heading">
-        <div>
-          <p
-            class="editor-section-kicker"
-            id="chapter-form-mode"
-          >
-            NOVO RASCUNHO
-          </p>
-
-          <h3 id="chapter-form-title">Escrever capítulo</h3>
-        </div>
-      </div>
-
-      <form id="chapter-form">
-
-        <div class="editor-field chapter-field">
-          <label for="chapter-title">Título do capítulo</label>
-
-          <input
-            id="chapter-title"
-            name="title"
-            type="text"
-            maxlength="160"
-            placeholder="Ex.: Capítulo 1 — O começo"
-            autocomplete="off"
-            required
-          >
-
-          <small>
-            Você pode salvar o capítulo como rascunho
-            mesmo que ainda esteja incompleto.
-          </small>
-        </div>
-
-        <div class="editor-field chapter-field">
-          <label for="chapter-content">Conteúdo</label>
-
-          <textarea
-            id="chapter-content"
-            name="content"
-            rows="15"
-            maxlength="15000"
-            placeholder="Comece a escrever sua história aqui..."
-            spellcheck="true"
-            required
-          ></textarea>
-
-          <div class="editor-field-foot">
-            <small>
-              Texto simples. Formatação HTML não é interpretada.
-            </small>
-
-            <small id="chapter-character-count">
-              0 / 15.000
-            </small>
-          </div>
-        </div>
-
-        <div
-          class="chapter-form-message"
-          id="chapter-form-message"
-          role="status"
-          aria-live="polite"
-          hidden
-        ></div>
-
-        <div class="editor-actions chapter-actions">
-          <button
+          <a
             class="editor-secondary-button"
-            id="chapter-cancel-button"
-            type="button"
-            hidden
+            href="index.html"
           >
-            Cancelar edição
-          </button>
+            Cancelar
+          </a>
 
           <button
             class="editor-save-button"
-            id="chapter-save-button"
-            type="submit"
+            type="button"
           >
             Salvar rascunho
             <span aria-hidden="true">↗</span>
           </button>
-        </div>
 
-      </form>
-    </section>
-
-  </div>
-</section>
-
-        <div class="editor-actions">
-          <a class="editor-secondary-button" href="index.html">
-            Cancelar
-          </a>
-
-          <button class="editor-save-button" type="button">
-            Salvar rascunho <span aria-hidden="true">↗</span>
+          <button
+            class="editor-publish-button"
+            type="submit"
+          >
+            Publicar obra
+            <span aria-hidden="true">→</span>
           </button>
-  
-          
-          <button class="editor-publish-button" type="submit">
-            Publicar obra <span aria-hidden="true">→</span>
-          </button>
+
         </div>
 
         <p class="editor-disclaimer">
@@ -495,7 +407,222 @@
         </p>
 
       </section>
+
     </form>
+
+    <!-- ==========================================
+         EDITOR DE CAPÍTULOS
+         Fora do formulário principal e antes do rodapé
+         ========================================== -->
+
+    <section
+      class="chapter-workspace editor-paper-card"
+      id="chapter-workspace"
+      aria-labelledby="chapter-workspace-title"
+    >
+
+      <!-- Cabeçalho do editor de capítulos -->
+      <div class="editor-section-heading chapter-workspace-heading">
+
+        <span class="editor-section-number">02</span>
+
+        <div>
+          <h2 id="chapter-workspace-title">
+            Capítulos da obra
+          </h2>
+
+          <p>
+            Selecione uma obra existente para criar um capítulo
+            ou editar um rascunho.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Seleção da obra -->
+      <div class="chapter-book-picker editor-field">
+
+        <label for="chapter-book-select">
+          Obra
+        </label>
+
+        <select id="chapter-book-select" name="chapterBook" required>
+          <option value="">
+            Carregando suas obras...
+          </option>
+        </select>
+
+        <small>
+          Os capítulos são vinculados à obra selecionada.
+        </small>
+
+      </div>
+
+      <div class="chapter-workspace-grid">
+
+        <!-- Lista de capítulos -->
+        <section
+          class="chapter-list-panel"
+          aria-labelledby="chapter-list-title"
+        >
+
+          <div class="chapter-panel-heading">
+
+            <h3 id="chapter-list-title">
+              Capítulos existentes
+            </h3>
+
+            <button
+              class="editor-secondary-button chapter-new-button"
+              id="chapter-new-button"
+              type="button"
+              disabled
+            >
+              + Novo capítulo
+            </button>
+
+          </div>
+
+          <p
+            class="chapter-state"
+            id="chapter-list-state"
+            role="status"
+            aria-live="polite"
+          >
+            Carregando capítulos...
+          </p>
+
+          <ol
+            class="chapter-list"
+            id="chapter-list"
+            aria-label="Lista de capítulos"
+          ></ol>
+
+        </section>
+
+        <!-- Formulário independente do capítulo -->
+        <section
+          class="chapter-form-panel"
+          aria-labelledby="chapter-form-title"
+        >
+
+          <div class="chapter-panel-heading">
+
+            <div>
+
+              <p
+                class="editor-section-kicker"
+                id="chapter-form-mode"
+              >
+                NOVO RASCUNHO
+              </p>
+
+              <h3 id="chapter-form-title">
+                Escrever capítulo
+              </h3>
+
+            </div>
+
+          </div>
+
+          <form id="chapter-form">
+
+            <!-- Título do capítulo -->
+            <div class="editor-field chapter-field">
+
+              <label for="chapter-title">
+                Título do capítulo
+              </label>
+
+              <input
+                id="chapter-title"
+                name="title"
+                type="text"
+                maxlength="160"
+                placeholder="Ex.: Capítulo 1 — O começo"
+                autocomplete="off"
+                required
+              >
+
+              <small>
+                Você pode salvar o capítulo como rascunho
+                mesmo que ainda esteja incompleto.
+              </small>
+
+            </div>
+
+            <!-- Conteúdo do capítulo -->
+            <div class="editor-field chapter-field">
+
+              <label for="chapter-content">
+                Conteúdo
+              </label>
+
+              <textarea
+                id="chapter-content"
+                name="content"
+                rows="15"
+                maxlength="15000"
+                placeholder="Comece a escrever sua história aqui..."
+                spellcheck="true"
+                required
+              ></textarea>
+
+              <div class="editor-field-foot">
+
+                <small>
+                  Texto simples. Formatação HTML não é interpretada.
+                </small>
+
+                <small id="chapter-character-count">
+                  0 / 15.000
+                </small>
+
+              </div>
+
+            </div>
+
+            <!-- Mensagens do formulário do capítulo -->
+            <div
+              class="chapter-form-message"
+              id="chapter-form-message"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></div>
+
+            <!-- Ações do capítulo -->
+            <div class="editor-actions chapter-actions">
+
+              <button
+                class="editor-secondary-button"
+                id="chapter-cancel-button"
+                type="button"
+                hidden
+              >
+                Cancelar edição
+              </button>
+
+              <button
+                class="editor-save-button"
+                id="chapter-save-button"
+                type="submit"
+              >
+                Salvar rascunho
+                <span aria-hidden="true">↗</span>
+              </button>
+
+            </div>
+
+          </form>
+
+        </section>
+
+      </div>
+
+    </section>
+
+    <!-- Rodapé -->
     <footer class="editor-footer">
       © 2026 E-writter
       <span>·</span>
@@ -504,6 +631,7 @@
 
   </main>
 
+  <!-- Scripts -->
   <script type="module" src="js/pages/bookEditorPage.js"></script>
   <script type="module" src="js/pages/chapterEditorPage.js"></script>
 
