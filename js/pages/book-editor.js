@@ -1,3 +1,4 @@
+import { createSessionBoundary } from '../components/session-boundary.js';
 import { getMyBooks, createBook, updateBook, publishBook, unpublishBook } from '../services/bookService.js';
 import { getChaptersByBook, publishChapter, unpublishChapter } from '../services/chapterService.js';
 import { bookBlockers, chapterBlockers } from './publication-rules.js';
@@ -29,6 +30,20 @@ let previewUrl = null;
 let coverRequest = 0;
 let busy = false;
 let pendingEdits = false;
+let sessionAllowed = false;
+const sessionBoundary = createSessionBoundary({ reload: load, clear(reason) {
+  sessionAllowed = false; busy = false;
+  publicationRequest++; coverRequest++;
+  books = []; chapters = []; selectedFile = null; removeExistingCover = false; pendingEdits = false;
+  if (previewUrl?.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
+  previewUrl = null;
+  title.value = ''; description.value = ''; coverFile.value = '';
+  coverImage.hidden = true; coverImage.removeAttribute('src');
+  picker.replaceChildren(); options.replaceChildren(); $('#chapter-list').replaceChildren();
+  $('#publication-panel').hidden = true; $('#editor-content').hidden = true;
+  setBusy(false);
+  message(reason === 'error' ? 'Não foi possível verificar sua sessão. Recarregue para tentar novamente.' : reason === 'checking' ? 'Verificando sessão...' : 'Entre na sua conta para acessar o ateliê.', 'error');
+} });
 
 function message(value, kind = '') {
   status.textContent = value;
@@ -53,6 +68,7 @@ function updateGenreCount() {
   if (count) fieldError($('#genre-fieldset'), 'genres-error', '');
 }
 async function showCover() {
+  const token = sessionBoundary.capture();
   const request = ++coverRequest;
   if (previewUrl?.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
   previewUrl = null;
@@ -73,7 +89,7 @@ async function showCover() {
     } catch {
       result = { error: { message: 'Não foi possível carregar a capa.' } };
     }
-    if (request !== coverRequest) {
+    if (request !== coverRequest || !await sessionBoundary.accept(token, result)) {
       if (result.data?.url?.startsWith('blob:')) URL.revokeObjectURL(result.data.url);
       return;
     }
@@ -100,9 +116,9 @@ coverImage.addEventListener('error', () => {
 });
 function setBusy(value) {
   busy = value;
-  saveButton.disabled = value;
-  document.querySelectorAll('[data-publication-action], #book-publication-action').forEach((button) => { button.disabled = value || button.dataset.blocked === 'true'; });
-  picker.disabled = value;
+  saveButton.disabled = value || !sessionAllowed;
+  document.querySelectorAll('[data-publication-action], #book-publication-action').forEach((button) => { button.disabled = value || !sessionAllowed || button.dataset.blocked === 'true'; });
+  picker.disabled = value || !sessionAllowed;
   syncChapterEditorButton();
   saveButton.textContent = value ? 'Salvando…' : picker.value ? 'Salvar alterações' : 'Criar rascunho';
 }
@@ -110,10 +126,10 @@ function syncChapterEditorButton() {
   const persisted = books.some((book) => book.id === picker.value);
   syncEditorLinks(persisted ? picker.value : '');
   chapterEditorButton.hidden = !persisted;
-  chapterEditorButton.disabled = !persisted || busy || pendingEdits;
+  chapterEditorButton.disabled = !persisted || busy || pendingEdits || !sessionAllowed;
 }
 chapterEditorButton.addEventListener('click', () => {
-  if (busy || pendingEdits || !books.some((book) => book.id === picker.value)) return;
+  if (!sessionAllowed || busy || pendingEdits || !books.some((book) => book.id === picker.value)) return;
   const url = editorUrl('./chapter-editor.html', picker.value);
   window.location.assign(url.href);
 });
@@ -221,13 +237,16 @@ function renderPublication(book) {
   });
 }
 async function loadPublication(book) {
+  const token = sessionBoundary.capture();
   const request = ++publicationRequest;
   chapters = [];
   chaptersLoading = Boolean(book);
   renderPublication(book);
   if (!book) return;
-  const result = await getChaptersByBook(book.id);
-  if (request !== publicationRequest) return;
+  let result;
+  try { result = await getChaptersByBook(book.id); }
+  catch { result = { error: { message: 'Verifique a conexão e tente novamente.' } }; }
+  if (request !== publicationRequest || !await sessionBoundary.accept(token, result)) return;
   chaptersLoading = false;
   if (result.error) {
     message(`Não foi possível carregar os capítulos: ${result.error.message}`, 'error');
@@ -239,7 +258,8 @@ async function loadPublication(book) {
   renderPublication(book);
 }
 async function changePublication(target) {
-  if (busy) return;
+  if (busy || !sessionAllowed) return;
+  const token = sessionBoundary.capture();
   const book = books.find((item) => item.id === picker.value);
   if (!book) return;
   const chapter = target === 'book' ? null : chapters.find((item) => item.id === target);
@@ -259,10 +279,12 @@ async function changePublication(target) {
     const result = chapter
       ? await (published ? unpublishChapter(chapter.id) : publishChapter(chapter.id))
       : await (published ? unpublishBook(book.id) : publishBook(book.id));
+    if (!await sessionBoundary.accept(token, result)) return;
     if (result.error) throw new Error(result.error.message);
     if (chapter) chapters = chapters.map((item) => item.id === chapter.id ? result.data : item);
     else books = books.map((item) => item.id === book.id ? result.data : item);
     const [bookResult, chapterResult] = await Promise.all([getMyBooks(), getChaptersByBook(book.id)]);
+    if (!await sessionBoundary.accept(token, bookResult) || !await sessionBoundary.accept(token, chapterResult)) return;
     if (bookResult.error || chapterResult.error) throw new Error('Estado alterado, mas não foi possível confirmar os dados atualizados. Recarregue a página.');
     books = bookResult.data ?? [];
     chapters = chapterResult.data ?? [];
@@ -274,8 +296,10 @@ async function changePublication(target) {
       ? (published ? 'Capítulo retirado de publicação.' : 'Capítulo publicado com sucesso.')
       : (published ? 'Obra retirada de publicação.' : 'Obra publicada com sucesso.'), 'success');
   } catch (error) {
+    if (!await sessionBoundary.accept(token)) return;
     message(error.message || 'Não foi possível mudar o estado. Tente novamente.', 'error');
   } finally {
+    if (!sessionBoundary.current(token)) return;
     setBusy(false);
     renderPublication(books.find((item) => item.id === picker.value));
   }
@@ -302,12 +326,17 @@ function validateFile(file) {
   return '';
 }
 async function load() {
+  const token = sessionBoundary.capture();
   try {
+    if (!await sessionBoundary.accept(token)) return;
+    sessionAllowed = true;
     const [genreResult, bookResult] = await Promise.all([getGenres(), getMyBooks()]);
+    if (!await sessionBoundary.accept(token, bookResult)) return;
     if (genreResult.error) throw new Error(genreResult.error.message);
     if (bookResult.error && bookResult.error.code !== 'UNAUTHENTICATED') throw new Error(bookResult.error.message);
     genres = genreResult.data;
     books = bookResult.data ?? [];
+    options.replaceChildren();
     genres.forEach((genre) => {
       const label = document.createElement('label');
       label.className = 'editor__genre';
@@ -320,8 +349,9 @@ async function load() {
     renderPicker(books.some((book) => book.id === requestedId) ? requestedId : '');
     $('#editor-content').hidden = false;
     fillForm();
-    if (bookResult.error?.code === 'UNAUTHENTICATED') message('Entre na sua conta para salvar uma obra. Você já pode preparar o formulário.', 'error');
+    setBusy(false);
   } catch (error) {
+    if (!await sessionBoundary.accept(token)) return;
     message(error.message || 'Não foi possível carregar o ateliê. Atualize a página para tentar novamente.', 'error');
   }
 }
@@ -361,13 +391,15 @@ removeCover.addEventListener('click', () => {
 });
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (busy || !validate()) return;
+  if (busy || !sessionAllowed || !validate()) return;
+  const token = sessionBoundary.capture();
   setBusy(true);
   message('Salvando sua obra…');
   const data = { title: title.value.trim(), description: description.value.trim() || null, genreIds: selectedGenres() };
   const id = picker.value;
   try {
     const result = id ? await updateBook(id, data) : await createBook(data);
+    if (!await sessionBoundary.accept(token, result)) return;
     if (result.error) throw new Error(result.error.code === 'UNAUTHENTICATED' ? 'Entre na sua conta para salvar a obra.' : result.error.message);
     const book = result.data;
     books = [book, ...books.filter((item) => item.id !== book.id)];
@@ -375,6 +407,7 @@ form.addEventListener('submit', async (event) => {
     if (selectedFile) {
       message('Obra salva. Enviando capa…');
       const upload = await uploadBookCover(book.id, selectedFile);
+      if (!await sessionBoundary.accept(token, upload)) return;
       if (upload.error) {
         fieldError(coverFile, 'cover-error', `${upload.error.message} Tente salvar novamente.`);
         message(`Obra salva, mas a capa não foi enviada: ${upload.error.message} Tente salvar novamente.`, 'error');
@@ -384,6 +417,7 @@ form.addEventListener('submit', async (event) => {
     } else if (removeExistingCover) {
       message('Obra salva. Removendo capa…');
       const removal = await removeBookCover(book.id);
+      if (!await sessionBoundary.accept(token, removal)) return;
       if (removal.error) {
         fieldError(coverFile, 'cover-error', `${removal.error.message} Tente novamente.`);
         message(`Obra salva, mas a capa não foi removida: ${removal.error.message} Tente novamente.`, 'error');
@@ -394,8 +428,10 @@ form.addEventListener('submit', async (event) => {
     fillForm();
     message(id ? 'Alterações salvas.' : 'Rascunho criado. Você pode continuar editando.', 'success');
   } catch (error) {
+    if (!await sessionBoundary.accept(token)) return;
     message(error.message || 'Não foi possível salvar. Tente novamente.', 'error');
   } finally {
+    if (!sessionBoundary.current(token)) return;
     setBusy(false);
   }
 });

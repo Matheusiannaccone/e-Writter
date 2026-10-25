@@ -1,3 +1,4 @@
+import { createSessionBoundary } from '../components/session-boundary.js';
 import { showFeedback, clearFeedback, setProcessing, prepareFormValidation } from "../components/feedback.js";
 import { getCurrentUser } from "../services/authService.js";
 import { withDataSource } from "../components/navigation-context.js";
@@ -27,6 +28,17 @@ const validation = prepareFormValidation(profileForm, profileMessage, {
   username: value => /^[a-z0-9._]{3,30}$/.test(value.trim().toLowerCase()) ? '' : 'Use 3 a 30 caracteres: letras, números, ponto ou sublinhado.',
   bio: value => value.length > 500 ? 'A biografia deve conter no máximo 500 caracteres.' : ''
 });
+
+const sessionBoundary = createSessionBoundary({ clear: clearPrivateProfile, reload: loadProfile });
+function clearPrivateProfile(reason) {
+  savedProfile = null; busy = false;
+  fillForm({}); validation.clear();
+  profileName.textContent = reason === 'error' ? 'Perfil indisponível' : 'Sessão encerrada';
+  profileEmail.textContent = ''; detailEmail.textContent = '';
+  setProcessing(saveButton, false); lock(true);
+  retryButton.hidden = reason !== 'error'; retryButton.disabled = false;
+  showMessage(reason === 'error' ? 'Não foi possível verificar sua sessão. Tente novamente.' : reason === 'checking' ? 'Verificando sessão...' : 'Entre para acessar seu perfil.', reason === 'checking' ? 'loading' : 'error');
+}
 
 function lock(locked) {
   fields.forEach(field => { field.disabled = locked; });
@@ -62,6 +74,7 @@ function updateProfileHeader(profile, email) {
 
 async function loadProfile() {
   if (busy) return;
+  const token = sessionBoundary.capture();
   busy = true;
   lock(true);
   retryButton.hidden = true;
@@ -73,7 +86,9 @@ async function loadProfile() {
       getMyProfile()
     ]);
 
+    if (!sessionBoundary.current(token)) return;
     if (userResult?.error?.code === 'UNAUTHENTICATED' || (!userResult?.error && !userResult?.data)) {
+      sessionBoundary.invalidate('guest');
       profileName.textContent = 'Sessão encerrada';
       profileEmail.textContent = 'Entre para acessar seu perfil.';
       detailEmail.textContent = 'Indisponível';
@@ -83,10 +98,12 @@ async function loadProfile() {
     }
 
     if (userResult?.error) {
+      sessionBoundary.invalidate('error');
       loadFailure(userResult.error.message || 'Não foi possível verificar sua sessão. Tente novamente.');
       return;
     }
 
+    if (profileResult?.error?.code === 'UNAUTHENTICATED') { sessionBoundary.invalidate('guest'); return; }
     if (profileResult?.error || !profileResult?.data) {
       loadFailure(
         profileResult?.error?.message ||
@@ -95,6 +112,7 @@ async function loadProfile() {
       return;
     }
 
+    if (!await sessionBoundary.accept(token, profileResult, userResult.data.id)) return;
     const user = userResult.data;
     const profile = profileResult.data;
     const email = user.email || "E-mail não informado";
@@ -110,9 +128,11 @@ async function loadProfile() {
 
     clearFeedback(profileMessage);
   } catch (error) {
+    if (!await sessionBoundary.accept(token)) return;
     console.error("Não foi possível carregar o perfil:", error);
     loadFailure("Não foi possível carregar seu perfil. Verifique a conexão e tente novamente.");
   } finally {
+    if (!sessionBoundary.current(token)) return;
     busy = false;
     retryButton.disabled = false;
     lock(!savedProfile);
@@ -129,6 +149,7 @@ profileForm.addEventListener("submit", async (event) => {
     bio: bioInput.value.trim()
   };
 
+  const token = sessionBoundary.capture();
   busy = true;
   lock(true);
   setProcessing(saveButton, true, "Salvando...");
@@ -136,6 +157,7 @@ profileForm.addEventListener("submit", async (event) => {
 
   try {
     const result = await updateMyProfile(data);
+    if (!await sessionBoundary.accept(token, result)) return;
 
     if (result?.error || !result?.data) {
       showMessage(
@@ -159,12 +181,14 @@ profileForm.addEventListener("submit", async (event) => {
 
     showMessage("Perfil atualizado com sucesso!", "success");
   } catch (error) {
+    if (!await sessionBoundary.accept(token)) return;
     console.error("Erro ao salvar o perfil:", error);
     showMessage("Ocorreu um erro ao salvar. Tente novamente.");
   } finally {
+    if (!sessionBoundary.current(token)) return;
     busy = false;
     setProcessing(saveButton, false);
-    lock(false);
+    lock(!savedProfile);
   }
 });
 

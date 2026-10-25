@@ -18,7 +18,7 @@ function navHarness(overrides={}) {
  const privateLink=new Node();privateLink.private=true;nav.append(privateLink);
  const listeners={},events={};let calls=0;
  const context=vm.createContext({URL,URLSearchParams,setTimeout,document:{createElement:()=>new Node()},window:{location:new URL('http://localhost/perfil.html?datasource=mock'),addEventListener:(e,fn)=>{events[e]=fn}},getCurrentUser:async()=>ok({id:'a'}),signOut:async()=>{calls++;return ok(null)},onAuthStateChange:fn=>{listeners.auth=fn},...overrides});
- for(const p of ['navigation-context','auth-navigation']) vm.runInContext(fs.readFileSync(`js/components/${p}.js`,'utf8').replace(/^import .*;\s*/gm,'').replace(/^export /gm,''),context);
+ for(const p of ['session-status','navigation-context','auth-navigation']) vm.runInContext(fs.readFileSync(`js/components/${p}.js`,'utf8').replace(/^import .*;\s*/gm,'').replace(/^export /gm,''),context);
  context.header=header;vm.runInContext('initAuthNavigation(header)',context);
  const host=nav.children.at(-1),actions=host.children[1];
  return {host,actions,privateLink,events,auth:(...args)=>listeners.auth(...args),calls:()=>calls};

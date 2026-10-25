@@ -1,3 +1,4 @@
+import { onSessionVerificationFailure } from './session-status.js';
 import { getCurrentUser, onAuthStateChange, signOut } from '../services/authService.js';
 import { withDataSource, preserveDataSource } from './navigation-context.js';
 
@@ -8,6 +9,7 @@ export function initAuthNavigation(header) {
   const host = document.createElement('span');
   host.className = 'session-nav';
   host.setAttribute('aria-label', 'Conta');
+  host.setAttribute('role', 'group');
   const status = document.createElement('span');
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
@@ -26,6 +28,7 @@ export function initAuthNavigation(header) {
     node.className = 'site-nav__link';
     node.textContent = label;
     node.href = withDataSource(target).href;
+    if (new URL(node.href).pathname === window.location.pathname) node.setAttribute('aria-current', 'page');
     actions.append(node);
   }
   function button(label, handler) {
@@ -74,6 +77,9 @@ export function initAuthNavigation(header) {
     } catch { logoutFailed = true; state = 'error'; }
     finally { processing = false; render(); }
   }
+  onSessionVerificationFailure(reason => {
+    ++generation; state = reason === 'guest' ? 'guest' : 'error'; render();
+  });
   onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT' || event === 'SESSION_ERROR') {
       ++generation; state = event === 'SIGNED_OUT' ? 'guest' : 'error';

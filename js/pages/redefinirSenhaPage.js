@@ -1,3 +1,4 @@
+import { createSessionBoundary } from '../components/session-boundary.js';
 import { showFeedback, clearFeedback, setFieldError, setProcessing, prepareFormValidation } from '../components/feedback.js';
 import { updatePassword, getPasswordRecoverySession } from '../services/authService.js';
 import { preserveDataSource } from '../components/navigation-context.js';
@@ -14,6 +15,12 @@ let busy = false;
 let completed = false;
 const retry = document.querySelector('#recovery-retry');
 
+const sessionBoundary = createSessionBoundary({ verify: getPasswordRecoverySession, reload: checkRecovery, clear(reason) {
+  ready = false; busy = false; completed = false; form.reset(); validation.clear();
+  setProcessing(button, false); lock(true); retry.hidden = reason !== 'error';
+  showFeedback(message, reason === 'error' ? 'Não foi possível verificar a sessão. Tente novamente.' : reason === 'checking' ? 'Verificando sessão...' : 'Sessão encerrada. Solicite um novo link de recuperação.');
+} });
+
 function lock(locked) {
   fields.forEach(field => { field.disabled = locked; });
   button.disabled = locked;
@@ -21,6 +28,7 @@ function lock(locked) {
 
 async function checkRecovery() {
   if (busy) return;
+  const token = sessionBoundary.capture();
   busy = true;
   ready = false;
   retry.hidden = true;
@@ -28,17 +36,21 @@ async function checkRecovery() {
   showFeedback(message, 'Verificando o link de recuperação...', 'loading');
   try {
     const result = await getPasswordRecoverySession();
+    if (!sessionBoundary.current(token)) return;
     if (result.error || !result.data) {
       showFeedback(message, result.error?.message || 'Link inválido ou expirado. Solicite um novo link de recuperação.');
       retry.hidden = result.error?.code !== 'NETWORK_ERROR';
       return;
     }
+    if (!await sessionBoundary.accept(token, result)) return;
     ready = true;
     clearFeedback(message);
   } catch {
+    if (!sessionBoundary.current(token)) return;
     showFeedback(message, 'Não foi possível verificar o link. Verifique sua conexão e tente novamente.');
     retry.hidden = false;
   } finally {
+    if (!sessionBoundary.current(token)) return;
     busy = false;
     lock(!ready);
   }
@@ -47,12 +59,14 @@ async function checkRecovery() {
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (!ready || busy || completed || !validation.validate()) return;
+  const token = sessionBoundary.capture();
   busy = true;
   lock(true);
   setProcessing(button, true, 'Salvando...');
   showFeedback(message, 'Salvando nova senha...', 'loading');
   try {
     const result = await updatePassword({ password: form.elements.password.value });
+    if (!await sessionBoundary.accept(token, result)) return;
     if (result.error) {
       if (result.error.code === 'VALIDATION_ERROR') {
         clearFeedback(message);
@@ -67,8 +81,10 @@ form.addEventListener('submit', async event => {
     form.reset();
     showFeedback(message, result.data?.message || 'Senha alterada com sucesso! Você já pode entrar com a nova senha.', 'success');
   } catch {
+    if (!sessionBoundary.current(token)) return;
     showFeedback(message, 'Não foi possível conectar. Verifique sua conexão e tente novamente.');
   } finally {
+    if (!sessionBoundary.current(token)) return;
     busy = false;
     setProcessing(button, false);
     lock(!ready || completed);

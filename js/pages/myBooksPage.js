@@ -1,3 +1,4 @@
+import { createSessionBoundary } from '../components/session-boundary.js';
 
 import { getMyBooks } from "../services/bookService.js";
 import { withDataSource } from "../components/navigation-context.js";
@@ -8,6 +9,12 @@ const emptyState = document.querySelector("#my-books-empty");
 const booksList = document.querySelector("#my-books-list");
 const booksCount = document.querySelector("#my-books-count");
 const booksMessage = document.querySelector("#my-books-message");
+
+const sessionBoundary = createSessionBoundary({ reload: loadMyBooks, clear(reason) {
+  booksList.replaceChildren(); booksList.hidden = true; emptyState.hidden = true;
+  booksCount.textContent = reason === 'error' ? 'Não foi possível verificar sua sessão. Recarregue para tentar novamente.' : reason === 'checking' ? 'Verificando sessão...' : 'Entre na sua conta para consultar suas obras.';
+  clearFeedback(booksMessage);
+} });
 
 function setLoading() {
   emptyState.hidden = true;
@@ -45,10 +52,13 @@ function getBookStatus(book) {
 }
 
 async function loadMyBooks() {
+  const token = sessionBoundary.capture();
   setLoading();
 
   try {
+    if (!await sessionBoundary.accept(token)) return;
     const result = await getMyBooks();
+    if (!await sessionBoundary.accept(token, result)) return;
 
     if (result?.error) {
       showError(
@@ -82,6 +92,7 @@ async function loadMyBooks() {
       })
     );
 
+    if (!await sessionBoundary.accept(token)) return;
     booksList.classList.add("book-grid");
     booksList.replaceChildren(...cards);
 
@@ -95,6 +106,7 @@ async function loadMyBooks() {
 
     clearFeedback(booksMessage);
   } catch (error) {
+    if (!await sessionBoundary.accept(token)) return;
     console.error("Erro ao carregar Meus Livros:", error);
     showError("Ocorreu um erro ao carregar sua biblioteca.");
   }

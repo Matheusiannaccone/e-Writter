@@ -1,3 +1,4 @@
+import { createFavoriteSession } from '../components/favorite-session.js';
 import { getBookCoverUrl } from "../services/imageService.js";
 import { withDataSource } from "../components/navigation-context.js";
 import { getBookById } from "../services/bookService.js";
@@ -35,6 +36,11 @@ const bookId = params.get("id");
 let currentBook = null;
 let currentChapters = [];
 let favoriteState = false;
+
+const favoriteSession = createFavoriteSession(elements.btnFavorito, { reload: loadFavorite, clear(reason) {
+  favoriteState = false; updateFavoriteButton(); elements.btnFavorito.disabled = false;
+  elements.favoritoFeedback.textContent = reason === 'error' ? 'Não foi possível verificar sua sessão. Tente novamente.' : reason === 'checking' ? 'Verificando sessão...' : 'Entre na sua conta para favoritar esta obra.';
+} });
 
 function setStatus(message, isError = false) {
   elements.status.textContent = message;
@@ -200,11 +206,14 @@ function updateFavoriteButton() {
 }
 
 async function loadFavorite() {
+  const token = favoriteSession.next();
   elements.btnFavorito.disabled = true;
   elements.favoritoFeedback.textContent = "";
 
   try {
+    if (!await favoriteSession.accept(token)) return;
     const result = await isFavorite(bookId);
+    if (!await favoriteSession.accept(token, result)) return;
 
     if (result?.error) {
       favoriteState = false;
@@ -223,12 +232,14 @@ async function loadFavorite() {
     favoriteState = Boolean(result?.data);
     updateFavoriteButton();
   } catch (error) {
+    if (!favoriteSession.current(token)) return;
     console.error("Erro ao consultar favoritos:", error);
     favoriteState = false;
     updateFavoriteButton();
     elements.favoritoFeedback.textContent =
       "Não foi possível consultar seus favoritos.";
   } finally {
+    if (!favoriteSession.current(token)) return;
     elements.btnFavorito.disabled = false;
   }
 }
@@ -238,14 +249,17 @@ async function toggleFavorite() {
     return;
   }
 
+  const token = favoriteSession.capture();
   elements.btnFavorito.disabled = true;
   elements.favoritoFeedback.textContent = "";
 
   try {
+    if (!await favoriteSession.accept(token)) return;
     const result = favoriteState
       ? await removeFavorite(bookId)
       : await addFavorite(bookId);
 
+    if (!await favoriteSession.accept(token, result)) return;
     if (result?.error) {
       elements.favoritoFeedback.textContent =
         result.error.code === "UNAUTHENTICATED"
@@ -262,10 +276,12 @@ async function toggleFavorite() {
       ? "Obra adicionada aos favoritos."
       : "Obra removida dos favoritos.";
   } catch (error) {
+    if (!favoriteSession.current(token)) return;
     console.error("Erro ao atualizar favorito:", error);
     elements.favoritoFeedback.textContent =
       "Ocorreu um erro ao atualizar o favorito.";
   } finally {
+    if (!favoriteSession.current(token)) return;
     elements.btnFavorito.disabled = false;
   }
 }

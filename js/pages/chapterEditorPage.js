@@ -1,3 +1,4 @@
+import { createSessionBoundary } from '../components/session-boundary.js';
 // Implementação original de Lucas Emmanoel, recuperada do PR #44 em 0.43.0.
 // Integração da página e proteção dos estados assíncronos adicionadas posteriormente.
 import { getMyBooks } from "../services/bookService.js";
@@ -28,11 +29,20 @@ let chaptersReady = false;
 let isLoading = false;
 let chapterRequest = 0;
 let sessionExpired = false;
+const sessionBoundary = createSessionBoundary({ reload: loadMyBooks, clear(reason) {
+  chapterRequest++; sessionExpired = true; chaptersReady = false; isLoading = false; isSaving = false;
+  selectedChapterId = null; chapterTitle.value = ''; chapterContent.value = '';
+  bookSelect.replaceChildren(); bookSelect.disabled = true; chapterList.replaceChildren();
+  formMode.textContent = 'NOVO RASCUNHO'; formTitle.textContent = 'Escrever capítulo';
+  cancelButton.hidden = true; clearFormMessage(); updateCharacterCount(); syncBackLink(); syncControls();
+  setListState(reason === 'error' ? 'Não foi possível verificar sua sessão. Recarregue para tentar novamente.' : reason === 'checking' ? 'Verificando sessão...' : 'Entre na sua conta para editar capítulos.', 'error');
+} });
 
 function serviceMessage(error, fallback) {
   if (error?.code === "UNAUTHENTICATED") {
+    sessionBoundary.invalidate('guest');
     sessionExpired = true;
-    return "Entre na sua conta para editar capítulos. Seu texto permanece no formulário; copie-o antes de sair.";
+    return "Entre na sua conta para editar capítulos.";
   }
   return error?.message || fallback;
 }
@@ -192,6 +202,7 @@ function beginEditing(chapter) {
 }
 
 async function loadChapters(bookId) {
+  const token = sessionBoundary.capture();
   const request = ++chapterRequest;
   chaptersReady = false;
   isLoading = Boolean(bookId);
@@ -210,6 +221,7 @@ async function loadChapters(bookId) {
   try {
     const result = await getChaptersByBook(bookId);
     if (request !== chapterRequest || bookSelect.value !== bookId) return false;
+    if (!await sessionBoundary.accept(token, result)) return false;
 
     if (result?.error) {
       setListState(
@@ -228,7 +240,7 @@ async function loadChapters(bookId) {
     chaptersReady = true;
     return true;
   } catch (error) {
-    if (request !== chapterRequest || bookSelect.value !== bookId) return false;
+    if (request !== chapterRequest || bookSelect.value !== bookId || !await sessionBoundary.accept(token)) return false;
     console.error("Erro ao carregar capítulos:", error);
 
     setListState(
@@ -245,6 +257,7 @@ async function loadChapters(bookId) {
 }
 
 async function loadMyBooks() {
+  const token = sessionBoundary.capture();
   bookSelect.disabled = true;
 
   bookSelect.replaceChildren(
@@ -254,7 +267,10 @@ async function loadMyBooks() {
   setListState("Carregando suas obras...");
 
   try {
+    if (!await sessionBoundary.accept(token)) return;
+    sessionExpired = false;
     const result = await getMyBooks();
+    if (!await sessionBoundary.accept(token, result)) return;
 
     if (result?.error) {
       bookSelect.replaceChildren(
@@ -317,6 +333,7 @@ async function loadMyBooks() {
       );
     }
   } catch (error) {
+    if (!await sessionBoundary.accept(token)) return;
     console.error("Erro ao carregar suas obras:", error);
 
     bookSelect.replaceChildren(
@@ -391,6 +408,7 @@ chapterForm.addEventListener("submit", async (event) => {
     return;
   }
 
+  const token = sessionBoundary.capture();
   clearFormMessage();
   setFormBusy(true);
 
@@ -401,6 +419,7 @@ chapterForm.addEventListener("submit", async (event) => {
       ? await updateChapter(selectedChapterId, data)
       : await createChapter(bookId, data);
 
+    if (!await sessionBoundary.accept(token, result)) return;
     if (result?.error) {
       showFormMessage(
         serviceMessage(result.error, "Não foi possível salvar o capítulo.")
@@ -413,6 +432,7 @@ chapterForm.addEventListener("submit", async (event) => {
     resetChapterForm();
 
     const refreshed = await loadChapters(bookId);
+    if (!sessionBoundary.current(token)) return;
 
     showFormMessage(
       !refreshed
@@ -423,12 +443,14 @@ chapterForm.addEventListener("submit", async (event) => {
       "success"
     );
   } catch (error) {
+    if (!await sessionBoundary.accept(token)) return;
     console.error("Erro ao salvar capítulo:", error);
 
     showFormMessage(
       "Ocorreu um erro ao salvar. Verifique sua conexão e tente novamente."
     );
   } finally {
+    if (!sessionBoundary.current(token)) return;
     setFormBusy(false);
   }
 });

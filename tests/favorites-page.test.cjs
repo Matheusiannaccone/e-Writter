@@ -1,3 +1,4 @@
+const { installSessionBoundary } = require('./helpers/session-boundary.cjs');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -56,6 +57,7 @@ async function harness(overrides = {}, source = 'mock', route = 'biblioteca.html
     ...overrides
   });
   const run = file => vm.runInContext(read(file).replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];\s*/gm, '').replace(/^export /gm, ''), context);
+  installSessionBoundary(context);
   run('js/components/navigation-context.js');
   run('js/components/feedback.js');
   run('js/components/book-card.js');
@@ -318,7 +320,8 @@ async function destinationPage(file, url, overrides = {}) {
     isFavorite: async () => ok(true), addFavorite: async () => ok({}), removeFavorite: async () => ok({}),
     ...overrides
   });
-  for (const source of ['js/components/navigation-context.js', `js/pages/${file}`]) {
+  installSessionBoundary(context);
+  for (const source of ['js/components/navigation-context.js', 'js/components/feedback.js', 'js/components/favorite-session.js', `js/pages/${file}`]) {
     vm.runInContext(read(source).replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];\s*/gm, '').replace(/^export /gm, ''), context);
   }
   await flush();
@@ -446,4 +449,27 @@ test('Home na raiz preserva fonte e IDs sem gerar .html em servidor de rotas lim
   const library = new URL(vm.runInContext(`withDataSource('./biblioteca.html').href`, home.context));
   assert.equal(library.pathname, '/biblioteca');
   assert.equal(library.searchParams.get('datasource'), 'mock');
+});
+
+test('Meus Livros limpa cards e descarta listagem e capas após mudança de sessão', async () => {
+  for (const delayed of ['list', 'card']) {
+    const pending = deferred();
+    const h = await destinationPage('myBooksPage.js', 'http://localhost/meuslivros.html?datasource=mock', {
+      getMyBooks: () => delayed === 'list' ? pending.promise : ok([{id:idA,title:'Privado'}]),
+      createBookCard: () => delayed === 'card' ? pending.promise : new Element('article')
+    });
+    h.context.__auth('SIGNED_OUT'); pending.resolve(delayed === 'list' ? ok([{id:idA,title:'Privado'}]) : new Element('article')); await flush();
+    assert.equal(h.$('my-books-list').children.length, 0); assert.equal(h.$('my-books-list').hidden, true);
+  }
+});
+
+test('Detalhes sincroniza estado pessoal e descarta favorito atrasado após logout', async () => {
+  const pending = deferred();
+  const h = await destinationPage('detalhesObraPage.js', `http://localhost/detalhes-obra.html?id=${idA}&datasource=mock`, { isFavorite: () => pending.promise });
+  // O seletor do controlador compartilhado identifica somente controles presentes no DOM.
+  h.context.document.querySelectorAll = () => [h.$('favorite-button')];
+  h.context.__auth('SIGNED_OUT'); pending.resolve(ok(true)); await flush();
+  assert.equal(h.$('favorite-button').attributes['aria-pressed'], 'false');
+  assert.match(h.$('favorite-status').textContent, /Entre/);
+  assert.equal(h.$('obra-content').hidden, false);
 });

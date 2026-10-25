@@ -1,3 +1,4 @@
+const { installSessionBoundary } = require('./helpers/session-boundary.cjs');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -56,6 +57,7 @@ function environment(extra = {}) {
     return el;
   }
   const run = file => vm.runInContext(read(file).replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];\s*/gm, '').replace(/^export /gm, ''), context);
+  installSessionBoundary(context);
   run('js/validation/email.js');
   run('js/components/feedback.js');
   run('js/components/navigation-context.js');
@@ -244,7 +246,7 @@ test('redefinição trata rejeição da senha, sessão expirada no save e erro d
   for (const code of ['VALIDATION_ERROR', 'INVALID_RECOVERY_LINK', 'NETWORK_ERROR', 'THROWN']) {
     const h = authPage('password', { getPasswordRecoverySession: async () => ok({}), updatePassword: async () => { if (code === 'THROWN') throw Error('offline'); return fail(code); } });
     await flush(); await h.form.fire('submit');
-    assert.equal(h.form.elements.password.value, 'senha123');
+    assert.equal(h.form.elements.password.value, code === 'INVALID_RECOVERY_LINK' ? '' : 'senha123');
     assert.equal(h.button.disabled, code === 'INVALID_RECOVERY_LINK');
     if (code === 'VALIDATION_ERROR') { assert.equal(h.document.activeElement, h.form.elements.password); assert.equal(h.message.textContent, ''); }
     else assert.equal(h.message.dataset.type, 'error');
@@ -269,4 +271,46 @@ test('imports reais de Auth e Perfil ligam com services/adapters locais sem exec
       }
     })().catch(error => { console.error(error); process.exitCode = 1; });
   `], { cwd: root, stdio: 'pipe' });
+});
+
+test('Perfil limpa dados no logout e descarta carga e save atrasados sem reativar controles', async () => {
+  const pending = deferred();
+  const loading = profilePage({ getMyProfile: () => pending.promise });
+  loading.context.__auth('SIGNED_OUT'); pending.resolve(ok(profile)); await flush();
+  assert.equal(loading.$('profile-display-name-input').value, '');
+  assert.equal(loading.$('profile-save-button').disabled, true);
+  const save = deferred(); const h = profilePage({ updateMyProfile: () => save.promise }); await flush();
+  h.$('profile-display-name-input').value = 'Outro';
+  const saving = h.form.fire('submit'); h.context.__auth('SIGNED_OUT'); save.resolve(ok({ ...profile, displayName: 'Outro' })); await saving;
+  assert.equal(h.$('profile-display-name-input').value, '');
+  assert.equal(h.$('profile-detail-email').textContent, '');
+  assert.equal(h.$('profile-save-button').disabled, true);
+});
+
+test('Perfil revalida histórico e não recupera dados de sessão ausente; rede oferece retry', async () => {
+  let user = ok({ id: 'a', email: 'a@example.test' });
+  const h = profilePage({ getCurrentUser: async () => user }); await flush();
+  h.context.__fireWindow('pagehide', {});
+  assert.equal(h.$('profile-display-name-input').value, '');
+  user = fail('NETWORK_ERROR'); h.context.__fireWindow('pageshow', { persisted: true });
+  await new Promise(resolve => setTimeout(resolve, 10));
+  assert.equal(h.$('profile-retry').hidden, false); assert.equal(h.$('profile-save-button').disabled, true);
+  user = fail('UNAUTHENTICATED'); await h.$('profile-retry').fire('click');
+  assert.match(h.location.replaced, /datasource=mock/);
+});
+
+test('Perfil limpa dados se o salvamento detectar sessão inválida sem evento do adapter', async () => {
+  const h = profilePage({ updateMyProfile: async () => fail('UNAUTHENTICATED') }); await flush();
+  await h.form.fire('submit'); assert.equal(h.$('profile-display-name-input').value, '');
+  assert.equal(h.$('profile-save-button').disabled, true);
+});
+
+test('redefinição descarta verificação e salvamento anteriores ao logout', async () => {
+  const pending = deferred(); const h = authPage('password', { getPasswordRecoverySession: () => pending.promise });
+  h.context.__auth('SIGNED_OUT'); pending.resolve(ok({ user: { id: 'a' } })); await flush();
+  assert.equal(h.button.disabled, true); assert.equal(h.form.elements.password.value, '');
+  const saving = deferred(); const other = authPage('password', { getPasswordRecoverySession: async () => ok({ user: { id: 'a' } }), updatePassword: () => saving.promise }); await flush();
+  const save = other.form.fire('submit'); other.context.__auth('SIGNED_OUT'); saving.resolve(ok({})); await save;
+  assert.equal(other.button.disabled, true); assert.equal(other.form.elements.password.value, '');
+  assert.doesNotMatch(other.message.textContent, /sucesso/);
 });

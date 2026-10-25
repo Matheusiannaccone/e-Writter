@@ -1,4 +1,4 @@
-import { getCurrentUser, onAuthStateChange } from "../services/authService.js";
+import { createFavoriteSession } from "./favorite-session.js";
 import { withDataSource } from "./navigation-context.js";
 import { isFavorite, addFavorite, removeFavorite } from "../services/favoriteService.js";
 
@@ -17,6 +17,12 @@ export function createFavoriteButton(book) {
   let active = false;
   let busy = false;
 
+  const session = createFavoriteSession(element, { reload: refresh, clear(reason) {
+    active = false; busy = false;
+    feedback.textContent = reason === 'error' ? 'Não foi possível verificar sua sessão. Tente novamente.' : reason === 'checking' ? 'Verificando sessão...' : 'Entre na sua conta para salvar esta obra.';
+    paint();
+  } });
+
   function paint() {
     button.textContent = active ? "♥ Na biblioteca" : "♡ Adicionar à biblioteca";
     button.setAttribute("aria-pressed", String(active));
@@ -25,22 +31,21 @@ export function createFavoriteButton(book) {
   }
 
   async function refresh() {
+    const token = session.next();
     busy = true;
     paint();
     try {
-      const user = await getCurrentUser();
-      if (user.error || !user.data) {
-        active = false;
-        feedback.textContent = "Entre na sua conta para salvar esta obra.";
-        return;
-      }
+      if (!await session.accept(token)) return;
       const result = await isFavorite(book.id);
+      if (!await session.accept(token, result)) return;
       if (result.error) throw result.error;
       active = result.data === true;
       feedback.textContent = "";
     } catch {
+      if (!session.current(token)) return;
       feedback.textContent = "Não foi possível consultar sua biblioteca.";
     } finally {
+      if (!session.current(token)) return;
       busy = false;
       paint();
     }
@@ -48,19 +53,19 @@ export function createFavoriteButton(book) {
 
   button.addEventListener("click", async () => {
     if (busy) return;
+    const token = session.capture();
     busy = true;
     paint();
     try {
-      const user = await getCurrentUser();
-      if (user.error || !user.data) {
-        feedback.replaceChildren("Entre na sua conta para salvar esta obra. ");
-        const link = document.createElement("a");
-        link.href = withDataSource("./login.html").href;
-        link.textContent = "Entrar";
-        feedback.append(link);
+      if (!await session.accept(token)) {
+        if (feedback.textContent.startsWith('Entre')) {
+          const link = document.createElement('a');
+          link.href = withDataSource('./login.html').href; link.textContent = 'Entrar'; feedback.append(' ', link);
+        }
         return;
       }
       const result = active ? await removeFavorite(book.id) : await addFavorite(book.id);
+      if (!await session.accept(token, result)) return;
       if (result.error) {
         if (result.error.code === "CONFLICT") active = true;
         else if (result.error.code === "NOT_FOUND" && active) active = false;
@@ -68,13 +73,14 @@ export function createFavoriteButton(book) {
       } else active = !active;
       feedback.textContent = active ? "Obra adicionada à biblioteca." : "Obra removida da biblioteca.";
     } catch (error) {
+      if (!session.current(token)) return;
       feedback.textContent = error?.code === "UNAUTHENTICATED" ? "Sessão encerrada. Entre novamente." : "Não foi possível atualizar sua biblioteca. Tente novamente.";
     } finally {
+      if (!session.current(token)) return;
       busy = false;
       paint();
     }
   });
-  onAuthStateChange(() => { refresh(); });
   paint();
   refresh();
   return element;
