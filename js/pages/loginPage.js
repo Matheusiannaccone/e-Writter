@@ -1,6 +1,8 @@
 import { showFeedback, clearFeedback, setFieldError, setProcessing } from '../components/feedback.js';
 import { signIn } from "../services/authService.js";
-import { withDataSource } from "../components/navigation-context.js";
+import { withDataSource, preserveDataSource } from "../components/navigation-context.js";
+
+preserveDataSource(document.querySelectorAll('a[href]'));
 
     const form = document.querySelector("#login-form");
     const emailInput = document.querySelector("#email");

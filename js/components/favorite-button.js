@@ -1,4 +1,5 @@
 import { getCurrentUser, onAuthStateChange } from "../services/authService.js";
+import { withDataSource } from "./navigation-context.js";
 import { isFavorite, addFavorite, removeFavorite } from "../services/favoriteService.js";
 
 // Uma instância por obra; cada ação consulta o estado persistido antes de mutar.
@@ -54,7 +55,7 @@ export function createFavoriteButton(book) {
       if (user.error || !user.data) {
         feedback.replaceChildren("Entre na sua conta para salvar esta obra. ");
         const link = document.createElement("a");
-        link.href = "./login.html";
+        link.href = withDataSource("./login.html").href;
         link.textContent = "Entrar";
         feedback.append(link);
         return;

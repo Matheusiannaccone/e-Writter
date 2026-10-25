@@ -1,4 +1,5 @@
 import { getBookCoverUrl } from "../services/imageService.js";
+import { withDataSource } from "../components/navigation-context.js";
 import { getBookById } from "../services/bookService.js";
 import { getChaptersByBook } from "../services/chapterService.js";
 import { getProfile } from "../services/profileService.js";
@@ -94,7 +95,6 @@ async function renderCover(book) {
     const image = document.createElement("img");
     image.className = "obra-cover-image";
     image.alt = "";
-    image.src = url;
 
     image.addEventListener("load", () => {
       elements.capa.replaceChildren(image);
@@ -104,6 +104,8 @@ async function renderCover(book) {
     image.addEventListener("error", () => {
       renderCoverPlaceholder(book.title);
     });
+
+    image.src = url;
 
   } catch (error) {
     console.warn("Não foi possível carregar a capa:", error);
@@ -131,15 +133,9 @@ function renderGenres(genres = []) {
 }
 
 function getChapterUrl(chapterId) {
-  const url = new URL("./chapter", window.location.href);
+  const url = withDataSource("./chapter.html");
 
   url.searchParams.set("id", chapterId);
-
-  const params = new URLSearchParams(window.location.search);
-
-  if (params.get("datasource") === "supabase") {
-    url.searchParams.set("datasource", "supabase");
-  }
 
   return url.href;
 }

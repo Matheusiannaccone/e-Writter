@@ -2,7 +2,7 @@ import { listFavorites, removeFavorite } from "../services/favoriteService.js";
 import { onAuthStateChange } from "../services/authService.js";
 import { createBookCard } from "../components/book-card.js";
 import { showFeedback, clearFeedback } from "../components/feedback.js";
-import { withDataSource, preserveDataSource } from "../components/navigation-context.js";
+import { bookDetailsUrl, preserveDataSource } from "../components/navigation-context.js";
 
 const emptyState = document.querySelector("#favorites-empty");
 const favoritesList = document.querySelector("#favorites-list");
@@ -86,10 +86,10 @@ async function loadFavorites() {
       return true;
     });
     const cards = await Promise.all(valid.map(async (entry) => {
-      const available = entry.book && typeof entry.book === "object" && !Array.isArray(entry.book);
+      const available = entry.book && typeof entry.book === "object" && !Array.isArray(entry.book)
+        && typeof entry.book.title === "string" && entry.book.title.trim();
       const book = available ? { ...entry.book, id: entry.bookId } : { id: entry.bookId, title: "Obra indisponível" };
-      const href = withDataSource("./detalhes-obra.html");
-      href.searchParams.set("id", entry.bookId);
+      const href = bookDetailsUrl(entry.bookId);
       const card = await createBookCard(book, {
         href: href.href,
         author: typeof book.author === "string" ? book.author : book.author?.displayName || book.author?.username,

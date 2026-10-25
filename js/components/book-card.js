@@ -29,11 +29,11 @@ export async function createBookCard(book, { href, author, genres = [], metadata
       if (url) {
         const image = document.createElement("img");
         image.className = "book-card__image";
-        image.src = url;
         image.alt = "";
         image.loading = "lazy";
         image.addEventListener("load", () => { placeholder.hidden = true; });
         image.addEventListener("error", () => { image.remove(); placeholder.hidden = false; });
+        image.src = url;
         cover.append(image);
       }
     } catch {
