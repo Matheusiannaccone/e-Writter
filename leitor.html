@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="description"
+    content="Leia histórias e descubra novos capítulos no E-writter."
+  >
+
+  <title>Leitura | E-writter</title>
+
+  <link rel="stylesheet" href="css/leitor.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body class="reader-page">
+
+  <header class="reader-header">
+    <a class="reader-brand" href="home.html" aria-label="Voltar à página inicial">
+      <span class="reader-brand-mark" aria-hidden="true">E</span>
+      <span>E-writter</span>
+    </a>
+
+    <a id="reader-back-link" class="reader-back-link" href="home.html">
+      <span aria-hidden="true">←</span>
+      Voltar à obra
+    </a>
+  </header>
+
+  <main class="reader-main">
+
+    <!-- Estado de carregamento e mensagens de erro -->
+    <section
+      id="reader-status-panel"
+      class="reader-status-panel"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="reader-status-ornament" aria-hidden="true">❦</span>
+      <p id="reader-status-message">Preparando as páginas...</p>
+    </section>
+
+    <!-- Conteúdo do leitor -->
+    <article id="reader-content" class="reader-content" hidden>
+
+      <header class="reader-book-heading">
+        <p class="reader-eyebrow">UMA HISTÓRIA E-WRITTER</p>
+
+        <h1 id="reader-book-title" class="reader-book-title"></h1>
+
+        <p class="reader-author-line">
+          escrito por <span id="reader-author"></span>
+        </p>
+
+        <div class="reader-heading-divider" aria-hidden="true">
+          <span></span>
+          <span>❦</span>
+          <span></span>
+        </div>
+      </header>
+
+      <section class="reader-paper" aria-labelledby="reader-chapter-title">
+
+        <div class="reader-chapter-heading">
+          <p id="reader-chapter-number" class="reader-chapter-number"></p>
+          <h2 id="reader-chapter-title"></h2>
+        </div>
+
+        <div
+          id="reader-chapter-text"
+          class="reader-chapter-text"
+        ></div>
+
+        <footer class="reader-chapter-footer" aria-hidden="true">
+          <span>✦</span>
+          <span>✧</span>
+          <span>✦</span>
+        </footer>
+
+      </section>
+
+      <!-- Navegação sequencial -->
+      <nav class="reader-navigation" aria-label="Navegação entre capítulos">
+
+        <button
+          id="reader-previous"
+          class="reader-navigation-button reader-previous"
+          type="button"
+          disabled
+        >
+          <span class="reader-navigation-icon" aria-hidden="true">←</span>
+          <span class="reader-navigation-label">
+            <small>CAPÍTULO ANTERIOR</small>
+            <strong>Anterior</strong>
+          </span>
+        </button>
+
+        <div class="reader-progress">
+          <span id="reader-progress-text">Capítulo 1</span>
+          <div
+            class="reader-progress-track"
+            role="progressbar"
+            aria-label="Progresso da leitura"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            id="reader-progress-bar"
+          >
+            <span id="reader-progress-fill"></span>
+          </div>
+        </div>
+
+        <button
+          id="reader-next"
+          class="reader-navigation-button reader-next"
+          type="button"
+          disabled
+        >
+          <span class="reader-navigation-label">
+            <small>PRÓXIMO CAPÍTULO</small>
+            <strong>Próximo</strong>
+          </span>
+          <span class="reader-navigation-icon" aria-hidden="true">→</span>
+        </button>
+
+      </nav>
+
+      <p id="reader-navigation-feedback" class="reader-feedback" role="status" aria-live="polite"></p>
+
+      <div class="reader-return">
+        <a id="reader-chapters-link" href="#capitulos">
+          Voltar à lista de capítulos
+        </a>
+      </div>
+
+    </article>
+  </main>
+
+  <footer class="reader-footer">
+    <a href="home.html">E-writter</a>
+    <p>Cada página é uma nova descoberta.</p>
+    <span>© 2026 E-writter</span>
+  </footer>
+
+  <script type="module" src="js/pages/leitorPage.js"></script>
+</body>
+</html>
