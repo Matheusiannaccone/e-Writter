@@ -72,3 +72,13 @@ test('sessão válida restaura com expiração e não autentica outra aba', asyn
   assert.equal(restored.data.expires_at, (await p.auth.getSession()).data.expires_at);
   assert.equal((await identityPage(p.local).auth.getSession()).data, null);
 });
+
+test('documento restaurado reconsulta armazenamento e não reutiliza sessão em memória', async () => {
+  const p = identityPage(); await p.auth.signIn(credentials);
+  const otherDocument = identityPage(p.local, p.session);
+  await otherDocument.auth.signOut();
+  assert.equal((await p.auth.getCurrentUser()).error.code, 'UNAUTHENTICATED');
+  await p.auth.signIn(credentials);
+  p.session.setItem('e-writter-mock-user', JSON.stringify({ id: 'mock-user-1', expires_at: 1 }));
+  assert.equal((await p.auth.getSession()).data, null);
+});

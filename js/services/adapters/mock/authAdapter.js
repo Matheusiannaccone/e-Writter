@@ -28,16 +28,24 @@ const conflict = message => { throw Object.assign(new Error(message), { code: 'C
 
 function sessionFor(state) {
   if (cleanupPending) endSession();
-  if (currentSession === undefined) {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    let saved;
-    try { saved = JSON.parse(raw || 'null'); }
-    catch { endSession(); return null; }
-    if (raw !== null && (!saved || typeof saved.id !== 'string' ||
-        (saved.expires_at !== undefined && (!Number.isFinite(saved.expires_at) || saved.expires_at <= 0)))) {
-      endSession(); return null;
-    }
-    currentSession = saved ? { user: { id: saved.id }, expires_at: saved.expires_at } : null;
+  // Um documento restaurado pelo bfcache pode manter a sessão antiga em memória.
+  const raw = sessionStorage.getItem(SESSION_KEY);
+  let saved;
+  try { saved = JSON.parse(raw || 'null'); }
+  catch { endSession(); return null; }
+  if (raw !== null && (!saved || typeof saved.id !== 'string' ||
+      (saved.expires_at !== undefined && (!Number.isFinite(saved.expires_at) || saved.expires_at <= 0)))) {
+    endSession(); return null;
+  }
+  if (!saved) {
+    if (currentSession) endSession();
+    currentSession = null; currentUser = null; return null;
+  }
+  if (!currentSession || currentSession.user.id !== saved.id) {
+    currentSession = { user: { id: saved.id }, expires_at: saved.expires_at };
+  }
+  if (saved.expires_at !== undefined && saved.expires_at * 1000 <= Date.now()) {
+    endSession(); return null;
   }
   currentUser = currentSession ? identityUser(state, currentSession.user.id) : null;
   if (currentSession && (!currentUser || (currentSession.expires_at !== undefined && currentSession.expires_at * 1000 <= Date.now()))) {
