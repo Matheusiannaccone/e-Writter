@@ -1,5 +1,6 @@
 import { showFeedback, clearFeedback, setFieldError, setProcessing } from '../components/feedback.js';
 import { signIn } from "../services/authService.js";
+import { withDataSource } from "../components/navigation-context.js";
 
     const form = document.querySelector("#login-form");
     const emailInput = document.querySelector("#email");
@@ -36,8 +37,7 @@ import { signIn } from "../services/authService.js";
         }
 
         showMessage("Login realizado com sucesso! Sua sessão está ativa.", "success");
-        // Quando a página principal da biblioteca estiver pronta, redirecione aqui.
-        // Exemplo: window.location.href = "pages/biblioteca.html";
+        window.location.assign(withDataSource("./biblioteca.html").href);
       } catch (error) {
         console.error("Erro ao realizar login:", error);
         showMessage("Não foi possível conectar. Verifique sua conexão e tente novamente.");

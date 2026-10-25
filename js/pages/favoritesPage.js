@@ -2,6 +2,7 @@ import { listFavorites, removeFavorite } from "../services/favoriteService.js";
 import { onAuthStateChange } from "../services/authService.js";
 import { createBookCard } from "../components/book-card.js";
 import { showFeedback, clearFeedback } from "../components/feedback.js";
+import { withDataSource, preserveDataSource } from "../components/navigation-context.js";
 
 const emptyState = document.querySelector("#favorites-empty");
 const favoritesList = document.querySelector("#favorites-list");
@@ -12,16 +13,7 @@ const sessionState = document.querySelector("#favorites-session");
 let generation = 0;
 let entries = [];
 
-function libraryUrl(path) {
-  const url = new URL(path, window.location.href);
-  const source = new URLSearchParams(window.location.search).get("datasource");
-  if (source === "mock" || source === "supabase") url.searchParams.set("datasource", source);
-  return url;
-}
-
-for (const link of document.querySelectorAll("[data-library-link]")) {
-  link.href = libraryUrl(link.getAttribute("href")).href;
-}
+preserveDataSource(document.querySelectorAll("[data-library-link]"));
 
 function paintCollection() {
   favoritesList.hidden = entries.length === 0;
@@ -96,7 +88,7 @@ async function loadFavorites() {
     const cards = await Promise.all(valid.map(async (entry) => {
       const available = entry.book && typeof entry.book === "object" && !Array.isArray(entry.book);
       const book = available ? { ...entry.book, id: entry.bookId } : { id: entry.bookId, title: "Obra indisponível" };
-      const href = libraryUrl("./detalhes-obra.html");
+      const href = withDataSource("./detalhes-obra.html");
       href.searchParams.set("id", entry.bookId);
       const card = await createBookCard(book, {
         href: href.href,
