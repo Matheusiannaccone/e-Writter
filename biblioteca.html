@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca | e-Writter</title>
+  <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/biblioteca.css">
+  <script type="module" src="./js/components/site-layout.js"></script>
+  <script type="module" src="./js/pages/favoritesPage.js"></script>
+</head>
+<body class="library-page">
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <header class="site-header" data-site-header></header>
+  <main class="library-main page-container" id="conteudo">
+    <a href="./index.html" data-library-link>← Voltar para o início</a>
+    <section class="library-heading" aria-labelledby="library-title">
+      <span class="text-meta">SUA COLEÇÃO PESSOAL</span>
+      <h1 class="page-title" id="library-title">Biblioteca <span aria-hidden="true">♥</span></h1>
+      <p>Um lugar para guardar as histórias que conquistaram você.</p>
+    </section>
+    <section class="library-toolbar" aria-labelledby="collection-title">
+      <div>
+        <h2 class="section-title" id="collection-title">Sua coleção</h2>
+        <p id="favorites-count" role="status" aria-live="polite" tabindex="-1">Carregando seus favoritos...</p>
+      </div>
+      <a class="button button--secondary" href="./index.html" data-library-link>Explorar livros</a>
+    </section>
+    <p id="favorites-message" role="status" aria-live="polite" hidden></p>
+    <button class="button button--secondary" id="favorites-retry" type="button" hidden>Tentar novamente</button>
+    <section class="library-empty" id="favorites-session" hidden aria-labelledby="session-title">
+      <h2 class="section-title" id="session-title">Entre para ver sua Biblioteca</h2>
+      <p>Suas leituras salvas ficam vinculadas à sua conta.</p>
+      <a class="button" href="./login.html" data-library-link>Entrar</a>
+    </section>
+    <section class="library-empty" id="favorites-empty" hidden aria-labelledby="empty-title">
+      <div class="empty-book-icon" aria-hidden="true">♡</div>
+      <h2 class="section-title" id="empty-title">Nenhum favorito por enquanto</h2>
+      <p>Quando você favoritar um livro do catálogo, poderá encontrá-lo nesta estante.</p>
+      <a class="button" href="./index.html" data-library-link>Explorar o catálogo</a>
+    </section>
+    <section class="book-grid" id="favorites-list" aria-label="Lista de livros favoritos" aria-busy="true" hidden></section>
+    <noscript><p>Ative o JavaScript para consultar sua Biblioteca.</p></noscript>
+  </main>
+  <footer class="site-footer" data-site-footer></footer>
+</body>
+</html>
