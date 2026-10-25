@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#34251d">
+  <title>Editor de capítulos · e-Writter</title>
+  <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/chapter-editor.css">
+  <script type="module" src="./js/components/site-layout.js"></script>
+  <script type="module" src="./js/pages/chapterEditorPage.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <header class="site-header" data-site-header></header>
+  <main id="conteudo" class="chapter-editor page-container">
+    <div class="chapter-editor__intro">
+      <a id="chapter-back-link" data-editor-link href="./book-editor.html">Voltar ao ateliê de obras</a>
+      <p class="chapter-editor__eyebrow">Ateliê de obras / Capítulos</p>
+      <h1 class="page-title">Dê voz à sua história.</h1>
+      <p>Escreva e revise seus capítulos. A publicação continua no ateliê da obra.</p>
+    </div>
+    <noscript><p class="chapter-editor__message">Ative o JavaScript para carregar suas obras e editar capítulos.</p></noscript>
+    <div class="chapter-editor__toolbar">
+      <div class="chapter-editor__field">
+        <label for="chapter-book-select">Obra em edição</label>
+        <select id="chapter-book-select" disabled><option value="">Carregando suas obras…</option></select>
+      </div>
+      <button id="chapter-new-button" class="button button--secondary" type="button" disabled>Novo capítulo</button>
+    </div>
+    <div class="chapter-editor__grid">
+      <section class="chapter-editor__panel" aria-labelledby="chapter-list-heading">
+        <h2 id="chapter-list-heading" class="section-title">Seus capítulos</h2>
+        <p id="chapter-list-state" class="chapter-editor__message" role="status" aria-live="polite" aria-atomic="true">Carregando suas obras…</p>
+        <ul id="chapter-list" class="chapter-list" aria-label="Capítulos da obra selecionada" aria-busy="true"></ul>
+      </section>
+      <form id="chapter-form" class="chapter-editor__panel" aria-labelledby="chapter-form-title" novalidate>
+        <p id="chapter-form-mode" class="chapter-editor__eyebrow">Novo rascunho</p>
+        <h2 id="chapter-form-title" class="section-title">Escrever capítulo</h2>
+        <div class="chapter-editor__field">
+          <label for="chapter-title">Título do capítulo (obrigatório)</label>
+          <input id="chapter-title" name="title" type="text" autocomplete="off" required disabled aria-describedby="chapter-form-message">
+        </div>
+        <div class="chapter-editor__field">
+          <label for="chapter-content">Conteúdo (obrigatório)</label>
+          <textarea id="chapter-content" name="content" rows="18" maxlength="15000" required disabled aria-describedby="chapter-content-help chapter-character-count chapter-form-message"></textarea>
+          <div class="chapter-editor__content-meta">
+            <p id="chapter-content-help">Até 15.000 caracteres. Capítulos publicados precisam manter ao menos 500 caracteres.</p>
+            <output id="chapter-character-count" for="chapter-content" aria-live="off">0 / 15.000</output>
+          </div>
+        </div>
+        <p id="chapter-form-message" class="chapter-editor__message" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+        <div class="chapter-editor__actions">
+          <button id="chapter-save-button" class="button" type="submit" disabled>Salvar rascunho</button>
+          <button id="chapter-cancel-button" class="button button--secondary" type="button" hidden>Cancelar edição</button>
+        </div>
+      </form>
+    </div>
+  </main>
+  <footer class="site-footer" data-site-footer></footer>
+</body>
+</html>

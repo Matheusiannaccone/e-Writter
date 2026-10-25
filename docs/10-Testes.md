@@ -181,3 +181,94 @@ Preferir GitHub Issues.
 - **Alta:** fluxo principal quebrado;
 - **Média:** funcionalidade secundária incorreta;
 - **Baixa:** problema visual ou inconveniente não bloqueante.
+
+## 10. Integração do editor de capítulos — 0.43.1 em diante
+
+A página `chapter-editor.html` usa o script de Lucas Emmanoel recuperado do PR #44
+no commit 0.43.0. A integração mantém esse commit e a página `book-editor.html`.
+
+Validação automatizada, sem dependências adicionais:
+
+```sh
+npm run test:chapter-editor
+node --check js/pages/chapterEditorPage.js
+node --check js/pages/book-editor.js
+git diff --check
+```
+
+Os testes executam os handlers reais das páginas em um DOM mínimo com services
+controlados. Cobrem IDs e assets locais, sessão ausente/expirada, obra indisponível,
+estados vazios, falhas retornadas/exceções, respostas fora de ordem, bloqueio durante
+save, prevenção de submit duplicado, atualização da lista, preservação de texto em
+erro e navegação com `bookId`/`datasource`. Não substituem testes em navegador ou RLS.
+O comando `npm test` anterior continua sendo um placeholder que termina com erro.
+
+Contratos conferidos com `14-Contrato-Front-Services.md`, seções 10.2, 10.4 e 10.5,
+e com os adapters mock/Supabase: `getChaptersByBook(bookId)`,
+`createChapter(bookId, { title, content })` e `updateChapter(id, { title, content })`.
+Nenhuma chamada envia posição, status ou campos de autoria. A posição e as
+permissões continuam nos services/adapters. A validação de título/conteúdo
+obrigatórios já presente no script de Lucas foi mantida; os services permitem
+rascunhos incompletos. As restrições de capítulos publicados continuam no backend.
+
+Pendências de teste manual:
+
+- Em mock local e com `?datasource=supabase`, criar uma obra, abrir o editor,
+  criar/editar capítulos e voltar ao ateliê com a mesma obra e fonte de dados.
+- Repetir T-010, T-011, T-014, T-020, T-021, T-022 e T-023; incluir upload/remoção
+  de capa, publicação/retirada de publicação e conteúdo publicado de 499/500/15.000
+  caracteres. Conferir persistência após recarregar e os bloqueios existentes.
+- Repetir a matriz com autor A, usuário B e visitante no Supabase real; verificar
+  que `bookId` alheio não concede acesso e que a sessão expirada não grava dados.
+- Simular rede lenta/offline, alternar rapidamente entre obras e salvar durante
+  latência. Confirmar mensagens e lista da obra atual. Se o save confirmar e a
+  atualização da lista falhar, confirmar o aviso e selecionar novamente a obra.
+- Validar em 320px, mobile, tablet e desktop: ausência de overflow, título longo,
+  textarea, header/footer, menu, foco visível, ordem de tabulação, skip link,
+  labels e anúncios das mensagens com leitor de tela. Conferir Chrome e Firefox.
+
+### Revisão A01/D06 — 0.43.5
+
+Resultado manual informado pelo usuário antes deste patch: Mock com 27 aprovados,
+2 falhas (A01 e D06) e 1 pendente (A05). Supabase ainda não testado. Os resultados
+anteriores não representam aprovação manual do patch.
+
+Causa reproduzida com o `serve-handler` disponível no ambiente, usado por
+`npx serve .`: pedidos HEAD para `/chapter-editor.html?bookId=...&datasource=...`
+e `/book-editor.html?bookId=...&datasource=...` retornaram 301 com `Location`
+sem extensão **e sem query**. As respectivas rotas sem extensão retornaram 200.
+Portanto o `bookId` de A01 se perdia antes de `getMyBooks`/seleção inicial.
+Em D06, além desse redirecionamento, o menu Ateliê usava um link sem parâmetros
+e os links dedicados copiavam somente parte da query.
+
+O helper `js/components/editor-navigation.js` mantém o formato de rota atual
+(`.html` em servidor estático, sem extensão em clean URLs), preserva a query,
+normaliza `bookId`/`datasource` sem duplicar e mantém o primeiro datasource,
+conforme a regra já usada pelo service. O ateliê ainda aceita o parâmetro legado
+`book`, mas as novas URLs usam `bookId`. A seleção inicial de capítulos somente
+ocorre depois de a obra ser retornada por `getMyBooks`; sem `bookId`, nenhuma
+obra é escolhida, inclusive quando existe apenas uma.
+
+Com `npx serve .`, iniciar os retestes pelas rotas sem extensão, por exemplo
+`http://localhost:3000/book-editor?datasource=mock`. Entrar manualmente por
+`.html?datasource=...` ainda passa pelo redirect do servidor antes de executar
+qualquer script da página. Não houve alteração de configuração do servidor,
+adapter ou seleção de datasource.
+
+Testes automatizados adicionados: carregamento atrasado de obras, ausência de
+bookId, percurso completo botão → capítulos → retorno (link e header), rotas com
+e sem extensão, parâmetros codificados/repetidos, limpeza de seleção, compatibilidade
+de links antigos e regra real de `getDataSource`. Usam services controlados; os
+casos com query `datasource=supabase` **não acessam o Supabase**.
+
+Validação desta revisão: 23 testes automatizados aprovados, `node --check` em
+42 arquivos aprovado e `git diff --check` aprovado. As URLs de ida e volta
+efetivamente geradas pelo helper foram consultadas via HEAD no `serve-handler`
+local: 200 sem redirect nas quatro combinações (ida/volta × mock/supabase).
+Essa verificação HTTP não executa a interface nem os services no navegador.
+
+Ainda executar manualmente A01 e D06 novamente em Mock, a regressão dos fluxos
+afetados (criação/edição de capítulos, formulário, publicação/despublicação,
+erros, autenticação e responsividade), A05 no Supabase com dois usuários e os
+demais testes reais do Supabase. Nenhum desses retestes foi marcado como aprovado
+por esta revisão.

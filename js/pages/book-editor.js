@@ -3,6 +3,7 @@ import { getChaptersByBook, publishChapter, unpublishChapter } from '../services
 import { bookBlockers, chapterBlockers } from './publication-rules.js';
 import { getGenres } from '../services/genreService.js';
 import { uploadBookCover, removeBookCover, getBookCoverUrl } from '../services/imageService.js';
+import { editorUrl, getRequestedBookId, syncEditorLinks } from '../components/editor-navigation.js';
 
 const $ = (selector) => document.querySelector(selector);
 const form = $('#book-form');
@@ -16,6 +17,7 @@ const coverImage = $('#cover-image');
 const coverPreview = $('#cover-preview');
 const removeCover = $('#remove-cover');
 const saveButton = $('#save-book');
+const chapterEditorButton = $('#open-chapter-editor');
 let books = [];
 let chapters = [];
 let publicationRequest = 0;
@@ -101,8 +103,20 @@ function setBusy(value) {
   saveButton.disabled = value;
   document.querySelectorAll('[data-publication-action], #book-publication-action').forEach((button) => { button.disabled = value || button.dataset.blocked === 'true'; });
   picker.disabled = value;
+  syncChapterEditorButton();
   saveButton.textContent = value ? 'Salvando…' : picker.value ? 'Salvar alterações' : 'Criar rascunho';
 }
+function syncChapterEditorButton() {
+  const persisted = books.some((book) => book.id === picker.value);
+  syncEditorLinks(persisted ? picker.value : '');
+  chapterEditorButton.hidden = !persisted;
+  chapterEditorButton.disabled = !persisted || busy || pendingEdits;
+}
+chapterEditorButton.addEventListener('click', () => {
+  if (busy || pendingEdits || !books.some((book) => book.id === picker.value)) return;
+  const url = editorUrl('./chapter-editor.html', picker.value);
+  window.location.assign(url.href);
+});
 function renderPicker(selectedId = '') {
   picker.replaceChildren(new Option('Nova obra', ''));
   books.forEach((book) => picker.add(new Option(`${book.title} · ${book.status === 'published' ? 'Publicado' : 'Rascunho'}`, book.id)));
@@ -146,6 +160,7 @@ function renderReasons(container, reasons) {
   container.hidden = reasons.length === 0;
 }
 function renderPublication(book) {
+  syncChapterEditorButton();
   const panel = $('#publication-panel');
   panel.hidden = !book;
   if (!book) return;
@@ -301,7 +316,7 @@ async function load() {
       const text = document.createElement('span'); text.textContent = genre.name;
       label.append(input, text); options.append(label);
     });
-    const requestedId = new URLSearchParams(location.search).get('book');
+    const requestedId = getRequestedBookId();
     renderPicker(books.some((book) => book.id === requestedId) ? requestedId : '');
     $('#editor-content').hidden = false;
     fillForm();
