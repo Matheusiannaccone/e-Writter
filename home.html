@@ -8,6 +8,7 @@
 
   <link rel="stylesheet" href="css/home.css">
   <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/styles.css">
 
   <title>E-writter | Uma biblioteca de histórias</title>
 </head>
@@ -110,6 +111,48 @@
       >
         Abrindo as portas da biblioteca...
       </p>
+
+
+      <!-- Busca e filtro do catálogo -->
+      <form id="catalog-search-form" class="catalog-search-form" role="search">
+
+        <div class="catalog-search-field">
+          <label for="catalog-search">Pesquisar histórias</label>
+
+          <div class="catalog-search-input-wrapper">
+            <span class="catalog-search-icon" aria-hidden="true">⌕</span>
+
+            <input
+              type="search"
+              id="catalog-search"
+              name="search"
+              placeholder="Buscar por título, autor ou sinopse..."
+              autocomplete="off"
+            >
+          </div>
+        </div>
+
+        <div class="catalog-filter-field">
+          <label for="catalog-genre-filter">Filtrar por gênero</label>
+
+          <select id="catalog-genre-filter" name="genre">
+            <option value="">Todos os gêneros</option>
+          </select>
+        </div>
+
+        <button type="submit" class="catalog-search-button">
+          Pesquisar
+        </button>
+
+        <button
+          type="button"
+          id="catalog-clear-filters"
+          class="catalog-clear-button"
+        >
+          Limpar filtros
+        </button>
+
+      </form>
 
       <div
         id="book-grid"
