@@ -171,7 +171,7 @@ elements.btnComecar.href = "#capitulos";
 
 function renderBook(book, author) {
   elements.titulo.textContent = book.title;
-  elements.autor.textContent = author?.displayName || author?.username || "Autor não informado";
+  renderAuthor(author);
   elements.sinopse.textContent = book.description || "Esta obra ainda não possui uma sinopse.";
   elements.statusPublicacao.textContent = formatPublicationStatus(book.publicationStatus);
   elements.idioma.textContent = formatLanguage(book.language);
@@ -180,6 +180,24 @@ function renderBook(book, author) {
   renderGenres(book.genres ?? []);
   elements.content.hidden = false;
 }
+
+// Exibe o autor e, quando possível, o link para o perfil público.
+const renderAuthor = (author) => {
+  const name = author?.displayName || author?.username || "Autor não informado";
+
+  if (!author?.username) {
+    elements.autor.textContent = name;
+    return;
+  }
+
+  const link = document.createElement("a");
+
+  link.href = `autor.html?username=${encodeURIComponent(author.username)}`;
+  link.textContent = name;
+  link.setAttribute("aria-label", `Ver perfil público de ${name}`);
+
+  elements.autor.replaceChildren(link);
+};
 
 async function loadFavorite() {
   const result = await isFavorite(bookId);
