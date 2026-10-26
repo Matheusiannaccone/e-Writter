@@ -98,13 +98,6 @@ function renderCoverPlaceholder(title) {
   elements.capa.append(small, coverTitle, ornament);
 };
 
-function renderCoverPlaceholder(title) {
-  elements.capa.replaceChildren();
-  const initial = document.createElement("span");
-  initial.className = "capa-inicial";
-  initial.textContent = (title?.trim()?.[0] ?? "E").toUpperCase();
-  elements.capa.appendChild(initial);
-}
 
 function renderGenres(genres = []) {
   elements.generos.replaceChildren();
