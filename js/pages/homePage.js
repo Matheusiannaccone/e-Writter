@@ -6,6 +6,8 @@ import {
 import { getGenres } from "../services/genreService.js";
 import { getProfile } from "../services/profileService.js";
 
+import { createBookCard, createTextElement} from "../components/bookCard.js";
+
 const elements = {
   status: document.querySelector("#catalog-status"),
   grid: document.querySelector("#book-grid"),
