@@ -1,10 +1,58 @@
-import { getBooks } from "../services/bookService.js";
+import {
+  getBooks,
+  filterBooks
+} from "../services/bookService.js";
+
+import { getGenres } from "../services/genreService.js";
 import { getProfile } from "../services/profileService.js";
 
 const elements = {
   status: document.querySelector("#catalog-status"),
-  grid: document.querySelector("#book-grid")
+  grid: document.querySelector("#book-grid"),
+  searchForm: document.querySelector("#catalog-search-form"),
+  searchInput: document.querySelector("#catalog-search"),
+  genreFilter: document.querySelector("#catalog-genre-filter"),
+  clearFilters: document.querySelector("#catalog-clear-filters")
 };
+
+// Guarda os livros carregados para filtrar sem consultar o banco novamente.
+let catalogBooks = [];
+
+// Indica se o catálogo já terminou de carregar.
+let catalogLoaded = false;
+
+
+// Mostra uma mensagem quando os filtros não encontram obras.
+const renderNoSearchResults = () => {
+  elements.grid.replaceChildren();
+
+  const container = document.createElement("div");
+  container.className = "catalog-empty";
+
+  const symbol = createTextElement(
+    "span",
+    "catalog-empty-symbol",
+    "⌕"
+  );
+
+  symbol.setAttribute("aria-hidden", "true");
+
+  const title = createTextElement(
+    "h3",
+    "",
+    "Nenhuma história encontrada"
+  );
+
+  const description = createTextElement(
+    "p",
+    "",
+    "Não encontramos obras com esses critérios. " +
+    "Experimente outro termo ou gênero."
+  );
+
+  container.append(symbol, title, description);
+  elements.grid.appendChild(container);
+}
 
 // Paleta usada nas capas sem imagem.
 const coverTones = [
@@ -258,6 +306,80 @@ function createBookCard(book, authorName, index) {
   return article;
 }
 
+
+// Aplica a pesquisa textual e o filtro de gênero.
+function applyCatalogFilters() {
+  if (!catalogLoaded) {
+    return;
+  }
+
+  const query = elements.searchInput.value.trim();
+  const genreId = elements.genreFilter.value;
+
+  const filteredBooks = filterBooks(catalogBooks, {
+    query,
+    genreId
+  });
+
+  if (filteredBooks.length === 0) {
+    renderNoSearchResults();
+
+    setStatus(
+      "Nenhuma obra encontrada. Experimente outros filtros."
+    );
+
+    return;
+  }
+
+  const cards = filteredBooks.map((book, index) =>
+    createBookCard(book, book.authorName, index)
+  );
+
+  elements.grid.replaceChildren(...cards);
+
+  const total = filteredBooks.length;
+
+  setStatus(
+    `${total} ${total === 1 ? "obra encontrada" : "obras encontradas"}.`
+  );
+}
+
+
+
+// Carrega os gêneros disponíveis no seletor.
+async function loadGenres() {
+  try {
+    const result = await getGenres();
+
+    if (result.error) {
+      console.error("Erro ao carregar gêneros:", result.error);
+      return;
+    }
+
+    const genres = Array.isArray(result.data)
+      ? result.data
+      : [];
+
+    const options = genres
+      .filter((genre) => genre && genre.id != null)
+      .map((genre) => {
+        const option = document.createElement("option");
+
+        option.value = String(genre.id);
+        option.textContent = genre.name || "Gênero sem nome";
+
+        return option;
+      });
+
+    elements.genreFilter.replaceChildren(
+      new Option("Todos os gêneros", ""),
+      ...options
+    );
+  } catch (error) {
+    console.error("Erro inesperado ao carregar gêneros:", error);
+  }
+}
+
 // Carrega o catálogo.
 async function loadCatalog() {
   setStatus("Abrindo as portas da biblioteca...");
@@ -293,18 +415,22 @@ async function loadCatalog() {
       return;
     }
 
-    // Busca os autores sem interromper o catálogo caso um perfil falhe.
-    const cards = await Promise.all(
-      validBooks.map(async (book, index) => {
+        // Busca os autores e prepara os dados do catálogo.
+    catalogBooks = await Promise.all(
+      validBooks.map(async (book) => {
         const authorName = await getAuthorName(book.authorId);
 
-        return createBookCard(book, authorName, index);
+        return {
+          ...book,
+          authorName
+        };
       })
     );
 
-    elements.grid.replaceChildren(...cards);
+    catalogLoaded = true;
 
-    setStatus("");
+    // Aplica os filtros iniciais e apresenta os resultados.
+    applyCatalogFilters();
   } catch (error) {
     console.error("Erro inesperado ao carregar o catálogo:", error);
 
@@ -316,5 +442,44 @@ async function loadCatalog() {
   }
 }
 
+// Pesquisa ao enviar o formulário.
+elements.searchForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  applyCatalogFilters();
+});
+
+// Atualiza os resultados enquanto o usuário digita.
+let searchTimeout;
+
+elements.searchInput?.addEventListener("input", () => {
+  clearTimeout(searchTimeout);
+
+  searchTimeout = setTimeout(() => {
+    applyCatalogFilters();
+  }, 250);
+});
+
+// Atualiza os resultados quando o gênero muda.
+elements.genreFilter?.addEventListener("change", () => {
+  applyCatalogFilters();
+});
+
+// Limpa os filtros e restaura o catálogo completo.
+elements.clearFilters?.addEventListener("click", () => {
+  elements.searchInput.value = "";
+  elements.genreFilter.value = "";
+
+  applyCatalogFilters();
+
+  elements.searchInput.focus();
+});
+
 // Inicializa a página.
-loadCatalog();
+async function initializeHome() {
+  await Promise.all([
+    loadGenres(),
+    loadCatalog()
+  ]);
+}
+
+initializeHome();
