@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="description" content="Conheça o autor e as obras publicadas por ele no E-writter.">
+
+  <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/autor.css">
+
+  <title>Autor | E-writter</title>
+</head>
+
+<body class="home-page autor-page">
+
+  <!-- Cabeçalho -->
+  <header class="home-header">
+    <a class="home-brand" href="home.html" aria-label="E-writter, página inicial">
+      <span class="home-brand-mark" aria-hidden="true">E</span>
+      <span>E-writter</span>
+    </a>
+
+    <nav class="home-navigation" aria-label="Navegação principal">
+      <a href="home.html">Início</a>
+      <a href="home.html#catalogo">Explorar obras</a>
+      <a href="pagesHTML/livrosfavoritos.html">Favoritos</a>
+      <a href="pagesHTML/meuslivros.html">Meus livros</a>
+    </nav>
+
+    <div class="home-header-actions">
+      <a class="home-login-link" href="index.html">Entrar</a>
+      <a class="home-writer-button" href="BookEditor.html">
+        Área do escritor <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Estado de carregamento do perfil -->
+    <p
+      id="author-status"
+      class="author-status"
+      role="status"
+      aria-live="polite"
+    >
+      Carregando perfil do autor...
+    </p>
+
+    <!-- Perfil indisponível ou inexistente -->
+    <section
+      id="author-unavailable"
+      class="home-catalog author-unavailable"
+      aria-labelledby="author-unavailable-title"
+      hidden
+    >
+      <div class="catalog-empty">
+        <span class="catalog-empty-symbol" aria-hidden="true">❦</span>
+        <h1 id="author-unavailable-title">Perfil indisponível</h1>
+        <p id="author-unavailable-message">
+          Não encontramos este autor.
+        </p>
+
+        <a class="hero-button author-back-button" href="home.html">
+          Voltar ao catálogo
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Apresentação do autor -->
+    <section
+      id="author-profile"
+      class="author-hero"
+      aria-labelledby="author-name"
+      hidden
+    >
+      <div id="author-avatar" class="author-avatar"></div>
+
+      <div class="author-info">
+        <p class="home-eyebrow">
+          <span aria-hidden="true">✧</span>
+          AUTOR DA COMUNIDADE
+        </p>
+
+        <h1 id="author-name"></h1>
+        <p id="author-username" class="author-username"></p>
+        <p id="author-bio" class="author-bio" hidden></p>
+        <p id="author-count" class="author-count"></p>
+      </div>
+    </section>
+
+    <!-- Obras publicadas -->
+    <section
+      id="author-works"
+      class="home-catalog author-works"
+      aria-labelledby="author-works-title"
+      hidden
+    >
+      <div class="catalog-heading">
+        <div>
+          <p class="home-eyebrow">A ESTANTE DO AUTOR</p>
+          <h2 id="author-works-title">Obras publicadas</h2>
+        </div>
+
+        <span class="catalog-decoration" aria-hidden="true">❦</span>
+      </div>
+
+      <p
+        id="works-status"
+        class="catalog-status"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+      <div
+        id="author-book-grid"
+        class="book-grid"
+        aria-label="Obras publicadas do autor"
+      ></div>
+    </section>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="home-footer">
+    <a class="footer-brand" href="home.html">E-writter</a>
+    <p>Feito para quem ama histórias.</p>
+    <span>© 2026 E-writter</span>
+  </footer>
+
+  <script type="module" src="js/pages/autorPage.js"></script>
+</body>
+</html>
