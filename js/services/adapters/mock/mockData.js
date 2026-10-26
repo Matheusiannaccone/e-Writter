@@ -146,16 +146,26 @@ export const mockChapters = [
     updatedAt: "2026-09-01T12:00:00.000Z"
   },
   {
-    id: "44444444-4444-4444-4444-444444444444",
-    bookId: "11111111-1111-1111-1111-111111111111",
-    title: "Capítulo 2",
-    content: "B".repeat(500),
-    status: "draft",
-    position: 2,
-    publishedAt: null,
-    createdAt: "2026-09-02T12:00:00.000Z",
-    updatedAt: "2026-09-02T12:00:00.000Z"
-  },
+  id: "44444444-4444-4444-4444-444444444444",
+  bookId: "11111111-1111-1111-1111-111111111111",
+  title: "Capítulo 2 — Um Novo Caminho",
+  content: `A manhã nasceu tranquila, iluminando lentamente as ruas da cidade. Depois de uma noite cheia de dúvidas, o protagonista finalmente decidiu que não poderia continuar fugindo das próprias escolhas.
+
+Ao sair de casa, percebeu que o mundo parecia diferente. As mesmas construções, os mesmos rostos e os mesmos caminhos agora carregavam possibilidades que ele nunca havia considerado. Talvez a mudança que tanto procurava não estivesse tão distante quanto imaginava.
+
+Enquanto caminhava, encontrou uma pequena carta caída perto de um banco da praça. O papel estava amassado, mas algumas palavras ainda podiam ser lidas. Havia um endereço, uma data e uma mensagem curta: "Se deseja descobrir a verdade, venha ao lugar onde tudo começou."
+
+Ele guardou a carta no bolso e olhou ao redor. Ninguém parecia ter percebido o acontecimento. Por alguns instantes, pensou em ignorar aquela mensagem, voltar para casa e seguir a rotina de sempre.
+
+Mas a curiosidade falou mais alto. Pela primeira vez em muito tempo, sentiu que estava diante de uma oportunidade real de mudar o rumo da própria história.
+
+Sem saber o que encontraria, começou a caminhar em direção ao endereço indicado. Cada passo o afastava da segurança que conhecia e o aproximava de respostas que talvez transformassem tudo.`,
+  status: "published",
+  position: 2,
+  publishedAt: "2026-10-26T12:00:00.000Z",
+  createdAt: "2026-09-02T12:00:00.000Z",
+  updatedAt: "2026-10-26T12:00:00.000Z"
+},
   {
     id: "55555555-5555-5555-5555-555555555555",
     bookId: "22222222-2222-2222-2222-222222222222",
