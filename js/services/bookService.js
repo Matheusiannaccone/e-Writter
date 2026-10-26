@@ -22,6 +22,54 @@ export async function getBooksByAuthor(authorId) {
   return getBookAdapter().getBooksByAuthor(authorId);
 }
 
+// Filtra os livros por texto e gênero.
+export function filterBooks(
+  books,
+  { query = "", genreId = "" } = {}
+) {
+  if (!Array.isArray(books)) {
+    return [];
+  }
+
+  // Normaliza o texto para ignorar maiúsculas e acentos.
+  const normalizeText = (value) =>
+    String(value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+  const searchTerm = normalizeText(query);
+
+  return books.filter((book) => {
+    if (!book) {
+      return false;
+    }
+
+    // Pesquisa por título, sinopse e nome do autor.
+    const searchableText = normalizeText([
+      book.title,
+      book.description,
+      book.authorName
+    ].join(" "));
+
+    const matchesText =
+      !searchTerm ||
+      searchableText.includes(searchTerm);
+
+    // Filtra pelo ID do gênero selecionado.
+    const matchesGenre =
+      !genreId ||
+      (Array.isArray(book.genres) &&
+        book.genres.some(
+          (genre) =>
+            String(genre.id) === String(genreId)
+        ));
+
+    return matchesText && matchesGenre;
+  });
+}
+
 // Cria um novo livro.
 export async function createBook(data) {
   return getBookAdapter().createBook(data);
