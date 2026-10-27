@@ -1,3 +1,4 @@
+import { createFavoriteSession } from '../components/favorite-session.js';
 import { getBookCoverUrl } from "../services/imageService.js";
 import { withDataSource } from "../components/navigation-context.js";
 import { getBookById } from "../services/bookService.js";
@@ -35,6 +36,11 @@ const bookId = params.get("id");
 let currentBook = null;
 let currentChapters = [];
 let favoriteState = false;
+
+const favoriteSession = createFavoriteSession(elements.btnFavorito, { reload: loadFavorite, clear(reason) {
+  favoriteState = false; updateFavoriteButton(); elements.btnFavorito.disabled = false;
+  elements.favoritoFeedback.textContent = reason === 'error' ? 'Não foi possível verificar sua sessão. Tente novamente.' : reason === 'checking' ? 'Verificando sessão...' : 'Entre na sua conta para favoritar esta obra.';
+} });
 
 function setStatus(message, isError = false) {
   elements.status.textContent = message;
@@ -148,7 +154,7 @@ function renderChapters(chapters = []) {
 
   if (!chapters.length) {
     const empty = document.createElement("p");
-    empty.className = "capitulos-vazio";
+    empty.className = "chapters-empty";
     empty.textContent = "Esta obra ainda não possui capítulos publicados.";
     elements.capitulosLista.appendChild(empty);
     elements.btnComecar.setAttribute("aria-disabled", "true");
@@ -159,20 +165,30 @@ function renderChapters(chapters = []) {
   elements.btnComecar.removeAttribute("aria-disabled");
   elements.btnComecar.href = getChapterUrl(chapters[0].id);
   chapters.forEach((chapter, index) => {
-    const item = document.createElement("article");
-    item.className = "capitulo-item";
-
+    const position = chapter.position ?? index + 1;
     const link = document.createElement("a");
-    link.className = "capitulo-link";
+    link.className = "chapter-card";
     link.href = getChapterUrl(chapter.id);
-    link.textContent = `Capítulo ${chapter.position ?? index + 1} — ${chapter.title}`;
+    link.setAttribute("aria-label", `Capítulo ${position}: ${chapter.title}`);
 
-    const info = document.createElement("span");
-    info.className = "capitulo-info";
-    info.textContent = "Publicado";
+    const number = document.createElement("span");
+    number.className = "chapter-number";
+    number.textContent = String(position).padStart(2, "0");
+    number.setAttribute("aria-hidden", "true");
 
-    item.append(link, info);
-    elements.capitulosLista.appendChild(item);
+    const details = document.createElement("span");
+    details.className = "chapter-details";
+    const title = document.createElement("strong");
+    title.textContent = chapter.title;
+    details.appendChild(title);
+
+    const arrow = document.createElement("span");
+    arrow.className = "chapter-arrow";
+    arrow.textContent = "→";
+    arrow.setAttribute("aria-hidden", "true");
+
+    link.append(number, details, arrow);
+    elements.capitulosLista.appendChild(link);
   });
 }
 
@@ -200,11 +216,14 @@ function updateFavoriteButton() {
 }
 
 async function loadFavorite() {
+  const token = favoriteSession.next();
   elements.btnFavorito.disabled = true;
   elements.favoritoFeedback.textContent = "";
 
   try {
+    if (!await favoriteSession.accept(token)) return;
     const result = await isFavorite(bookId);
+    if (!await favoriteSession.accept(token, result)) return;
 
     if (result?.error) {
       favoriteState = false;
@@ -223,12 +242,14 @@ async function loadFavorite() {
     favoriteState = Boolean(result?.data);
     updateFavoriteButton();
   } catch (error) {
+    if (!favoriteSession.current(token)) return;
     console.error("Erro ao consultar favoritos:", error);
     favoriteState = false;
     updateFavoriteButton();
     elements.favoritoFeedback.textContent =
       "Não foi possível consultar seus favoritos.";
   } finally {
+    if (!favoriteSession.current(token)) return;
     elements.btnFavorito.disabled = false;
   }
 }
@@ -238,14 +259,17 @@ async function toggleFavorite() {
     return;
   }
 
+  const token = favoriteSession.capture();
   elements.btnFavorito.disabled = true;
   elements.favoritoFeedback.textContent = "";
 
   try {
+    if (!await favoriteSession.accept(token)) return;
     const result = favoriteState
       ? await removeFavorite(bookId)
       : await addFavorite(bookId);
 
+    if (!await favoriteSession.accept(token, result)) return;
     if (result?.error) {
       elements.favoritoFeedback.textContent =
         result.error.code === "UNAUTHENTICATED"
@@ -262,10 +286,12 @@ async function toggleFavorite() {
       ? "Obra adicionada aos favoritos."
       : "Obra removida dos favoritos.";
   } catch (error) {
+    if (!favoriteSession.current(token)) return;
     console.error("Erro ao atualizar favorito:", error);
     elements.favoritoFeedback.textContent =
       "Ocorreu um erro ao atualizar o favorito.";
   } finally {
+    if (!favoriteSession.current(token)) return;
     elements.btnFavorito.disabled = false;
   }
 }

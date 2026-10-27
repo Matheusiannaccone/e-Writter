@@ -86,6 +86,27 @@ function normalizeSupabaseError(
   const message =
     error?.message?.toLowerCase() ?? "";
 
+  if (message.includes("authentication required")) {
+    return createError(
+      "UNAUTHENTICATED",
+      "Nenhum usuário autenticado."
+    );
+  }
+
+  if (message.includes("chapter not found")) {
+    return createError(
+      "NOT_FOUND",
+      "Capítulo não encontrado."
+    );
+  }
+
+  if (message.includes("chapter is already draft")) {
+    return createError(
+      "VALIDATION_ERROR",
+      "O capítulo já é um rascunho."
+    );
+  }
+
   if (
     message.includes(
       "published chapter requires a title"
@@ -591,21 +612,14 @@ export const supabaseChapterAdapter = {
     };
   },
 
-  // Retira capítulo próprio; triggers preservam a integridade do livro.
+  // Retira o capítulo e a cauda publicada por uma função atômica do banco.
   async unpublishChapter(id) {
     if (!isValidUuid(id)) return createError("VALIDATION_ERROR", "ID de capítulo inválido.");
     const auth = await getAuthenticatedUser();
     if (auth.error) return auth.error;
-    const current = await fetchChapterById(id);
-    if (current.error) return current;
-    const ownership = await validateOwnedBook(current.data.bookId, auth.user.id);
-    if (ownership.error) return ownership.error;
-    const { data, error } = await supabase.from("chapters")
-      .update({ status: "draft" }).eq("id", id).eq("status", "published")
-      .select(CHAPTER_SELECT).maybeSingle();
+    const { error } = await supabase.rpc("unpublish_chapter", { p_chapter_id: id });
     if (error) return normalizeSupabaseError(error, "Não foi possível retirar o capítulo de publicação.");
-    if (!data) return createError("NOT_FOUND", "Capítulo publicado não encontrado.");
-    return { data: normalizeChapter(data), error: null };
+    return fetchChapterById(id);
   },
 
   // Exclui o capítulo selecionado e todos os posteriores.

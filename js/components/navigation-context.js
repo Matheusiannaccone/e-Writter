@@ -3,11 +3,15 @@
 export function withDataSource(path) {
   const current = new URL(window.location.href);
   const url = new URL(path, current);
-  if (url.origin === current.origin && (current.pathname === "/" || /\/[^/.]+\/?$/.test(current.pathname))) {
-    url.pathname = url.pathname.replace(/\.html$/, "");
+
+  const source = new URLSearchParams(
+    window.location.search
+  ).get("datasource");
+
+  if (source === "mock" || source === "supabase") {
+    url.searchParams.set("datasource", source);
   }
-  const source = new URLSearchParams(window.location.search).get("datasource");
-  if (source === "mock" || source === "supabase") url.searchParams.set("datasource", source);
+
   return url;
 }
 
@@ -18,5 +22,14 @@ export function preserveDataSource(links) {
 export function bookDetailsUrl(bookId) {
   const url = withDataSource("./detalhes-obra.html");
   url.searchParams.set("id", bookId);
+  return url;
+}
+
+// Somente a navegação global carrega o contexto da obra entre páginas.
+export function withHeaderContext(path) {
+  const url = withDataSource(path);
+  const current = new URL(window.location.href);
+  const bookId = current.searchParams.get('bookId') || current.searchParams.get('book');
+  if (bookId) url.searchParams.set('bookId', bookId);
   return url;
 }

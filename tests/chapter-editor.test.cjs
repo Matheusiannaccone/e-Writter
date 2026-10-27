@@ -1,3 +1,4 @@
+const { installSessionBoundary } = require('./helpers/session-boundary.cjs');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -61,11 +62,12 @@ function harness(overrides = {}, url = 'http://localhost/chapter-editor.html?boo
     getGenres: async () => ok([]), bookBlockers: () => [], chapterBlockers: () => [],
     createChapter: async () => ok(chapter), updateChapter: async () => ok(chapter), ...overrides
   });
+  installSessionBoundary(context);
   vm.runInContext(read('js/components/editor-navigation.js').replace(/^export /gm, ''), context);
   vm.runInContext(read('js/components/navigation-context.js').replace(/^export /gm, ''), context);
   function run(file) {
     // Substitui apenas imports; o corpo da página é executado integralmente.
-    vm.runInContext(read(file).replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];\s*/gm, ''), context);
+    vm.runInContext(read(file).replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];\s*/gm, '').replace(/^export /gm, ''), context);
   }
   return { $, context, location, run, fill() { $('#chapter-title').value = '  Novo título  '; $('#chapter-content').value = 'Texto novo'; } };
 }
@@ -176,11 +178,11 @@ test('update usa ID do capítulo e mantém texto quando service recusa a ediçã
   assert.equal(h.$('#chapter-save-button').disabled, false);
 });
 
-test('sessão expirada no save preserva texto e impede novas gravações', async () => {
+test('sessão expirada no save limpa texto privado e impede novas gravações', async () => {
   const h = await editor({ createChapter: async () => failure('UNAUTHENTICATED') });
   h.fill();
   await h.$('#chapter-form').fire('submit');
-  assert.equal(h.$('#chapter-content').value, 'Texto novo');
+  assert.equal(h.$('#chapter-content').value, '');
   assert.equal(h.$('#chapter-save-button').disabled, true);
   assert.equal(h.$('#chapter-book-select').disabled, true);
 });
@@ -257,7 +259,7 @@ test('ateliê navega somente com obra persistida, sem alterações ou operação
   vm.runInContext('pendingEdits = false; busy = true;', h.context);
   button.fire('click');
   assert.equal(h.location.assigned, undefined);
-  vm.runInContext('busy = false;', h.context);
+  vm.runInContext('busy = false; sessionAllowed = true;', h.context);
   button.fire('click');
   const target = new URL(h.location.assigned);
   assert.equal(target.pathname, '/chapter-editor.html');
@@ -365,6 +367,7 @@ test('D06: header compartilhado preserva query também nas rotas sem extensão',
     link.href = 'http://localhost:3000/book-editor.html';
     const header = { querySelector: () => null, querySelectorAll: () => [link], innerHTML: '' };
     h.context.document.querySelector = (selector) => selector === '[data-site-header]' ? header : null;
+    h.run('js/components/auth-navigation.js');
     h.run('js/components/site-layout.js');
     assert.match(header.innerHTML, /data-editor-link/);
     const target = new URL(link.href);
@@ -398,5 +401,43 @@ test('D06: regra real de getDataSource permanece igual após navegar', () => {
       h.location.href = vm.runInContext('editorUrl(nextTarget, "book-a").href', h.context);
       assert.equal(activeSource(h.location.href), before);
     }
+  }
+});
+
+test('logout durante carga de capítulos descarta resultado privado e limpa seleção', async () => {
+  const pending = deferred(); const h = await editor({ getChaptersByBook: () => pending.promise });
+  h.context.__auth('SIGNED_OUT'); pending.resolve(ok([chapter])); await flush();
+  assert.equal(h.$('#chapter-list').children.length, 0);
+  assert.equal(h.$('#chapter-content').value, ''); assert.equal(h.$('#chapter-save-button').disabled, true);
+});
+
+test('logout durante save de capítulo impede sucesso tardio e reativação no finally', async () => {
+  const pending = deferred(); const h = await editor({ createChapter: () => pending.promise }); h.fill();
+  const saving = h.$('#chapter-form').fire('submit'); h.context.__auth('SIGNED_OUT'); pending.resolve(ok(chapter)); await saving;
+  assert.equal(h.$('#chapter-content').value, ''); assert.equal(h.$('#chapter-book-select').children.length, 0);
+  assert.equal(h.$('#chapter-save-button').disabled, true); assert.doesNotMatch(h.$('#chapter-form-message').textContent, /sucesso/);
+});
+
+test('ateliê bloqueia acesso direto sem sessão e descarta obras após logout', async () => {
+  const absent = harness({ getCurrentUser: async () => failure('UNAUTHENTICATED') });
+  absent.run('js/pages/book-editor.js'); await flush(); assert.equal(absent.$('#editor-content').hidden, true);
+  const pending = deferred(); const h = harness({ getMyBooks: () => pending.promise });
+  h.run('js/pages/book-editor.js'); await flush(); h.context.__auth('SIGNED_OUT'); pending.resolve(ok(books)); await flush();
+  assert.equal(h.$('#book-picker').children.length, 0); assert.equal(h.$('#editor-content').hidden, true);
+  assert.equal(h.$('#save-book').disabled, true);
+});
+
+test('ateliê descarta save e publicação anteriores ao logout', async () => {
+  for (const action of ['save', 'publication']) {
+    const pending = deferred(); const h = harness({ updateBook: () => pending.promise, unpublishBook: () => pending.promise });
+    h.run('js/pages/book-editor.js'); await flush();
+    vm.runInContext('books = [{id: "book-a",title: "Privado",status: "published"}]; sessionAllowed = true; picker.value = "book-a";', h.context);
+    h.context.window.confirm = () => true;
+    let operation;
+    if (action === 'save') { vm.runInContext('validate = () => true;', h.context); operation = h.$('#book-form').fire('submit'); }
+    else operation = vm.runInContext('changePublication("book")', h.context);
+    h.context.__auth('SIGNED_OUT'); pending.resolve(ok(books[0])); await operation;
+    assert.equal(h.$('#editor-content').hidden, true); assert.equal(h.$('#save-book').disabled, true);
+    assert.equal(h.$('#book-title').value, ''); assert.equal(h.$('#book-picker').children.length, 0);
   }
 });

@@ -1,5 +1,5 @@
+import { createSessionBoundary } from '../components/session-boundary.js';
 import { listFavorites, removeFavorite } from "../services/favoriteService.js";
-import { onAuthStateChange } from "../services/authService.js";
 import { createBookCard } from "../components/book-card.js";
 import { showFeedback, clearFeedback } from "../components/feedback.js";
 import { bookDetailsUrl, preserveDataSource } from "../components/navigation-context.js";
@@ -14,6 +14,17 @@ let generation = 0;
 let entries = [];
 
 preserveDataSource(document.querySelectorAll("[data-library-link]"));
+
+const sessionBoundary = createSessionBoundary({ reload: loadFavorites, clear(reason) {
+  showSession();
+  if (reason === 'error') {
+    sessionState.hidden = true; retry.hidden = false;
+    favoritesCount.textContent = 'Não foi possível verificar sua sessão.';
+    showFeedback(message, 'Verifique a conexão e tente novamente.', 'error');
+  } else if (reason === 'checking') {
+    sessionState.hidden = true; favoritesCount.textContent = 'Verificando sessão...';
+  }
+} });
 
 function paintCollection() {
   favoritesList.hidden = entries.length === 0;
@@ -36,12 +47,13 @@ function showSession() {
 
 async function removeEntry(entry, card, button, version) {
   if (button.disabled) return;
+  const token = sessionBoundary.capture();
   button.disabled = true;
   button.textContent = "Removendo...";
   clearFeedback(message);
   try {
     const result = await removeFavorite(entry.bookId);
-    if (version !== generation) return;
+    if (version !== generation || !await sessionBoundary.accept(token, result)) return;
     if (result?.error?.code === "UNAUTHENTICATED") { showSession(); return; }
     // NOT_FOUND também confirma que este favorito já não existe.
     if (!result || (result.error && result.error.code !== "NOT_FOUND")) throw result?.error;
@@ -58,6 +70,7 @@ async function removeEntry(entry, card, button, version) {
   } catch {
     if (version === generation) showFeedback(message, "Não foi possível remover a obra. Tente novamente.", "error");
   } finally {
+    if (!sessionBoundary.current(token)) return;
     button.disabled = false;
     button.textContent = "Remover da Biblioteca";
   }
@@ -65,6 +78,7 @@ async function removeEntry(entry, card, button, version) {
 
 async function loadFavorites() {
   const version = ++generation;
+  const token = sessionBoundary.capture();
   entries = [];
   favoritesList.replaceChildren();
   favoritesList.hidden = true;
@@ -75,8 +89,9 @@ async function loadFavorites() {
   favoritesCount.textContent = "Carregando seus favoritos...";
   clearFeedback(message);
   try {
+    if (!await sessionBoundary.accept(token)) return;
     const result = await listFavorites();
-    if (version !== generation) return;
+    if (version !== generation || !await sessionBoundary.accept(token, result)) return;
     if (result?.error?.code === "UNAUTHENTICATED") { showSession(); return; }
     if (result?.error || !Array.isArray(result?.data)) throw result?.error;
     const seen = new Set();
@@ -107,7 +122,7 @@ async function loadFavorites() {
       card.append(button);
       return card;
     }));
-    if (version !== generation) return;
+    if (version !== generation || !await sessionBoundary.accept(token)) return;
     entries = valid;
     favoritesList.replaceChildren(...cards);
     paintCollection();
@@ -128,11 +143,4 @@ async function loadFavorites() {
 }
 
 retry.addEventListener("click", loadFavorites);
-// O callback de autenticação não executa consultas dentro do lock do adapter.
-onAuthStateChange((event) => {
-  if (event === "SIGNED_OUT") showSession();
-  else if (event === "SIGNED_IN" || event === "USER_UPDATED") {
-    setTimeout(() => { loadFavorites(); }, 0);
-  }
-});
 loadFavorites();

@@ -34,3 +34,11 @@ export function onAuthStateChange(callback) {
 export async function resetPasswordForEmail({ email }) {
   return getAuthAdapter().resetPasswordForEmail({ email });
 }
+
+export async function getPasswordRecoverySession() {
+  return getAuthAdapter().getPasswordRecoverySession();
+}
+
+export async function updatePassword({ password }) {
+  return getAuthAdapter().updatePassword({ password });
+}

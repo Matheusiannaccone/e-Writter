@@ -262,6 +262,12 @@ getSession()
 getCurrentUser()
 
 onAuthStateChange(callback)
+
+resetPasswordForEmail({ email })
+
+getPasswordRecoverySession()
+
+updatePassword({ password })
 ```
 
 ---
@@ -492,6 +498,22 @@ Quando o componente não precisar mais do listener:
 ```js
 listener.data.subscription.unsubscribe();
 ```
+
+---
+
+## 6.7 Recuperação e redefinição de senha
+
+Todas as chamadas seguem pages → services → adapters e retornam `{ data, error }`.
+
+- `resetPasswordForEmail({ email })`: envia instruções via Supabase. A confirmação na interface é neutra: não revela se a conta existe. O redirect aponta para `redefinir-senha.html`, preservando `datasource=supabase` quando usado localmente.
+- `getPasswordRecoverySession()`: verifica erros de link na URL e aguarda a sessão inicializada pelo SDK. Retorna a sessão em `data`; link inválido/expirado ou ausência de sessão retornam `INVALID_RECOVERY_LINK`. Falha temporária mantém `NETWORK_ERROR` e permite nova tentativa.
+- `updatePassword({ password })`: exige pelo menos 6 caracteres, verifica novamente a sessão e chama `supabase.auth.updateUser({ password })` apenas no adapter. Retorna o usuário em `data`. A validação final de força e reutilização da senha pertence ao Supabase; erros de senha são `VALIDATION_ERROR`.
+
+O SDK atual usa seu fluxo padrão de sessão pelo redirect de recuperação; não há troca manual de tokens nas páginas. Uma sessão autenticada válida também é suportada por `updateUser`. Tokens não devem ser registrados ou expostos nas mensagens. Referências: [recuperação](https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail) e [atualização do usuário](https://supabase.com/docs/reference/javascript/auth-updateuser).
+
+No Mock não há envio de e-mail ou link que autentique uma conta a partir de um endereço informado. A recuperação retorna a mesma confirmação de simulação para qualquer e-mail sintaticamente válido. Para demonstrar a redefinição, entre com uma conta de teste e abra a página de nova senha na mesma aba. Contas criadas, perfis e verificadores de senha são persistidos; a sessão continua exclusiva da aba. Senhas originais nunca são gravadas no armazenamento. Veja [persistência e limitações do Mock](mock-auth-perfil-persistencia.md). Sessão ausente ou expirada bloqueia o formulário.
+
+`signUp` retorna `data: { user, session }` em ambas as fontes. A interface informa acesso disponível quando há sessão e orienta confirmação por e-mail quando `session` está ausente, sem afirmar que o login já está disponível. O Mock sempre fornece sessão após cadastro.
 
 ---
 

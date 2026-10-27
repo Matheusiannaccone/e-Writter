@@ -1,259 +1,161 @@
-// services/adapters/mock/authAdapter.js
-// Este arquivo contém funções de mock para simular operações de autenticação.
-// As funções lançam erros indicando que não foram implementadas.
-
-import { mockUsers, mockProfiles } from "./mockData.js";
+import { readIdentity, writeIdentity, identityUser, createVerifier, verifyPassword, identityFailure } from './identityStorage.js';
+import { isValidEmail } from '../../../validation/email.js';
 
 let currentUser = null;
-let currentSession = null;
-try {
-  const saved = JSON.parse(sessionStorage.getItem("e-writter-mock-user") || "null");
-  if (saved && mockUsers.some((user) => user.id === saved.id)) {
-    currentUser = saved;
-    currentSession = { user: saved };
-  }
-} catch {
-  // Sessão simulada em memória quando sessionStorage não está disponível.
+let currentSession;
+let sessionRevision = 0;
+let cleanupPending = false;
+const SESSION_KEY = 'e-writter-mock-user';
+const SESSION_SECONDS = 3600;
+
+function endSession() {
+  sessionRevision++;
+  currentUser = null;
+  currentSession = null;
+  cleanupPending = true;
+  try { sessionStorage.removeItem(SESSION_KEY); }
+  catch { notifyAuthStateChange('SESSION_ERROR', null); throw new Error('Não foi possível encerrar a sessão no armazenamento da aba. Tente sair novamente.'); }
+  cleanupPending = false;
+  notifyAuthStateChange('SIGNED_OUT', null);
 }
 
+function assertRevision(revision) {
+  if (revision !== sessionRevision) throw Object.assign(new Error('A sessão mudou durante a operação. Entre novamente.'), { code: 'UNAUTHENTICATED' });
+}
 const authListeners = [];
+const fail = (code, message) => ({ data: null, error: { code, message } });
+const conflict = message => { throw Object.assign(new Error(message), { code: 'CONFLICT' }); };
+
+function sessionFor(state) {
+  if (cleanupPending) endSession();
+  // Um documento restaurado pelo bfcache pode manter a sessão antiga em memória.
+  const raw = sessionStorage.getItem(SESSION_KEY);
+  let saved;
+  try { saved = JSON.parse(raw || 'null'); }
+  catch { endSession(); return null; }
+  if (raw !== null && (!saved || typeof saved.id !== 'string' ||
+      (saved.expires_at !== undefined && (!Number.isFinite(saved.expires_at) || saved.expires_at <= 0)))) {
+    endSession(); return null;
+  }
+  if (!saved) {
+    if (currentSession) endSession();
+    currentSession = null; currentUser = null; return null;
+  }
+  if (!currentSession || currentSession.user.id !== saved.id) {
+    currentSession = { user: { id: saved.id }, expires_at: saved.expires_at };
+  }
+  if (saved.expires_at !== undefined && saved.expires_at * 1000 <= Date.now()) {
+    endSession(); return null;
+  }
+  currentUser = currentSession ? identityUser(state, currentSession.user.id) : null;
+  if (currentSession && (!currentUser || (currentSession.expires_at !== undefined && currentSession.expires_at * 1000 <= Date.now()))) {
+    endSession(); return null;
+  }
+  if (!currentUser) { currentSession = null; return null; }
+  currentSession.user = currentUser;
+  return currentSession;
+}
+
+function startSession(user, revision) {
+  assertRevision(revision);
+  const expires_at = Math.floor(Date.now() / 1000) + SESSION_SECONDS;
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id: user.id, expires_at })); }
+  catch { throw new Error('Os dados da conta estão disponíveis, mas não foi possível iniciar a sessão. Verifique o armazenamento da aba e entre novamente.'); }
+  cleanupPending = false;
+  currentUser = user;
+  currentSession = { user, expires_at };
+  notifyAuthStateChange('SIGNED_IN', currentSession);
+  return currentSession;
+}
 
 function notifyAuthStateChange(event, session) {
-  authListeners.forEach((callback) => {
-    callback(event, session);
-  });
+  for (const callback of [...authListeners]) {
+    try { Promise.resolve(callback(event, session)).catch(() => {}); }
+    catch { /* Um consumidor não pode interromper a sessão ou os demais. */ }
+  }
 }
 
 export const mockAuthAdapter = {
   async signUp({ email, password, username, displayName }) {
-    if (!email || !password || !username || !displayName) {
-        return {
-        data: null,
-        error: {
-            code: "VALIDATION_ERROR",
-            message: "Preencha todos os campos obrigatórios."
-        }
-        };
+    if (!isValidEmail(email) || typeof password !== 'string' || password.length < 6 || typeof username !== 'string' || !/^[a-z0-9._]{3,30}$/.test(username) || typeof displayName !== 'string' || !displayName.trim() || displayName !== displayName.trim() || displayName.length > 60) {
+      return fail('VALIDATION_ERROR', 'Confira e-mail, senha (mínimo de 6 caracteres), nome e usuário.');
     }
-
-    if (password.length < 6) {
-        return {
-        data: null,
-        error: {
-            code: "VALIDATION_ERROR",
-            message: "A senha deve conter pelo menos 6 caracteres."
-        }
-        };
-    }
-
-    if (username.length < 3 || username.length > 30) {
-        return {
-        data: null,
-        error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de usuário deve conter entre 3 e 30 caracteres."
-        }
-        };
-    }
-
-    if (username !== username.trim()) {
-        return {
-        data: null,
-        error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de usuário não pode começar ou terminar com espaços."
-        }
-        };
-    }
-
-    if (username !== username.toLowerCase()) {
-        return {
-        data: null,
-        error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de usuário deve usar apenas letras minúsculas."
-        }
-        };
-    }
-
-    if (!/^[a-z0-9._]+$/.test(username)) {
-        return {
-        data: null,
-        error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de usuário contém caracteres inválidos."
-        }
-        };
-    }
-
-    if (displayName !== displayName.trim()) {
-        return {
-        data: null,
-        error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de exibição não pode começar ou terminar com espaços."
-        }
-        };
-    }
-
-    if (displayName.length > 60) {
-        return {
-        data: null,
-        error: {
-            code: "VALIDATION_ERROR",
-            message: "O nome de exibição deve conter no máximo 60 caracteres."
-        }
-        };
-    }
-
-    const emailExists = mockUsers.some(
-        (user) => user.email === email
-    );
-
-    if (emailExists) {
-        return {
-        data: null,
-        error: {
-            code: "CONFLICT",
-            message: "O e-mail já está em uso."
-        }
-        };
-    }
-
-    const usernameExists = mockProfiles.some(
-        (profile) => profile.username === username
-    );
-
-    if (usernameExists) {
-        return {
-        data: null,
-        error: {
-            code: "CONFLICT",
-            message: "O nome de usuário já está em uso."
-        }
-        };
-    }
-
-    const newUser = {
-        id: `mock-user-${mockUsers.length + 1}`,
-        email,
-        password,
-        username,
-        displayName
-    };
-
-    mockUsers.push(newUser);
-
-    // Simula o trigger que cria o profile após o cadastro.
-    const now = new Date().toISOString();
-
-    mockProfiles.push({
-        id: newUser.id,
-        username: newUser.username,
-        displayName: newUser.displayName,
-        bio: null,
-        avatarPath: null,
-        createdAt: now,
-        updatedAt: now
-    });
-
-    currentUser = {
-        id: newUser.id,
-        email: newUser.email,
-        username: newUser.username,
-        displayName: newUser.displayName
-    };
-
-    currentSession = {
-        user: currentUser
-    };
-
-    try { sessionStorage.setItem("e-writter-mock-user", JSON.stringify(currentUser)); } catch {}
-    notifyAuthStateChange("SIGNED_IN", currentSession);
-
-    return {
-        data: currentSession,
-        error: null
-    };
-},
+    const revision = sessionRevision;
+    try {
+      const verifier = await createVerifier(password);
+      const normalizedEmail = email.trim().toLowerCase();
+      const user = await writeIdentity(state => {
+        if (state.accounts.some(item => item.email.toLowerCase() === normalizedEmail)) conflict('Este e-mail já está em uso.');
+        if (state.profiles.some(item => item.username === username)) conflict('Este nome de usuário já está em uso.');
+        let id;
+        do { id = 'mock-user-' + crypto.randomUUID(); } while (state.accounts.some(item => item.id === id));
+        const now = new Date().toISOString();
+        state.accounts.push({ id, email: normalizedEmail, verifier });
+        state.profiles.push({ id, username, displayName, bio: null, avatarPath: null, createdAt: now, updatedAt: now });
+        return identityUser(state, id);
+      });
+      const session = startSession(user, revision);
+      return { data: { user, session }, error: null };
+    } catch (error) { return identityFailure(error); }
+  },
 
   async resetPasswordForEmail({ email }) {
-    const exists = mockUsers.some((user) => user.email === email);
-    return exists
-      ? { data: { message: "Solicitação simulada." }, error: null }
-      : { data: null, error: { code: "NOT_FOUND", message: "Não encontramos uma conta com esse e-mail." } };
+    if (!isValidEmail(email)) return fail('VALIDATION_ERROR', 'Informe um e-mail válido.');
+    return { data: { message: 'Solicitação de recuperação simulada. Nenhum e-mail foi enviado. Use uma conta de teste autenticada para demonstrar a redefinição.' }, error: null };
+  },
+
+  async getPasswordRecoverySession() {
+    try {
+      const session = sessionFor(readIdentity());
+      if (!session || (session.expires_at && session.expires_at * 1000 <= Date.now())) return fail('INVALID_RECOVERY_LINK', 'Link inválido ou expirado. No ambiente de demonstração, entre com uma conta de teste antes de abrir esta página.');
+      return { data: session, error: null };
+    } catch (error) { return identityFailure(error); }
+  },
+
+  async updatePassword({ password }) {
+    if (typeof password !== 'string' || password.length < 6) return fail('VALIDATION_ERROR', 'A senha deve conter pelo menos 6 caracteres.');
+    const revision = sessionRevision;
+    const recovery = await this.getPasswordRecoverySession();
+    if (recovery.error) return recovery;
+    try {
+      const id = recovery.data.user.id;
+      const verifier = await createVerifier(password);
+      await writeIdentity(state => {
+        assertRevision(revision);
+        const account = state.accounts.find(item => item.id === id);
+        if (!account) throw new Error('Conta de demonstração indisponível.');
+        account.verifier = verifier;
+      });
+      return { data: { id, email: recovery.data.user.email, message: 'Senha atualizada na demonstração. Você já pode entrar com a nova senha.' }, error: null };
+    } catch (error) { return identityFailure(error); }
   },
 
   async signIn({ email, password }) {
-    const user = mockUsers.find(
-        (item) => item.email === email && item.password === password
-    );
-
-    if (!user) {
-        return {
-            data: null,
-            error: {
-                code: "UNAUTHENTICATED",
-                message: "E-mail ou senha inválidos"
-            }
-        };
-    }
-
-    currentUser = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        displayName: user.displayName
-    };
-
-    currentSession = {
-        user: currentUser
-    };
-
-    try { sessionStorage.setItem("e-writter-mock-user", JSON.stringify(currentUser)); } catch {}
-    notifyAuthStateChange("SIGNED_IN", currentSession);
-
-    return {
-        data: currentSession,
-        error: null
-    };
-},
+    if (!isValidEmail(email) || typeof password !== 'string') return fail('UNAUTHENTICATED', 'E-mail ou senha inválidos.');
+    const revision = sessionRevision;
+    try {
+      const state = readIdentity();
+      const account = state.accounts.find(item => item.email.toLowerCase() === email.trim().toLowerCase());
+      if (!account || !await verifyPassword(account, password)) return fail('UNAUTHENTICATED', 'E-mail ou senha inválidos.');
+      return { data: startSession(identityUser(readIdentity(), account.id), revision), error: null };
+    } catch (error) { return identityFailure(error); }
+  },
 
   async signOut() {
-    currentUser = null;
-    currentSession = null;
-    try { sessionStorage.removeItem("e-writter-mock-user"); } catch {}
-
-    notifyAuthStateChange("SIGNED_OUT", null);
-
-    return {
-        data: null,
-        error: null
-    };
+    try { endSession(); return { data: null, error: null }; }
+    catch (error) { return identityFailure(error); }
   },
 
   async getSession() {
-    return {
-        data: currentSession,
-        error: null
-    }
+    try { return { data: sessionFor(readIdentity()), error: null }; }
+    catch (error) { return identityFailure(error); }
   },
 
   async getCurrentUser() {
-    if (!currentUser) {
-        return {
-            data: null,
-            error: {
-                code: "UNAUTHENTICATED",
-                message: "Nenhuma sessão autenticada encontrada."
-            }
-        };
-    }
-
-    return {
-        data: currentUser,
-        error: null
-    };
+    const result = await this.getSession();
+    if (result.error) return result;
+    if (!result.data) return fail('UNAUTHENTICATED', 'Nenhuma sessão autenticada encontrada.');
+    return { data: result.data.user, error: null };
   },
 
   onAuthStateChange(callback) {

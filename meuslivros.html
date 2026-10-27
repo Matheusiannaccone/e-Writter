@@ -10,23 +10,9 @@
   <link rel="stylesheet" href="./css/user-pages.css">
 </head>
 <body class="user-page">
-  <header class="user-page-header">
-    <a class="user-page-brand" href="./index.html">
-      <span class="user-page-brand-mark">E</span>
-      <span>E-writter</span>
-    </a>
-
-    <nav class="user-page-nav" aria-label="Navegação da conta">
-      <a href="./perfil.html">Perfil</a>
-      <a href="./meuslivros.html" aria-current="page">Meus livros</a>
-      <a href="./biblioteca.html" data-library-link>Biblioteca</a>
-      <a href="./book-editor.html">Escrever</a>
-    </nav>
-  </header>
+  <header class="site-header" data-site-header></header>
 
   <main class="user-page-main">
-    <a class="user-page-back" href="./book-editor.html">← Voltar para a área do escritor</a>
-
     <section class="user-page-heading">
       <span class="user-page-eyebrow">BIBLIOTECA DO AUTOR</span>
       <h1>Meus livros</h1>
@@ -63,6 +49,7 @@
   <footer class="user-page-footer">E-writter — cada escritor tem uma história para contar.</footer>
 
   <script type="module" src="./js/pages/myBooksPage.js"></script>
+  <script type="module" src="./js/components/site-layout.js"></script>
   <script type="module" src="./js/components/library-navigation.js"></script>
 </body>
 </html>

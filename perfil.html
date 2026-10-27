@@ -8,26 +8,12 @@
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/user-pages.css">
-  </head>
+</head>
   
 <body class="user-page">
-  <header class="user-page-header">
-    <a class="user-page-brand" href="index.html">
-      <span class="user-page-brand-mark">E</span>
-      <span>E-writter</span>
-    </a>
-
-    <nav class="user-page-nav" aria-label="Navegação da conta">
-      <a href="perfil.html" aria-current="page">Perfil</a>
-      <a href="meuslivros.html">Meus livros</a>
-      <a href="./biblioteca.html" data-library-link>Biblioteca</a>
-      <a href="book-editor.html">Escrever</a>
-    </nav>
-  </header>
+  <header class="site-header" data-site-header></header>
 
   <main class="user-page-main">
-    <a class="user-page-back" href="book-editor.html">← Voltar para a área do escritor</a>
-
     <section class="user-page-heading">
       <span class="user-page-eyebrow">SUA CONTA</span>
       <h1>Meu perfil</h1>
@@ -54,7 +40,7 @@
       </label>
       <input
         type="text"
-        id="profile-display-name-input"
+        id="profile-display-name-input" disabled
         name="displayName"
         maxlength="60"
         required
@@ -68,7 +54,7 @@
       </label>
       <input
         type="text"
-        id="profile-username-input"
+        id="profile-username-input" disabled
         name="username"
         maxlength="30"
         required
@@ -81,7 +67,7 @@
         Biografia
       </label>
       <textarea
-        id="profile-bio-input"
+        id="profile-bio-input" disabled
         name="bio"
         maxlength="500"
         rows="4"
@@ -97,17 +83,17 @@
     <p
       id="profile-message"
       class="feedback"
-      role="status"
-      aria-live="polite"
-      hidden
+      role="status" aria-live="polite" aria-atomic="true" data-feedback-region
     ></p>
 
+    <button type="button" id="profile-retry" class="button button--secondary" hidden>Tentar carregar novamente</button>
+
     <div class="profile-actions">
-      <button type="submit" id="profile-save-button">
+      <button type="submit" id="profile-save-button" disabled class="button">
         Salvar alterações
       </button>
 
-      <button type="button" id="profile-cancel-button">
+      <button type="button" id="profile-cancel-button" disabled class="button button--secondary">
         Cancelar
       </button>
     </div>
@@ -132,6 +118,7 @@
   <footer class="user-page-footer">E-writter — histórias esperando para serem contadas.</footer>
 
   <script type="module" src="./js/pages/profilePage.js"></script>
+  <script type="module" src="./js/components/site-layout.js"></script>
   <script type="module" src="./js/components/library-navigation.js"></script>
 </body>
 </html>
