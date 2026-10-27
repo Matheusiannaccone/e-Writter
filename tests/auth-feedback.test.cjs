@@ -48,7 +48,7 @@ function environment(extra = {}) {
   const location = new URL('http://localhost/login.html?datasource=mock');
   location.assign = value => { location.assigned = value; };
   location.replace = value => { location.replaced = value; };
-  const context = vm.createContext({ document, window: { location }, location, URL, URLSearchParams, console: { error() {} }, ...extra });
+  const context = vm.createContext({ document, window: { location }, location, URL, URLSearchParams, setInterval: () => 1, clearInterval() {}, console: { error() {} }, ...extra });
   function element(id, tag) { const el = new Element(document, tag); el.id = id; elements.set(`#${id}`, el); return el; }
   function field(id, name, value = '', options = {}) {
     const el = element(id, 'input');
@@ -157,7 +157,7 @@ test('recuperação comunica envio, sucesso neutro, erro retornado e exceção',
     const h = authPage('recovery', { resetPasswordForEmail: async () => { await pending.promise; if (result instanceof Error) throw result; return result; } });
     const sending = h.form.fire('submit'); assert.equal(h.message.dataset.type, 'loading');
     pending.resolve(); await sending;
-    assert.equal(h.button.disabled, false);
+    assert.equal(h.button.disabled, result.error === null);
     assert.equal(h.message.dataset.type, result.error === null ? 'success' : 'error');
     if (result.error === null) assert.match(h.message.textContent, /Se houver uma conta/);
   }
@@ -338,4 +338,134 @@ test('recuperação diferencia exceção de rede de falha inesperada', async () 
     await h.form.fire('submit');
     assert.match(h.message.textContent, message); assert.equal(h.button.disabled, false);
   }
+});
+
+function recoveryBrowser() {
+  let now = 1_800_000_000_000;
+  const stored = new Map(), tabs = [];
+  const key = 'e-writter-password-recovery-available-at';
+  function open(resetPasswordForEmail) {
+    const intervals = new Map(); let nextTimer = 0;
+    const window = { location: new URL('http://localhost/recuperar-senha.html'), localStorage: {
+      getItem: name => stored.get(name) ?? null,
+      setItem: (name, value) => {
+        stored.set(name, value);
+        for (const tab of tabs) tab.context.__fireWindow('storage', { key: name });
+      }
+    } };
+    class Clock extends Date { constructor(...args) { super(...(args.length ? args : [now])); } static now() { return now; } }
+    const h = authPage('recovery', { window, Date: Clock, resetPasswordForEmail,
+      setInterval: handler => { intervals.set(++nextTimer, handler); return nextTimer; },
+      clearInterval: id => intervals.delete(id)
+    });
+    h.tick = () => { for (const handler of [...intervals.values()]) handler(); };
+    h.cooldown = h.form.children.find(node => node.id === 'reset-cooldown');
+    tabs.push(h); return h;
+  }
+  return { open, stored, key, advance(ms) { now += ms; tabs.forEach(tab => tab.tick()); }, now: () => now };
+}
+
+test('recuperação aplica os mesmos 60s a e-mail existente e inexistente sem persistir endereços', async () => {
+  for (const email of ['existente@example.test', 'inexistente@example.test']) {
+    const browser = recoveryBrowser(); let calls = 0;
+    const h = browser.open(async payload => { calls++; assert.equal(payload.email, email); return ok({}); });
+    h.form.elements.email.value = email;
+    await h.form.fire('submit');
+    assert.equal(calls, 1); assert.equal(h.button.disabled, true);
+    assert.equal(h.button.textContent, 'Tentar novamente em 60s');
+    assert.match(h.message.textContent, /Se houver uma conta/);
+    assert.equal(h.cooldown.getAttribute('aria-live'), 'polite');
+    assert.match(h.cooldown.textContent, /Aguarde até.*mesmo que altere o e-mail/);
+    assert.equal(Number(browser.stored.get(browser.key)), browser.now() + 60000);
+    assert.equal(browser.stored.size, 1);
+    assert.doesNotMatch(JSON.stringify([...browser.stored]), /@|senha/);
+  }
+});
+
+test('recuperação bloqueia Enter, e-mail alterado, reload e segunda aba; libera por timestamp absoluto', async () => {
+  const browser = recoveryBrowser(); let calls = 0;
+  const request = async () => { calls++; return ok({}); };
+  const first = browser.open(request);
+  await first.form.fire('submit');
+  browser.advance(10000);
+  first.form.elements.email.value = 'outro@example.test';
+  await first.form.elements.email.fire('input');
+  await first.form.fire('submit'); await first.form.fire('submit');
+  assert.equal(calls, 1); assert.equal(first.button.textContent, 'Tentar novamente em 50s');
+  assert.match(first.cooldown.textContent, /Aguarde/);
+  const reload = browser.open(request), secondTab = browser.open(request);
+  for (const tab of [reload, secondTab]) {
+    assert.equal(tab.button.disabled, true); assert.equal(tab.button.textContent, 'Tentar novamente em 50s');
+    await tab.form.fire('submit');
+  }
+  assert.equal(calls, 1);
+  // Um único tick após avanço grande simula aba suspensa, sem acumular intervalos.
+  browser.advance(49999); await secondTab.form.fire('submit'); assert.equal(calls, 1);
+  browser.advance(1);
+  for (const tab of [first, reload, secondTab]) {
+    assert.equal(tab.button.disabled, false); assert.match(tab.cooldown.textContent, /já pode solicitar/);
+  }
+  await secondTab.form.fire('submit'); assert.equal(calls, 2);
+  assert.equal(first.button.disabled, true); assert.equal(reload.button.disabled, true);
+});
+
+test('recuperação bloqueia submissões concorrentes e outra aba durante chamada pendente', async () => {
+  const browser = recoveryBrowser(), pending = deferred(); let calls = 0;
+  const request = () => { calls++; return pending.promise; };
+  const first = browser.open(request), second = browser.open(request);
+  const sending = first.form.fire('submit');
+  await first.form.fire('submit'); await second.form.fire('submit');
+  assert.equal(calls, 1); assert.equal(second.button.disabled, true);
+  browser.advance(10000); pending.resolve(ok({})); await sending;
+  assert.equal(Number(browser.stored.get(browser.key)), browser.now() + 60000);
+});
+
+test('recuperação em erro de rede ou desconhecido não comunica envio e desfaz reserva em todas as abas', async () => {
+  for (const error of [{ code: 'NETWORK_ERROR', message: 'Não foi possível conectar ao servidor. Tente novamente.' }, { code: 'UNKNOWN_ERROR', message: 'Ocorreu um erro inesperado.' }]) {
+    const browser = recoveryBrowser(); let calls = 0;
+    const first = browser.open(async () => { calls++; return { error }; });
+    const other = browser.open(async () => ok({}));
+    await first.form.fire('submit');
+    assert.equal(first.button.disabled, false); assert.equal(other.button.disabled, false);
+    assert.equal(first.message.dataset.type, 'error'); assert.match(first.message.textContent, new RegExp(error.message));
+    assert.doesNotMatch(first.message.textContent, /receberá|enviado|Sucesso/);
+    assert.equal(Number(browser.stored.get(browser.key)), 0); assert.equal(calls, 1);
+  }
+});
+
+test('recuperação HTTP 429 normalizado inicia 60s compartilhados e não realiza segunda requisição', async () => {
+  const browser = recoveryBrowser(); let calls = 0;
+  const first = browser.open(async () => { calls++; return { error: { code: 'RATE_LIMIT', message: 'Muitas solicitações em pouco tempo. Aguarde antes de tentar novamente.' } }; });
+  await first.form.fire('submit');
+  assert.equal(first.message.dataset.type, 'error'); assert.match(first.message.textContent, /Aguarde/);
+  assert.equal(first.button.disabled, true); assert.equal(first.button.textContent, 'Tentar novamente em 60s');
+  const other = browser.open(async () => { calls++; return ok({}); });
+  other.form.elements.email.value = 'outro@example.test';
+  await first.form.fire('submit'); await other.form.fire('submit');
+  assert.equal(calls, 1);
+  browser.advance(60000); assert.equal(other.button.disabled, false);
+});
+
+test('recuperação mantém prazo compartilhado maior ao receber rate limit', async () => {
+  const browser = recoveryBrowser(), pending = deferred();
+  const h = browser.open(() => pending.promise);
+  const sending = h.form.fire('submit');
+  browser.stored.set(browser.key, String(browser.now() + 120000));
+  pending.resolve({ error: { code: 'RATE_LIMIT', message: 'Aguarde antes de solicitar novamente.' } });
+  await sending;
+  assert.equal(h.button.textContent, 'Tentar novamente em 120s');
+  assert.equal(Number(browser.stored.get(browser.key)), browser.now() + 120000);
+});
+
+test('recuperação mantém bloqueio local quando o navegador recusa persistência', async () => {
+  let calls = 0;
+  const h = authPage('recovery', {
+    window: { location: new URL('http://localhost/recuperar-senha.html'), localStorage: {
+      getItem: () => null, setItem: () => { throw Error('QuotaExceededError'); }
+    } },
+    resetPasswordForEmail: async () => { calls++; return ok({}); }
+  });
+  await h.form.fire('submit'); await h.form.fire('submit');
+  assert.equal(calls, 1); assert.equal(h.button.disabled, true);
+  assert.match(h.message.textContent, /Se houver uma conta/);
 });
