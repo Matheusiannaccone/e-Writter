@@ -1,6 +1,5 @@
 // services/adapters/supabase/authAdapter.js
 // Este arquivo contém funções para operações de autenticação usando Supabase.
-// As funções lançam erros indicando que não foram implementadas.
 
 import { supabase } from "../../supabaseClient.js";
 
@@ -10,6 +9,13 @@ function normalizeAuthError(error) {
   }
 
   const message = error.message?.toLowerCase() ?? "";
+
+  if (error.code === 'over_email_send_rate_limit') {
+    return { code: 'RATE_LIMIT', message: 'O limite de envio de e-mails foi atingido. Aguarde antes de solicitar novamente.' };
+  }
+  if (error.status === 429 || error.code === 'over_request_rate_limit') {
+    return { code: 'RATE_LIMIT', message: 'Muitas solicitações em pouco tempo. Aguarde antes de tentar novamente.' };
+  }
 
   if (error.name === "AuthRetryableFetchError" || message.includes("network") || message.includes("fetch")) {
     return { code: "NETWORK_ERROR", message: "Não foi possível conectar ao servidor. Tente novamente." };
@@ -24,7 +30,7 @@ function normalizeAuthError(error) {
     return { code: "VALIDATION_ERROR", message: "Use uma senha diferente da anterior, com pelo menos 6 caracteres e que atenda aos requisitos de segurança." };
   }
 
-  if (message.includes("invalid login credentials")) {
+  if (error.code === 'invalid_credentials' || message.includes("invalid login credentials")) {
     return {
       code: "UNAUTHENTICATED",
       message: "E-mail ou senha inválidos."
@@ -39,6 +45,7 @@ function normalizeAuthError(error) {
   }
 
   if (
+    ['email_exists', 'user_already_exists'].includes(error.code) ||
     message.includes("user already registered") ||
     message.includes("already registered")
   ) {
@@ -46,6 +53,22 @@ function normalizeAuthError(error) {
       code: "CONFLICT",
       message: "Este e-mail já está em uso."
     };
+  }
+
+  if (error.code === 'email_address_invalid') {
+    return { code: 'VALIDATION_ERROR', message: 'Informe um e-mail válido.' };
+  }
+  if (error.code === 'email_address_not_authorized') {
+    return { code: 'EMAIL_NOT_AUTHORIZED', message: 'O serviço de e-mail não permite enviar para este endereço. Entre em contato com o suporte.' };
+  }
+  if (['email_provider_disabled', 'signup_disabled'].includes(error.code)) {
+    return { code: 'AUTH_UNAVAILABLE', message: 'Esta operação está indisponível no momento. Entre em contato com o suporte.' };
+  }
+  if (error.code === 'email_not_confirmed') {
+    return { code: 'UNAUTHENTICATED', message: 'Confirme seu e-mail antes de entrar.' };
+  }
+  if (error.code === 'unexpected_failure' || error.status >= 500) {
+    return { code: 'UNKNOWN_ERROR', message: 'O serviço não conseguiu concluir a solicitação. Tente novamente mais tarde.' };
   }
 
   if (
@@ -72,6 +95,25 @@ function normalizeRecoveryError(error) {
     : normalized;
 }
 
+async function normalizeSignUpError(error, username) {
+  if (!error) return null;
+  const conflict = { code: 'CONFLICT', message: 'Este nome de usuário já está em uso. Escolha outro username.' };
+  const detail = [error.message, error.details, error.constraint].filter(Boolean).join(' ');
+  if (error.code === '23505' && /\bprofiles_username_key\b/.test(detail)) return conflict;
+
+  // Auth oculta o SQLSTATE do trigger como unexpected_failure/HTTP 500.
+  // O erro genérico sozinho não comprova duplicidade: confirmar no perfil público.
+  if ((error.code === 'unexpected_failure' || error.status === 500) &&
+      error.message === 'Database error saving new user') {
+    try {
+      const { data, error: lookupError } = await supabase.from('profiles')
+        .select('username').eq('username', username).maybeSingle();
+      if (!lookupError && data?.username === username) return conflict;
+    } catch { /* Preservar o erro original se a consulta não puder confirmar. */ }
+  }
+  return normalizeAuthError(error);
+}
+
 export const supabaseAuthAdapter = {
   async signUp({ email, password, username, displayName }) {
     const { data, error } = await supabase.auth.signUp({
@@ -85,7 +127,7 @@ export const supabaseAuthAdapter = {
       }
     });
 
-    const normalizedError = normalizeAuthError(error);
+    const normalizedError = await normalizeSignUpError(error, username);
 
     if (normalizedError) {
       return {
@@ -104,9 +146,13 @@ export const supabaseAuthAdapter = {
     const redirect = new URL("redefinir-senha.html", window.location.href);
     if (new URLSearchParams(window.location.search).has("datasource")) redirect.searchParams.set("datasource", "supabase");
     const redirectTo = redirect.href;
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-    const normalizedError = normalizeAuthError(error);
-    return normalizedError ? { data: null, error: normalizedError } : { data, error: null };
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      const normalizedError = normalizeAuthError(error);
+      return normalizedError ? { data: null, error: normalizedError } : { data, error: null };
+    } catch (error) {
+      return { data: null, error: normalizeAuthError(error) };
+    }
   },
 
   async getPasswordRecoverySession() {

@@ -81,3 +81,65 @@ test('service encaminha recuperação e senha somente ao adapter selecionado', a
     ['getPasswordRecoverySession'], ['resetPasswordForEmail', { email: 'teste@example.test' }], ['updatePassword', { password: 'nova123' }]
   ]));
 });
+
+test('cadastro Supabase distingue constraint de username, e-mail e falhas desconhecidas', async () => {
+  const cases = [
+    [{ code: '23505', message: 'duplicate key value violates unique constraint "profiles_username_key"' }, 'CONFLICT', /nome de usuário/, false],
+    [{ code: '23505', constraint: 'profiles_username_key' }, 'CONFLICT', /username/, false],
+    [{ code: '23505', message: 'duplicate profiles_pkey' }, 'UNKNOWN_ERROR', /inesperado/, false],
+    [{ code: 'unexpected_failure', status: 500, message: 'Database error saving new user' }, 'CONFLICT', /username/, true],
+    [{ code: 'email_exists' }, 'CONFLICT', /e-mail/, false],
+    [{ code: 'user_already_exists' }, 'CONFLICT', /e-mail/, false],
+    [{ message: 'User already registered' }, 'CONFLICT', /e-mail/, false],
+    [{ code: 'invalid_credentials' }, 'UNAUTHENTICATED', /senha inválidos/, false],
+    [{ code: 'future_error', status: 500, message: 'unknown' }, 'UNKNOWN_ERROR', /serviço/, false]
+  ];
+  for (const [error, code, message, lookup] of cases) {
+    let lookups = 0, signups = 0;
+    const a = adapter('js/services/adapters/supabase/authAdapter.js', { supabase: {
+      auth: { signUp: async payload => { signups++; assert.equal(payload.options.data.username, 'leitora'); return { error }; } },
+      from: table => { lookups++; assert.equal(table, 'profiles'); return {
+        select: column => { assert.equal(column, 'username'); return { eq: (key, value) => {
+          assert.equal(key, 'username'); assert.equal(value, 'leitora');
+          return { maybeSingle: async () => ok({ username: 'leitora' }) };
+        } }; }
+      }; }
+    } }, 'supabaseAuthAdapter');
+    const result = await a.signUp({ email: 'a@example.test', username: 'leitora', displayName: 'Leitora', password: 'senha123' });
+    assert.equal(result.error.code, code); assert.match(result.error.message, message);
+    assert.equal(lookups, Number(lookup)); assert.equal(signups, 1);
+  }
+});
+
+test('erro genérico do trigger só vira conflito com confirmação; consulta vazia, falha ou exceção preserva erro', async () => {
+  for (const lookup of [ok(null), { data: null, error: { code: '42501' } }, new Error('offline'), ok({ username: 'outra' })]) {
+    const a = adapter('js/services/adapters/supabase/authAdapter.js', { supabase: {
+      auth: { signUp: async () => ({ error: { code: 'unexpected_failure', message: 'Database error saving new user' } }) },
+      from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => { if (lookup instanceof Error) throw lookup; return lookup; } }) }) })
+    } }, 'supabaseAuthAdapter');
+    assert.equal((await a.signUp({ username: 'leitora' })).error.code, 'UNKNOWN_ERROR');
+  }
+});
+
+test('recuperação normaliza códigos, HTTP 429 e exceções sem reenviar', async () => {
+  for (const [error, code, message] of [
+    [{ code: 'over_email_send_rate_limit', message: 'Email rate limit exceeded' }, 'RATE_LIMIT', /limite de envio de e-mails/],
+    [{ code: 'over_request_rate_limit' }, 'RATE_LIMIT', /Muitas solicitações/],
+    [{ status: 429, message: 'Too many requests' }, 'RATE_LIMIT', /Aguarde/],
+    [{ name: 'AuthRetryableFetchError', message: 'Failed to fetch' }, 'NETWORK_ERROR', /conectar/],
+    [new TypeError('Failed to fetch'), 'NETWORK_ERROR', /conectar/],
+    [{ code: 'email_address_invalid' }, 'VALIDATION_ERROR', /e-mail válido/],
+    [{ code: 'email_address_not_authorized' }, 'EMAIL_NOT_AUTHORIZED', /não permite enviar/],
+    [{ code: 'email_provider_disabled' }, 'AUTH_UNAVAILABLE', /indisponível/],
+    [{ code: 'unexpected_failure', status: 500 }, 'UNKNOWN_ERROR', /mais tarde/],
+    [new Error('unknown'), 'UNKNOWN_ERROR', /inesperado/]
+  ]) {
+    let calls = 0;
+    const a = adapter('js/services/adapters/supabase/authAdapter.js', {
+      window: { location: new URL('http://localhost/recuperar-senha.html?datasource=supabase') },
+      supabase: { auth: { resetPasswordForEmail: async () => { calls++; if (error instanceof Error) throw error; return { error }; } } }
+    }, 'supabaseAuthAdapter');
+    const result = await a.resetPasswordForEmail({ email: 'a@example.test' });
+    assert.equal(result.error.code, code); assert.match(result.error.message, message); assert.equal(calls, 1);
+  }
+});

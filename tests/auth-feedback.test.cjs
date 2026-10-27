@@ -314,3 +314,28 @@ test('redefinição descarta verificação e salvamento anteriores ao logout', a
   assert.equal(other.button.disabled, true); assert.equal(other.form.elements.password.value, '');
   assert.doesNotMatch(other.message.textContent, /sucesso/);
 });
+
+test('cadastro exibe conflito específico retornado e mantém o formulário disponível', async () => {
+  const h = authPage('signup', { signUp: async () => ({ error: { code: 'CONFLICT', message: 'Este nome de usuário já está em uso. Escolha outro username.' } }) });
+  await h.form.fire('submit');
+  assert.match(h.message.textContent, /nome de usuário já está em uso/);
+  assert.equal(h.message.dataset.type, 'error'); assert.equal(h.button.disabled, false);
+});
+
+test('recuperação apresenta limites e falhas sem reenvio automático e preserva e-mail', async () => {
+  for (const text of ['O limite de envio de e-mails foi atingido. Aguarde antes de solicitar novamente.', 'Muitas solicitações em pouco tempo. Aguarde antes de tentar novamente.', 'Não foi possível conectar ao servidor. Tente novamente.']) {
+    let calls = 0;
+    const h = authPage('recovery', { resetPasswordForEmail: async () => { calls++; return { error: { message: text } }; } });
+    await h.form.fire('submit'); await flush();
+    assert.equal(h.message.textContent, 'Erro: ' + text); assert.equal(h.button.disabled, false);
+    assert.equal(h.form.elements.email.value, 'leitor@example.test'); assert.equal(calls, 1);
+  }
+});
+
+test('recuperação diferencia exceção de rede de falha inesperada', async () => {
+  for (const [error, message] of [[new TypeError('Failed to fetch'), /conectar ao servidor/], [new Error('unexpected'), /enviar as instruções.*mais tarde/]]) {
+    const h = authPage('recovery', { resetPasswordForEmail: async () => { throw error; } });
+    await h.form.fire('submit');
+    assert.match(h.message.textContent, message); assert.equal(h.button.disabled, false);
+  }
+});

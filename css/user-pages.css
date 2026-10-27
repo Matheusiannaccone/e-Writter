@@ -19,57 +19,6 @@
   color: inherit;
 }
 
-.user-page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 18px max(5%, calc((100% - 1120px) / 2));
-  background: #4b2925;
-  color: #fff1d5;
-  border-bottom: 2px solid #b8955d;
-}
-
-.user-page-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  font-size: 22px;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.user-page-brand-mark {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border: 1px solid #d7bb83;
-  color: #f4dfb2;
-  font-size: 26px;
-}
-
-.user-page-nav {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.user-page-nav a {
-  padding: 9px 11px;
-  border-radius: 4px;
-  color: #f8e9ca;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.user-page-nav a:hover,
-.user-page-nav a[aria-current="page"] {
-  background: #70413a;
-}
-
 .user-page-main {
   width: min(100% - 36px, 960px);
   min-height: calc(100vh - 150px);
@@ -343,23 +292,6 @@
 }
 
 @media (max-width: 650px) {
-  .user-page-header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 14px;
-    padding: 16px 20px;
-  }
-
-  .user-page-nav {
-    width: 100%;
-    gap: 3px;
-  }
-
-  .user-page-nav a {
-    padding: 8px;
-    font-size: 12px;
-  }
-
   .user-page-main {
     width: min(100% - 28px, 960px);
     padding-top: 25px;

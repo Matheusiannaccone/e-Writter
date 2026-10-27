@@ -10,16 +10,21 @@
   <link rel="stylesheet" href="./css/user-pages.css">
 </head>
 <body class="user-page">
-  <header class="user-page-header">
-    <a class="user-page-brand" href="./index.html">
-      <span class="user-page-brand-mark">E</span>
-      <span>E-writter</span>
-    </a>
+  <header class="site-header" data-site-header>
+    <div class="site-header__inner page-container">
+      <a class="site-brand user-page-brand" href="./index.html">
+        <span class="site-brand__mark" aria-hidden="true">E</span>
+        <span>e-Writter</span>
+      </a>
 
-    <nav class="user-page-nav" aria-label="Navegação da conta">
-      <a href="./biblioteca.html" data-session-link data-library-link>Biblioteca</a>
-      <a href="./book-editor.html" data-session-link>Escrever</a>
-    </nav>
+      <button class="site-nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false">Menu</button>
+      <nav class="site-nav" id="site-nav" aria-label="Navegação da conta">
+        <ul class="site-nav__list">
+          <li><a class="site-nav__link" href="./biblioteca.html" data-session-link data-library-link>Biblioteca</a></li>
+          <li><a class="site-nav__link" href="./book-editor.html" data-session-link>Escrever</a></li>
+        </ul>
+      </nav>
+    </div>
   </header>
 
   <main class="user-page-main">
@@ -61,6 +66,7 @@
   <footer class="user-page-footer">E-writter — cada escritor tem uma história para contar.</footer>
 
   <script type="module" src="./js/pages/myBooksPage.js"></script>
+  <script type="module" src="./js/components/site-layout.js"></script>
   <script type="module" src="./js/components/library-navigation.js"></script>
 </body>
 </html>

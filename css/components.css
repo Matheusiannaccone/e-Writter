@@ -1,4 +1,4 @@
-.site-header { background: var(--color-header); color: var(--color-header-text); }
+.site-header { font: 400 1rem/1.5 var(--font-body); background: var(--color-header); color: var(--color-header-text); }
 .site-header__inner { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; min-height: 5rem; padding-block: .65rem; }
 .site-brand { display: inline-flex; align-items: center; gap: .75rem; min-height: 44px; color: var(--color-header-text); font: 700 1.7rem/1 var(--font-reading); text-decoration: none; white-space: nowrap; }
 .site-brand__mark { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border: 1px solid #c9a875; border-radius: 50%; color: #e8c991; font-style: italic; }

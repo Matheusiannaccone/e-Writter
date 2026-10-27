@@ -32,7 +32,10 @@ form.addEventListener('submit',async e=>
     }
     catch(err){
         console.error(err);
-        showMessage('Não foi possível conectar. Tente novamente.');
+        const networkFailure = err?.name === 'AuthRetryableFetchError' || /network|fetch/i.test(err?.message || '');
+        showMessage(networkFailure
+            ? 'Não foi possível conectar ao servidor. Tente novamente.'
+            : 'Não foi possível enviar as instruções. Tente novamente mais tarde.');
     }
     finally
     {

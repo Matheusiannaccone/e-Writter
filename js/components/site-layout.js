@@ -51,7 +51,7 @@ function markCurrentPage(header) {
 
 const header = document.querySelector('[data-site-header]');
 if (header) {
-  header.innerHTML = `
+  if (!header.querySelector('.site-header__inner')) header.innerHTML = `
     <div class="site-header__inner page-container">
       <a class="site-brand" href="./index.html" aria-label="e-Writter, início"><span class="site-brand__mark" aria-hidden="true">E</span><span>e-Writter</span></a>
       <button class="site-nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false">Menu</button>
