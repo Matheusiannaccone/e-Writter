@@ -13,6 +13,7 @@
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <!-- Cabeçalho compartilhado; os links do ateliê recebem o contexto da obra. -->
   <header class="site-header" data-site-header></header>
   <main id="conteudo" class="chapter-editor page-container">
     <div class="chapter-editor__intro">
@@ -22,6 +23,7 @@
       <p>Escreva e revise seus capítulos. A publicação continua no ateliê da obra.</p>
     </div>
     <noscript><p class="chapter-editor__message">Ative o JavaScript para carregar suas obras e editar capítulos.</p></noscript>
+    <!-- Seletor preenchido apenas com obras próprias retornadas pelo service. -->
     <div class="chapter-editor__toolbar">
       <div class="chapter-editor__field">
         <label for="chapter-book-select">Obra em edição</label>
@@ -30,11 +32,13 @@
       <button id="chapter-new-button" class="button button--secondary" type="button" disabled>Novo capítulo</button>
     </div>
     <div class="chapter-editor__grid">
+      <!-- Lista e feedback dinâmicos da obra selecionada; controles aguardam a carga aceita. -->
       <section class="chapter-editor__panel" aria-labelledby="chapter-list-heading">
         <h2 id="chapter-list-heading" class="section-title">Seus capítulos</h2>
         <p id="chapter-list-state" class="chapter-editor__message" role="status" aria-live="polite" aria-atomic="true">Carregando suas obras…</p>
         <ul id="chapter-list" class="chapter-list" aria-label="Capítulos da obra selecionada" aria-busy="true"></ul>
       </section>
+      <!-- Escrita e edição de título/conteúdo. As ações de publicação ficam no ateliê da obra. -->
       <form id="chapter-form" class="chapter-editor__panel" aria-labelledby="chapter-form-title" novalidate>
         <p id="chapter-form-mode" class="chapter-editor__eyebrow">Novo rascunho</p>
         <h2 id="chapter-form-title" class="section-title">Escrever capítulo</h2>

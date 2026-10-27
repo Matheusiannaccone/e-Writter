@@ -1,3 +1,7 @@
+/**
+ * Carrega o capítulo indicado por id e monta a navegação entre capítulos publicados.
+ * Imports dinâmicos permitem apresentar falha recuperável mesmo se um service não carregar.
+ */
 import { withDataSource } from "../components/navigation-context.js";
 
 const state = document.querySelector("#reader-state");
@@ -35,6 +39,12 @@ function showState(title, message, { error = false, retry = false } = {}) {
   }
 }
 
+/**
+ * Separa parágrafos por linhas em branco e insere texto, sem interpretar HTML.
+ * Quebras simples são preservadas visualmente pelo white-space definido no CSS.
+ * @param {string} content - Conteúdo publicado validado durante o carregamento.
+ * @returns {void} Substitui o conteúdo do leitor.
+ */
 function renderContent(content) {
   const container = document.querySelector("#chapter-content");
   container.replaceChildren();
@@ -61,6 +71,11 @@ function setNeighbor(linkId, titleId, chapter) {
   document.getElementById(titleId).textContent = chapter.title;
 }
 
+/**
+ * Consulta capítulo, obra e lista para confirmar disponibilidade e vizinhos de leitura.
+ * O leitor exige obra e capítulo publicados, mesmo que o adapter permita ao autor ver rascunhos.
+ * @returns {Promise<void>} Exibe leitura, indisponibilidade ou tentativa de recuperação.
+ */
 async function loadChapter() {
   showState("Preparando sua leitura", "Carregando o capítulo…");
   const id = new URLSearchParams(window.location.search).get("id");

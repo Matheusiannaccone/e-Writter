@@ -1,3 +1,8 @@
+/**
+ * Biblioteca pessoal com página, cards, feedback e URLs reais em DOM mínimo.
+ * Services controlados validam listagem, remoção, foco e descarte após logout;
+ * também exercita os destinos públicos e o comportamento de capas e navegação.
+ */
 const { installSessionBoundary } = require('./helpers/session-boundary.cjs');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');

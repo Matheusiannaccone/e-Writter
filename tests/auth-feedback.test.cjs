@@ -1,3 +1,8 @@
+/**
+ * Validação, feedback e concorrência de Auth/Perfil executando os controladores reais em VM.
+ * O DOM mínimo cobre os efeitos usados pelas páginas; promises controladas simulam respostas
+ * tardias e o relógio/storage compartilhados exercitam o prazo de recuperação entre abas.
+ */
 const { installSessionBoundary } = require('./helpers/session-boundary.cjs');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');

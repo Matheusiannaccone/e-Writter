@@ -11,6 +11,7 @@
 </head>
   
 <body class="user-page">
+  <!-- Navegação global e ações da conta autenticada. -->
   <header class="site-header" data-site-header></header>
 
   <main class="user-page-main">
@@ -20,6 +21,7 @@
       <p>Suas informações e sua jornada como escritor.</p>
     </section>
 
+    <!-- Identidade carregada de Auth/perfil; o símbolo de avatar desta página é estático. -->
     <section class="profile-card">
       <div class="profile-avatar" aria-hidden="true">♙</div>
       <div class="profile-info">
@@ -33,6 +35,7 @@
 <section class="user-page-card">
   <h2>Informações da conta</h2>
 
+  <!-- Campos de perfil liberados após verificar sessão e carregar dados; e-mail é apenas exibido. -->
   <form id="profile-form" method="post">
     <div class="profile-detail">
       <label for="profile-display-name-input">

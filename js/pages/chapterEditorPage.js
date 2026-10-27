@@ -1,3 +1,8 @@
+/**
+ * Controla seleção de obra própria, criação de rascunhos e edição de capítulos.
+ * A lista de obras confirma a seleção da URL; gerações de requisição e sessão
+ * descartam resultados antigos antes de preencher ou liberar o formulário.
+ */
 import { createSessionBoundary } from '../components/session-boundary.js';
 // Implementação original de Lucas Emmanoel, recuperada do PR #44 em 0.43.0.
 // Integração da página e proteção dos estados assíncronos adicionadas posteriormente.
@@ -180,6 +185,11 @@ function renderChapterList(chapters) {
   });
 }
 
+/**
+ * Preenche o formulário com um capítulo da lista já carregada.
+ * @param {object} chapter - Capítulo com id, title, content, status e position.
+ * @returns {void} Mantém o status publicado ou rascunho para a operação de atualização.
+ */
 function beginEditing(chapter) {
   if (isSaving || isLoading || !chaptersReady || sessionExpired) return;
   selectedChapterId = chapter.id;
@@ -201,6 +211,12 @@ function beginEditing(chapter) {
   chapterTitle.focus();
 }
 
+/**
+ * Reinicia o formulário e carrega os capítulos da seleção atual.
+ * Combina número de requisição, seletor e sessão para impedir troca por uma resposta antiga.
+ * @param {string} bookId - Obra selecionada; vazio mantém a escrita bloqueada.
+ * @returns {Promise<boolean>} true somente quando a lista foi carregada e aceita.
+ */
 async function loadChapters(bookId) {
   const token = sessionBoundary.capture();
   const request = ++chapterRequest;
@@ -256,6 +272,10 @@ async function loadChapters(bookId) {
   }
 }
 
+/**
+ * Confirma as obras da conta antes de aceitar bookId da URL e carregar capítulos.
+ * @returns {Promise<void>} Atualiza seletor, lista e disponibilidade do formulário.
+ */
 async function loadMyBooks() {
   const token = sessionBoundary.capture();
   bookSelect.disabled = true;
@@ -401,6 +421,7 @@ chapterForm.addEventListener("submit", async (event) => {
     return;
   }
 
+  // Rascunhos podem ter menos de 500 caracteres; o mínimo é exigido para publicação.
   if (data.content.length > 15000) {
     showFormMessage(
       "O conteúdo ultrapassou o limite de 15.000 caracteres."

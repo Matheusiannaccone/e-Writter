@@ -1,7 +1,7 @@
-// services/adapters/mock/profileAdapter.js
-// Este arquivo contém funções de mock para simular operações de perfil.
-// As funções lançam erros indicando que não foram implementadas.
-
+/**
+ * Consulta e atualiza perfis no snapshot de identidade compartilhado com autenticação.
+ * Valida campos editáveis e unicidade de username; erros são retornados em { data, error }.
+ */
 import { mockAuthAdapter } from "./authAdapter.js";
 import { readIdentity, writeIdentity, identityFailure } from './identityStorage.js';
 

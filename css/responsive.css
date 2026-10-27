@@ -1,3 +1,4 @@
+/* Páginas de autenticação: reduz colunas e espaçamentos em telas intermediárias. */
 @media (max-width: 900px) {
   .login-page { grid-template-columns: minmax(0, 0.8fr) minmax(390px, 1.2fr); }
   .intro { padding: 42px 32px; }
@@ -5,6 +6,7 @@
   .form-side { padding: 36px 28px; }
 }
 
+/* Empilha apresentação e formulário, ocultando a citação decorativa no mobile. */
 @media (max-width: 700px) {
   .login-page { display: flex; flex-direction: column; }
   .intro { min-height: auto; padding: 30px 28px 26px; }
@@ -25,6 +27,7 @@
   .page-footer { line-height: 1.6; }
 }
 
+/* Ajusta margens, tipografia e rótulos para as menores larguras previstas. */
 @media (max-width: 360px) {
   .intro { padding-right: 22px; padding-left: 22px; }
   .intro h1 { font-size: 41px; }
@@ -34,6 +37,7 @@
   .text-link { font-size: 14px; }
 }
 
+/* Reduz transições e rolagem animada conforme a preferência do usuário. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }

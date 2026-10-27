@@ -1,3 +1,8 @@
+/**
+ * Persistência da identidade Mock entre contextos que representam páginas e abas.
+ * Reutiliza storages em memória para conferir cadastro, edição, verificadores, conflitos
+ * e falhas de persistência sem alterar os fixtures originais do repositório.
+ */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { identityPage, memoryStorage } = require('./helpers/mock-identity.cjs');

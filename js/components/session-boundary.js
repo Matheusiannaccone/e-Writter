@@ -1,7 +1,18 @@
+/**
+ * Controla o ciclo de vida de dados privados nas páginas com authService.
+ * Tokens de geração descartam resultados antigos; uma nova verificação confirma a identidade
+ * antes de aceitar respostas. Não cancela requisições nem substitui autorização no banco.
+ */
 import { reportSessionVerificationFailure } from './session-status.js';
 import { getCurrentUser, onAuthStateChange } from '../services/authService.js';
 
-// Protege somente o ciclo de vida da interface. Autorização permanece nos adapters/RLS.
+/**
+ * Cria uma barreira de geração/identidade para os resultados assíncronos da página.
+ * capture inicia uma operação; accept revalida a sessão; current protege efeitos no finally.
+ * O verificador pode retornar um usuário ou uma sessão com user, como na recuperação.
+ * @param {{clear: function(string): void, reload: function(): *, verify?: function(): Promise<object>}} options - Limpeza, recarga e verificador.
+ * @returns {{capture: function(): number, current: function(number): boolean, accept: function(number, object=, string=): Promise<boolean>, invalidate: function(string=): void, dispose: function(): void}} Barreira e encerramento das inscrições.
+ */
 export function createSessionBoundary({ clear, reload, verify = getCurrentUser }) {
   let generation = 0;
   let userId = null;
@@ -33,6 +44,7 @@ export function createSessionBoundary({ clear, reload, verify = getCurrentUser }
     userId = id;
     return true;
   }
+  // O SDK entrega eventos durante seu próprio ciclo de sessão; a consulta ocorre depois.
   function scheduleReload() {
     const token = generation;
     setTimeout(() => { if (current(token)) reload(); }, 0);

@@ -1,3 +1,5 @@
+// Verifica detalhes, capítulos publicados, navegação do leitor e layout em várias larguras com services simulados.
+// Execução independente: npm test seleciona apenas arquivos com sufixo .test.cjs.
 // Navegador real contra servidor local; nenhum tráfego ao Supabase é permitido.
 // Requer Playwright resolvível por Node e Chrome instalado (ou PLAYWRIGHT_CHROME_EXECUTABLE).
 const { chromium } = require('playwright');

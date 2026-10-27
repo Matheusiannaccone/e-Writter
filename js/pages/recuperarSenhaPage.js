@@ -1,3 +1,7 @@
+/**
+ * Solicita recuperação por authService com validação e prazo de espera na interface.
+ * O prazo absoluto é compartilhado por origem e independe do e-mail; não substitui os limites do serviço.
+ */
 import { showFeedback, setProcessing, prepareFormValidation } from '../components/feedback.js';
 import { resetPasswordForEmail } from "../services/authService.js";
 import { isValidEmail } from '../validation/email.js';
@@ -62,6 +66,11 @@ function renderCooldown() {
     return seconds;
 }
 
+/**
+ * Reserva o prazo antes do envio e o mantém no sucesso ou em RATE_LIMIT.
+ * Em outras falhas, remove apenas a própria reserva, preservando um prazo posterior de outra aba.
+ * @returns {Promise<void>} Mostra feedback sem reenviar automaticamente.
+ */
 async function submitRecovery() {
     if (renderCooldown() || !validation.validate()) return;
     // Reserva compartilhada antes da chamada também bloqueia outra aba durante o envio.

@@ -1,3 +1,7 @@
+/**
+ * Monta o catálogo público inicial usando bookService e o card compartilhado.
+ * O perfil do autor é opcional; falhas de consulta da coleção oferecem nova tentativa.
+ */
 import { bookDetailsUrl } from "../components/navigation-context.js";
 
 const grid = document.querySelector("#home-books-grid");
@@ -23,6 +27,10 @@ async function cardForBook(book, { createBookCard, getProfile }) {
   });
 }
 
+/**
+ * Importa dependências e monta cards de obras publicadas; uma nova tentativa repete a carga.
+ * @returns {Promise<void>} Substitui a grade ou exibe mensagem de vazio/falha.
+ */
 async function loadBooks() {
   grid.replaceChildren();
   state.textContent = "Carregando livros…";

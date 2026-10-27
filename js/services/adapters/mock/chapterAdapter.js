@@ -1,5 +1,8 @@
-// Adapter Mock responsável pelas operações de capítulos.
-
+/**
+ * Implementa visibilidade, criação e edição de capítulos sobre mockData.
+ * Novos capítulos recebem max(position) + 1; o autor vê rascunhos e leitores só veem
+ * capítulos publicados de obras publicadas. A despublicação Mock afeta apenas o alvo.
+ */
 import {
   mockBooks,
   mockChapters,
@@ -589,7 +592,7 @@ export const mockChapterAdapter = {
     };
   },
 
-  // Retira um capítulo próprio da leitura pública.
+  // Difere da RPC Supabase: só altera o alvo e recusa retirar o último de uma obra publicada.
   async unpublishChapter(id) {
     if (!isValidUuid(id)) return createError("VALIDATION_ERROR", "ID de capítulo inválido.");
     const user = await getAuthenticatedUser();

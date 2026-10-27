@@ -13,6 +13,7 @@
   </head>
   <body>
     <a class="skip-link" href="#reader">Ir para o conteúdo</a>
+    <!-- Cabeçalho global compartilhado com as demais páginas. -->
     <header class="site-header" data-site-header></header>
     <main class="reader-shell" id="reader">
       <div class="reader-column">
@@ -21,12 +22,14 @@
           <span>Obra</span><span aria-hidden="true">/</span><span>Capítulo</span>
         </nav>
 
+        <!-- Estado de carga, indisponibilidade e nova tentativa gerenciado pelo leitor. -->
         <section class="reader-state" id="reader-state" role="status" aria-live="polite">
           <div class="loading-mark" aria-hidden="true"></div>
           <h1>Preparando sua leitura</h1>
           <p>Carregando o capítulo…</p>
         </section>
 
+        <!-- Conteúdo preenchido após confirmar obra e capítulo publicados; texto não é interpretado como HTML. -->
         <article class="chapter" id="chapter" hidden>
           <header class="chapter-header">
             <p class="eyebrow">e-Writter <span aria-hidden="true">·</span> <span id="chapter-position"></span></p>
@@ -42,6 +45,7 @@
           </footer>
         </article>
 
+        <!-- Vizinhos calculados somente entre capítulos publicados, em ordem de posição. -->
         <nav class="chapter-navigation" id="chapter-navigation" aria-label="Navegação entre capítulos" hidden>
           <a class="chapter-link previous" id="previous-chapter" href="#">
             <span class="link-direction">← Anterior</span>

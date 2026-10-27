@@ -1,3 +1,4 @@
+/* Cabeçalho e navegação compartilhados, montados por site-layout.js. */
 .site-header { font: 400 1rem/1.5 var(--font-body); background: var(--color-header); color: var(--color-header-text); }
 .site-header__inner { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; min-height: 5rem; padding-block: .65rem; }
 .site-brand { display: inline-flex; align-items: center; gap: .75rem; min-height: 44px; color: var(--color-header-text); font: 700 1.7rem/1 var(--font-reading); text-decoration: none; white-space: nowrap; }
@@ -11,15 +12,18 @@
 .site-nav__link { display: flex; align-items: center; min-height: 44px; padding: .6rem .8rem; border-radius: var(--radius-sm); color: var(--color-header-text); text-decoration: none; }
 .site-nav__link:hover, .site-nav__link[aria-current='page'] { background: #594235; }
 .site-nav__link[aria-current='page'] { box-shadow: inset 3px 0 #e8c991; font-weight: 700; }
+/* Rodapé compartilhado e distribuição dos seus textos. */
 .site-footer { padding-block: var(--space-3); border-top: 1px solid var(--color-border); color: var(--color-text-muted); font-size: .875rem; }
 .site-footer__inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-1) var(--space-3); }
 .site-footer p { margin: 0; }
 .site-footer a:hover { color: var(--color-primary); }
+/* Botões e links de ação: variantes, interação e indisponibilidade. */
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .65rem 1.1rem; border: 1px solid var(--color-primary); border-radius: var(--radius-sm); background: var(--color-primary); color: #fff; font-weight: 700; text-decoration: none; cursor: pointer; }
 .button:hover { background: var(--color-primary-hover); }
 .button--secondary { background: transparent; color: var(--color-primary); }
 .button--secondary:hover { background: #f3e4c9; }
 .button:disabled { opacity: .6; cursor: not-allowed; }
+/* Grade e cards reutilizados por catálogo, biblioteca e obras próprias. */
 .book-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-2); }
 .book-card { display: flex; flex-direction: column; min-width: 0; }
 .book-card__link { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: var(--space-1); padding: var(--space-1); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); text-decoration: none; transition: border-color .15s, box-shadow .15s, transform .15s; }
@@ -30,15 +34,18 @@
 .book-card__placeholder { padding: var(--space-1); font: 600 1.25rem/1.1 var(--font-reading); text-align: center; }
 .book-card__image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .book-card__content { display: grid; min-width: 0; gap: .15rem; padding: 0 .15rem .25rem; }
+/* Limita títulos e metadados a duas linhas para conter o conteúdo dos cards. */
 .book-card__title { display: -webkit-box; overflow: hidden; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font: 700 1.35rem/1.15 var(--font-reading); }
 .book-card__author, .book-card__metadata { overflow: hidden; color: var(--color-text-muted); font-size: .875rem; overflow-wrap: anywhere; }
 .book-card__author { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .book-card__metadata { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+/* Variações da grade, redução de movimento e navegação em telas maiores. */
 @media (min-width: 480px) { .book-grid { grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); } }
 @media (max-width: 359px) { .book-grid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .book-card__link { transition: none; } }
 @media (min-width: 768px) { .site-header__inner { min-height: 6rem; flex-wrap: nowrap; } .site-nav-toggle { display: none; } .site-nav, .site-nav[hidden] { display: block !important; width: auto; margin-left: auto; } .site-nav__list { flex-direction: row; align-items: center; padding: 0; } .site-nav__link[aria-current='page'] { box-shadow: inset 0 -3px #e8c991; } }
 
+/* Controle pessoal de favoritos, separado do link principal do card. */
 .favorite-control { display: grid; min-width: 0; gap: .35rem; margin-top: .5rem; }
 .favorite-button { min-height: 44px; padding: .55rem .8rem; border: 1px solid var(--color-primary); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-primary); font: inherit; font-weight: 700; cursor: pointer; }
 .favorite-button[aria-pressed="true"] { background: var(--color-primary); color: #fff; }
@@ -48,6 +55,7 @@
 
 /* Feedback funcional compartilhado por Auth e Perfil. */
 .feedback { margin: var(--space-1) 0; padding: var(--space-2); border: 1px solid currentColor; border-inline-start-width: 4px; border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); font: 400 .95rem/1.5 var(--font-body); overflow-wrap: anywhere; }
+/* Mantém a região de anúncio no DOM sem reservar uma caixa vazia visível. */
 .feedback:empty { margin: 0; padding: 0; border: 0; }
 .feedback[data-type="error"] { color: var(--color-danger); }
 .feedback[data-type="success"] { color: var(--color-success); }
@@ -60,6 +68,7 @@
 @keyframes feedback-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .feedback-spinner { animation: none; } }
 
+/* Menu de conta e estados de sessão sincronizados por auth-navigation.js. */
 .session-nav, .session-nav__actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .session-nav { padding: .5rem 0; }
 .session-nav__status { font-size: .875rem; }
@@ -70,6 +79,7 @@
 .site-nav { align-items: center; }
 @media (min-width: 768px) { .site-nav { display: flex !important; gap: 1rem; } }
 
+/* Permite quebra dos links e ações de conta dentro da largura disponível no desktop. */
 @media (min-width: 768px) {
   .site-nav { flex-wrap: wrap; justify-content: flex-end; min-width: 0; }
   .site-nav__list { flex-wrap: wrap; justify-content: flex-end; }

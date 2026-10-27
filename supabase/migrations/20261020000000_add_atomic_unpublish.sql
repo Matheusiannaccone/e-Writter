@@ -1,3 +1,6 @@
+-- Etapa inicial da despublicação. A migration 20261020001000 substitui a função
+-- de integridade e unpublish_chapter, eliminando o uso da configuração de sessão.
+-- Os comentários abaixo descrevem esta versão intermediária na sequência de migrations.
 -- Despublicação autorizada e atômica de obras e capítulos.
 
 -- A cascata de despublicação precisa atualizar mais de um capítulo antes de
@@ -53,6 +56,8 @@ begin
 end;
 $$;
 
+-- RPC elevada: autenticação e autoria são verificadas antes de bloquear e alterar a obra.
+-- Retorna void; o adapter consulta depois a obra para entregar os dados atualizados.
 create or replace function public.unpublish_book(
     p_book_id uuid
 )

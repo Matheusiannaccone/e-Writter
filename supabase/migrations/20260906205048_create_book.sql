@@ -1,3 +1,5 @@
+-- Obras distinguem visibilidade (draft/published) de andamento editorial (publication_status).
+-- A FK preserva a obra com autoria nula se o perfil for excluído.
 CREATE TABLE public.books (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
@@ -42,6 +44,8 @@ CREATE TABLE public.books (
         CHECK (char_length(btrim(title)) > 0)
 );
 
+-- Leitores consultam obras publicadas; o autor também consulta seus rascunhos.
+-- Escritas exigem autoria tanto na linha atual quanto no resultado da atualização.
 alter table books enable row level security;
 
 
@@ -80,6 +84,8 @@ using (
     author_id = auth.uid()
 );
 
+-- Mantém published_at na transição de publicação, preserva a data enquanto publicada
+-- e a limpa ao voltar a draft. Outros requisitos de publicação são adicionados em migration posterior.
 create or replace function public.handle_book_publication()
 returns trigger
 language plpgsql

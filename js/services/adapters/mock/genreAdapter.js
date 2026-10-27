@@ -1,5 +1,7 @@
-// Adapter Mock responsável pelas operações de gêneros.
-
+/**
+ * Consulta o vocabulário fixo de mockData sem permitir mutações de gêneros.
+ * Mantém o formato id/name/slug e os resultados { data, error } usados pelo service.
+ */
 import { mockGenres } from "./mockData.js";
 
 // Cria um erro no formato padrão dos services.

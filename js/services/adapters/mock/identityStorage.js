@@ -1,3 +1,8 @@
+/**
+ * Persiste contas e perfis Mock em um snapshot versionado, separado de sessão e catálogo.
+ * Contas novas usam verificadores PBKDF2 com salt aleatório; senhas dos fixtures não são
+ * copiadas para o snapshot. Falhas de leitura, integridade ou gravação são propagadas.
+ */
 import { mockUsers, mockProfiles } from './mockData.js';
 
 const KEY = 'e-writter-mock-identity-v1';
@@ -6,6 +11,11 @@ const failure = message => Object.assign(new Error(message), { code: 'UNKNOWN_ER
 const hex = bytes => Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
 const unhex = text => Uint8Array.from(text.match(/../g), byte => parseInt(byte, 16));
 
+/**
+ * Converte falhas do armazenamento/identidade para o contrato do adapter.
+ * @param {Error} error - Erro capturado com code opcional.
+ * @returns {{data: null, error: {code: string, message: string}}} Falha normalizada.
+ */
 export function identityFailure(error) {
   return { data: null, error: { code: typeof error.code === 'string' ? error.code : 'UNKNOWN_ERROR', message: error.message || 'Não foi possível acessar os dados de demonstração.' } };
 }
@@ -38,6 +48,11 @@ function snapshot(state) {
   };
 }
 
+/**
+ * Restaura fixtures e sobrepõe contas/perfis salvos após validar o snapshot.
+ * @returns {{version: number, accounts: object[], profiles: object[]}} Estado validado e projetado sem senhas originais.
+ * @throws {Error} Quando o storage não pode ser lido ou contém dados incompatíveis/inconsistentes.
+ */
 export function readIdentity() {
   let saved;
   try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); }
@@ -57,6 +72,13 @@ export function readIdentity() {
   return validate(snapshot(state));
 }
 
+/**
+ * Lê o snapshot mais recente, aplica uma alteração síncrona e persiste após validar.
+ * Com Web Locks disponível, a seção de leitura/alteração/gravação é serializada entre abas.
+ * @param {function(object): *} change - Callback que modifica o estado e retorna o resultado da operação.
+ * @returns {Promise<*>} Resultado do callback, somente após concluir a gravação.
+ * @throws {Error} Em falha de leitura, validação ou persistência.
+ */
 export async function writeIdentity(change) {
   const commit = () => {
     const state = readIdentity();
@@ -71,6 +93,12 @@ export async function writeIdentity(change) {
   return commit();
 }
 
+/**
+ * Projeta a identidade pública somente se conta e perfil existirem no mesmo snapshot.
+ * @param {object} state - Snapshot de identidade.
+ * @param {string} id - ID da conta.
+ * @returns {object|null} Identidade sem verificador ou null.
+ */
 export function identityUser(state, id) {
   const account = state.accounts.find(item => item.id === id);
   const profile = state.profiles.find(item => item.id === id);
@@ -82,11 +110,22 @@ async function digest(password, salt) {
   return hex(new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' }, key, 256)));
 }
 
+/**
+ * Deriva um verificador com PBKDF2/SHA-256 e salt aleatório por senha.
+ * @param {string} password - Senha já validada pelo adapter, usada somente na derivação.
+ * @returns {Promise<{algorithm: string, iterations: number, salt: string, digest: string}>} Verificador serializável.
+ */
 export async function createVerifier(password) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   return { algorithm: 'PBKDF2', iterations: ITERATIONS, salt: hex(salt), digest: await digest(password, salt) };
 }
 
+/**
+ * Confere o verificador persistido ou usa a credencial do fixture quando ainda não há verificador.
+ * @param {object} account - Conta do snapshot.
+ * @param {string} password - Senha informada para login.
+ * @returns {Promise<boolean>} Indica correspondência com a credencial da conta.
+ */
 export async function verifyPassword(account, password) {
   if (!account.verifier) return mockUsers.some(user => user.id === account.id && user.password === password);
   const actual = await digest(password, unhex(account.verifier.salt));

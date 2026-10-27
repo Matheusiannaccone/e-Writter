@@ -1,5 +1,8 @@
-// Adapter Mock responsável pelas operações de favoritos.
-
+/**
+ * Simula a coleção pessoal com relações por userId e bookId.
+ * Restaura favoritos do localStorage e funciona em memória quando a persistência falha.
+ * O resumo usa o catálogo e os perfis de mockData, separados do snapshot de identidade.
+ */
 import {
   mockFavorites,
   mockBooks,

@@ -1,5 +1,7 @@
+/* Fontes compartilhadas: interface e tipografia de leitura. */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 
+/* Tokens visuais globais: cores, fontes, espaçamento, raios e limites de largura. */
 :root {
   color-scheme: light;
   --color-bg: #e9d8b5;
@@ -30,23 +32,30 @@
   --page-width: 74rem;
   --reading-width: 42rem;
 }
+/* Base do documento, controles nativos e foco visível para navegação por teclado. */
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { min-width: 320px; min-height: 100vh; margin: 0; color: var(--color-text); background: var(--color-bg); font-family: var(--font-body); line-height: 1.5; }
 button, input, textarea, select { font: inherit; }
 a { color: inherit; }
+/* Preserva o estado hidden controlado pelas páginas mesmo diante de regras de layout. */
 [hidden] { display: none !important; }
 :focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 .site-header :focus-visible { outline-color: var(--color-header-text); }
+/* Utilitários de largura, hierarquia tipográfica e texto de leitura. */
 .page-container { width: min(100% - 2rem, var(--page-width)); margin-inline: auto; }
 .page-title { font: 600 clamp(2.25rem, 7vw, 3.5rem)/1.1 var(--font-reading); }
 .section-title { font: 600 clamp(1.75rem, 5vw, 2.5rem)/1.15 var(--font-reading); }
 .book-title { font: 600 1.5rem/1.2 var(--font-reading); }
 .text-meta, .text-caption { color: var(--color-text-muted); font-size: .875rem; }
 .reading-copy { max-width: var(--reading-width); font: 400 clamp(1.25rem, 4vw, 1.5rem)/1.7 var(--font-reading); }
+/* Atalho de acessibilidade: aparece ao receber foco e permite saltar a navegação. */
 .skip-link { position: absolute; z-index: 10; top: -5rem; left: 1rem; padding: .75rem 1rem; background: var(--color-surface); color: var(--color-text); }
 .skip-link:focus { top: .5rem; }
+/* Ajustes globais de largura para telas maiores. */
 @media (min-width: 768px) { .page-container { width: min(100% - 4rem, var(--page-width)); } }
+/* Respeita a preferência por redução de movimento ao rolar a página. */
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
+/* Reforça foco e indicação da página atual quando o usuário solicita mais contraste. */
 @media (prefers-contrast: more) { :focus-visible { outline-width: 4px; } .site-nav__link[aria-current="page"] { text-decoration: underline; text-underline-offset: .3em; } }

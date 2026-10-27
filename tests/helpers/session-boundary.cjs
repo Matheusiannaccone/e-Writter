@@ -1,3 +1,7 @@
+/**
+ * Instala a barreira real de sessão nos contextos VM usados pelas suítes de páginas.
+ * Expõe disparadores de Auth e eventos de janela para simular logout e histórico sem navegador.
+ */
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');

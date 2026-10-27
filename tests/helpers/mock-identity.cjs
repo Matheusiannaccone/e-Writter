@@ -1,3 +1,7 @@
+/**
+ * Prepara módulos reais de identidade/autenticação/perfil em contextos VM independentes.
+ * Storages injetáveis simulam persistência compartilhada e falhas de leitura ou quota.
+ */
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -14,6 +18,12 @@ function memoryStorage() {
   };
 }
 
+/**
+ * Cria uma página isolada usando os storages recebidos e os módulos reais sem imports ES.
+ * @param {object} [local] - Storage de identidade; compartilhar entre contextos simula outras páginas/abas.
+ * @param {object} [session] - Storage de sessão; compartilhar simula navegação na mesma aba.
+ * @returns {object} Adapters, executor VM e referências aos storages.
+ */
 function identityPage(local = memoryStorage(), session = memoryStorage()) {
   const context = vm.createContext({ localStorage: local, sessionStorage: session, crypto: webcrypto, TextEncoder, Uint8Array, URL, URLSearchParams });
   for (const file of ['js/services/adapters/mock/mockData.js', 'js/validation/email.js', 'js/services/adapters/mock/identityStorage.js', 'js/services/adapters/mock/authAdapter.js', 'js/services/adapters/mock/profileAdapter.js']) {

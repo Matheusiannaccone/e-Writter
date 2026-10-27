@@ -1,3 +1,8 @@
+/**
+ * Controlador do ateliê: dados da obra, capa e ações de publicação.
+ * Consome somente services; publication-rules explica bloqueios na interface e
+ * session-boundary impede respostas de sessões antigas de restaurarem dados privados.
+ */
 import { createSessionBoundary } from '../components/session-boundary.js';
 import { getMyBooks, createBook, updateBook, publishBook, unpublishBook } from '../services/bookService.js';
 import { getChaptersByBook, publishChapter, unpublishChapter } from '../services/chapterService.js';
@@ -67,6 +72,11 @@ function updateGenreCount() {
   });
   if (count) fieldError($('#genre-fieldset'), 'genres-error', '');
 }
+/**
+ * Atualiza a prévia e libera URLs blob anteriores.
+ * O contador da capa descarta respostas de outra seleção sem depender apenas da sessão.
+ * @returns {Promise<void>} A prévia pode exibir arquivo local, capa persistida ou placeholder.
+ */
 async function showCover() {
   const token = sessionBoundary.capture();
   const request = ++coverRequest;
@@ -236,6 +246,11 @@ function renderPublication(book) {
     list.append(item);
   });
 }
+/**
+ * Consulta capítulos para a obra selecionada e descarta respostas de seleções anteriores.
+ * @param {object|undefined} book - Obra persistida; ausência oculta o painel.
+ * @returns {Promise<void>} Atualiza capítulos, bloqueios e estado de carregamento.
+ */
 async function loadPublication(book) {
   const token = sessionBoundary.capture();
   const request = ++publicationRequest;
@@ -257,6 +272,12 @@ async function loadPublication(book) {
   chapters = result.data ?? [];
   renderPublication(book);
 }
+/**
+ * Confirma a ação com o usuário e reconsulta obras e capítulos após a mutação.
+ * A recarga é necessária porque a despublicação no banco pode afetar outros registros.
+ * @param {string} target - "book" para a obra ou ID do capítulo.
+ * @returns {Promise<void>} Mostra o resultado sem aceitar respostas de sessão obsoleta.
+ */
 async function changePublication(target) {
   if (busy || !sessionAllowed) return;
   const token = sessionBoundary.capture();
@@ -310,6 +331,10 @@ $('#chapter-list').addEventListener('click', (event) => {
   if (button) changePublication(button.dataset.publicationAction);
 });
 
+/**
+ * Valida os requisitos para salvar, sem exigir os requisitos adicionais de publicação.
+ * @returns {boolean} true quando há título e de um a três gêneros.
+ */
 function validate() {
   let valid = true;
   const trimmed = title.value.trim();
@@ -325,6 +350,10 @@ function validateFile(file) {
   if (file.size > 5 * 1024 * 1024) return 'A imagem deve ter no máximo 5 MB.';
   return '';
 }
+/**
+ * Carrega gêneros e obras próprias após verificar a sessão; só seleciona um ID retornado.
+ * @returns {Promise<void>} Preenche o formulário ou apresenta erro de acesso/carregamento.
+ */
 async function load() {
   const token = sessionBoundary.capture();
   try {
@@ -404,6 +433,7 @@ form.addEventListener('submit', async (event) => {
     const book = result.data;
     books = [book, ...books.filter((item) => item.id !== book.id)];
     renderPicker(book.id);
+    // Metadados e capa são etapas distintas: falha de upload não desfaz a obra já salva.
     if (selectedFile) {
       message('Obra salva. Enviando capa…');
       const upload = await uploadBookCover(book.id, selectedFile);

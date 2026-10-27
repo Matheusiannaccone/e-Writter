@@ -1,3 +1,7 @@
+/**
+ * Libera a troca de senha somente após consultar a sessão aceita pelo adapter.
+ * Usa a barreira de sessão com verificador de recuperação e bloqueia novo envio após sucesso.
+ */
 import { createSessionBoundary } from '../components/session-boundary.js';
 import { showFeedback, clearFeedback, setFieldError, setProcessing, prepareFormValidation } from '../components/feedback.js';
 import { updatePassword, getPasswordRecoverySession } from '../services/authService.js';
@@ -26,6 +30,10 @@ function lock(locked) {
   button.disabled = locked;
 }
 
+/**
+ * Verifica a sessão antes de habilitar senha e confirmação.
+ * @returns {Promise<void>} Mantém o formulário bloqueado se o link/sessão não for aceito.
+ */
 async function checkRecovery() {
   if (busy) return;
   const token = sessionBoundary.capture();

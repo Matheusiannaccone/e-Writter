@@ -1,3 +1,7 @@
+/**
+ * Barreira de sessão com identidade, eventos de janela e agendamento controlados.
+ * As verificações cobrem troca silenciosa de usuário, gerações antigas, histórico e dispose.
+ */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');

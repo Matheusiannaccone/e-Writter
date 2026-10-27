@@ -1,3 +1,7 @@
+/**
+ * Apresenta uma obra publicada, sua autoria e seus capítulos disponíveis para leitura.
+ * Capas e perfis possuem apresentação alternativa; favoritos têm coordenação de sessão própria.
+ */
 import { createFavoriteSession } from '../components/favorite-session.js';
 import { getBookCoverUrl } from "../services/imageService.js";
 import { withDataSource } from "../components/navigation-context.js";
@@ -254,6 +258,10 @@ async function loadFavorite() {
   }
 }
 
+/**
+ * Altera o favorito somente se a sessão da operação ainda for válida.
+ * @returns {Promise<void>} Atualiza o botão após confirmação do service.
+ */
 async function toggleFavorite() {
   if (!currentBook || elements.btnFavorito.disabled) {
     return;
@@ -296,6 +304,11 @@ async function toggleFavorite() {
   }
 }
 
+/**
+ * Consulta autoria sem impedir a leitura caso o perfil esteja indisponível.
+ * @param {string|null} authorId - Identificador do perfil autor.
+ * @returns {Promise<object|null>} Perfil ou null para usar o texto alternativo.
+ */
 async function loadAuthor(authorId) {
   if (!authorId) {
     return null;
@@ -322,6 +335,10 @@ async function loadAuthor(authorId) {
   }
 }
 
+/**
+ * Consulta a obra indicada por id, exige publicação e ordena somente capítulos publicados.
+ * @returns {Promise<void>} Monta detalhes e inicia consulta pessoal de favorito.
+ */
 async function loadPage() {
   elements.retry.hidden = true;
   elements.content.hidden = true;

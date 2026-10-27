@@ -1,3 +1,8 @@
+/**
+ * Editor de capítulos com serviços controlados: seleção própria, validação e salvamento.
+ * Executa os handlers reais em VM; cenários de respostas tardias, logout e navegação
+ * verificam que a interface não aceita resultados de obra ou sessão anterior.
+ */
 const { installSessionBoundary } = require('./helpers/session-boundary.cjs');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');

@@ -1,5 +1,7 @@
-// Adapter Supabase responsável pelas operações de gêneros.
-
+/**
+ * Consulta o catálogo público de gêneros no Supabase para genreService.
+ * Valida identificadores/slug e retorna { data, error }; não oferece escrita no vocabulário.
+ */
 import { supabase } from "../../supabaseClient.js";
 
 // Cria um erro no formato padrão dos services.

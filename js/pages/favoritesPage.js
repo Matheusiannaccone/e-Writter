@@ -1,3 +1,7 @@
+/**
+ * Controla a coleção pessoal com uma consulta de favoritos e cards compartilhados.
+ * Filtra relações inválidas/repetidas e protege listagem e remoção contra mudanças de sessão.
+ */
 import { createSessionBoundary } from '../components/session-boundary.js';
 import { listFavorites, removeFavorite } from "../services/favoriteService.js";
 import { createBookCard } from "../components/book-card.js";
@@ -45,6 +49,14 @@ function showSession() {
   clearFeedback(message);
 }
 
+/**
+ * Remove o favorito e concilia a interface também quando o service responde NOT_FOUND.
+ * @param {object} entry - Registro de favorito associado ao card.
+ * @param {HTMLElement} card - Card removido após confirmação.
+ * @param {HTMLButtonElement} button - Ação bloqueada enquanto a remoção está pendente.
+ * @param {number} version - Geração da listagem que criou o card.
+ * @returns {Promise<void>} Atualiza contagem e foco se a coleção ainda for a atual.
+ */
 async function removeEntry(entry, card, button, version) {
   if (button.disabled) return;
   const token = sessionBoundary.capture();
@@ -76,6 +88,11 @@ async function removeEntry(entry, card, button, version) {
   }
 }
 
+/**
+ * Consulta a coleção e prepara os cards antes de substituir a listagem.
+ * A geração local evita que uma recarga/remoção antiga modifique a coleção atual.
+ * @returns {Promise<void>} Diferencia vazio, sessão ausente, falha e dados indisponíveis.
+ */
 async function loadFavorites() {
   const version = ++generation;
   const token = sessionBoundary.capture();
