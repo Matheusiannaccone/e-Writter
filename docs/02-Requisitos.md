@@ -1,172 +1,131 @@
 # 02 — Requisitos
 
-## 1. Convenções
+## Convenções e evidência
 
-- **RF:** Requisito Funcional
-- **RNF:** Requisito Não Funcional
-- **Prioridade:** Essencial, Importante ou Evolutivo
-- Requisitos marcados como **Essencial** compõem o MVP, salvo decisão registrada posteriormente.
+Os identificadores RF/RNF anteriores são preservados para rastreabilidade. A situação descreve o código do MVP `1.0.0`, não a prioridade do planejamento original.
 
----
+- **Implementado:** fluxo ou mecanismo correspondente existe no repositório; não significa aprovação de todos os testes.
+- **Parcial:** há suporte técnico ou parte do comportamento, mas o requisito completo não está acessível/garantido.
+- **Pós-MVP:** não entregue como funcionalidade atual.
+- **Verificação externa:** depende de infraestrutura ou aceite que o checkout não comprova.
 
-# 2. Requisitos Funcionais
+Regras completas pertencem a [03-Regras-de-Negocio.md](03-Regras-de-Negocio.md); evidências e limitações de validação, a [10-Testes.md](10-Testes.md).
 
-## 2.1 Conta e autenticação
+## Conta e perfil
 
-| ID | Requisito | Prioridade |
+| ID | Requisito e critério verificável | Situação |
 |---|---|---|
-| RF-001 | O sistema deve permitir o cadastro de usuários. | Essencial |
-| RF-002 | O sistema deve permitir autenticação por credenciais válidas. | Essencial |
-| RF-003 | O sistema deve permitir logout. | Essencial |
-| RF-004 | O sistema deve permitir recuperação de acesso por mecanismo suportado pelo provedor de autenticação. | Importante |
-| RF-005 | O usuário autenticado deve poder visualizar e editar dados permitidos do próprio perfil. | Essencial |
-| RF-006 | O usuário deve poder solicitar a exclusão da própria conta. | Essencial |
-| RF-007 | Ao excluir a conta, o usuário deve poder escolher entre excluir suas obras ou permitir que elas permaneçam disponíveis no sistema. | Essencial |
+| RF-001 | Cadastrar conta com dados válidos e obter resultado com usuário/sessão ou orientação de confirmação. | Implementado |
+| RF-002 | Entrar com credenciais válidas e abrir a Biblioteca; credenciais inválidas exibem erro. | Implementado |
+| RF-003 | Sair pelo menu e limpar dados privados da interface sem apagar a conta. | Implementado |
+| RF-004 | Solicitar recuperação e redefinir senha com sessão aceita; Mock informa simulação sem envio. | Implementado; entrega real de e-mail exige verificação externa |
+| RF-005 | Consultar e editar nome de exibição, username e bio do próprio perfil. | Implementado |
+| RF-006 | Solicitar exclusão definitiva da conta. | Pós-MVP; sem interface/service/fluxo administrativo |
+| RF-007 | Escolher excluir ou preservar obras ao excluir a conta. | Pós-MVP; decisão histórica preservada no ADR-016 |
+| RF-008 | Enviar/remover avatar e visualizar a imagem no Perfil. | Parcial; service existe, interface usa símbolo estático |
 
-## 2.2 Livros
+## Obras
 
-| ID | Requisito | Prioridade |
+| ID | Requisito e critério verificável | Situação |
 |---|---|---|
-| RF-010 | O usuário autenticado deve poder criar um livro informando, no mínimo, título e entre 1 e 3 gêneros permitidos. | Essencial |
-| RF-011 | O autor deve poder editar seu próprio livro. | Essencial |
-| RF-012 | O autor deve poder excluir seu próprio livro. | Essencial |
-| RF-013 | O autor deve poder manter um livro como rascunho sem descrição, capa ou capítulos, desde que os requisitos estruturais mínimos de criação permaneçam válidos. | Essencial |
-| RF-014 | O autor deve poder publicar um livro quando os critérios mínimos de publicação forem atendidos. | Essencial |
-| RF-015 | O autor deve poder definir título e descrição da obra. | Essencial |
-| RF-016 | O autor deve poder associar uma capa opcional ao livro. | Essencial |
-| RF-017 | O autor deve associar de 1 a 3 gêneros permitidos ao livro desde sua criação. | Essencial |
-| RF-018 | O sistema deve exibir somente obras publicadas nas áreas públicas de descoberta. | Essencial |
-| RF-019 | O sistema deve permitir que o autor visualize suas obras em rascunho. | Essencial |
-| RF-019A | Para ser publicado, um livro deve possuir título, descrição, de 1 a 3 gêneros e pelo menos um capítulo publicado. | Essencial |
-| RF-019B | O sistema deve permitir classificar uma obra como em andamento, concluída ou descontinuada, sem confundir essa classificação com seu estado de rascunho/publicação. | Essencial |
-| RF-019C | Quando uma obra for preservada após a exclusão da conta de seu autor, o sistema deve exibir sua autoria como "Autor desconhecido". | Essencial |
-| RF-019D | Quando uma obra não concluída for preservada após a exclusão da conta de seu autor, o sistema deve marcá-la como descontinuada. | Essencial |
-| RF-019E | O sistema não deve concluir a criação de um livro caso ele permaneça sem título ou sem pelo menos um gênero válido. | Essencial |
+| RF-010 | Criar obra própria com título e seleção válida de gêneros no ateliê. | Implementado |
+| RF-011 | Selecionar e editar uma obra própria; não selecionar obra alheia por URL. | Implementado |
+| RF-012 | Excluir obra própria pela interface, tratando dependências. | Parcial; `deleteBook` existe, sem controle na interface |
+| RF-013 | Manter rascunho sem descrição, capa ou capítulos. | Implementado |
+| RF-014 | Publicar obra elegível pelo painel de publicação. | Implementado |
+| RF-015 | Definir título e descrição. | Implementado |
+| RF-016 | Enviar, substituir e remover capa opcional da obra já salva. | Implementado |
+| RF-017 | Associar gêneros controlados desde a criação. | Implementado |
+| RF-018 | Exibir apenas obras publicadas no catálogo. | Implementado |
+| RF-019 | Listar obras próprias em rascunho na área de autoria. | Implementado |
+| RF-019A | Bloquear publicação sem os critérios da RN-019C. | Implementado |
+| RF-019B | Distinguir andamento narrativo e visibilidade e permitir sua classificação. | Parcial; dados/API existem, sem seletor de andamento na interface |
+| RF-019C | Exibir “Autor desconhecido” para obra preservada após exclusão da conta. | Pós-MVP; fluxo ausente e fallback atual é “Autor não informado” |
+| RF-019D | Descontinuar automaticamente obra não concluída preservada após exclusão da conta. | Pós-MVP; não há automatismo correspondente |
+| RF-019E | Impedir criação persistida de obra sem título ou gêneros válidos. | Implementado; integridade do banco descrita em 05 |
+| RF-019F | Retirar obra própria do catálogo voltando-a a rascunho. | Implementado |
 
-## 2.3 Capítulos
+## Capítulos
 
-| ID | Requisito | Prioridade |
+| ID | Requisito e critério verificável | Situação |
 |---|---|---|
-| RF-020 | O autor deve poder criar capítulos em seus próprios livros. | Essencial |
-| RF-021 | O autor deve poder editar capítulos próprios. | Essencial |
-| RF-022 | O autor deve poder excluir capítulos próprios. No MVP, excluir um capítulo intermediário também deve excluir todos os capítulos posteriores da mesma obra. | Essencial |
-| RF-023 | O autor deve poder salvar capítulos como rascunho mesmo que ainda não atendam aos critérios mínimos de publicação. | Essencial |
-| RF-024 | O autor deve poder publicar capítulos que atendam aos critérios mínimos de publicação. | Essencial |
-| RF-025 | O sistema deve ordenar capítulos de uma obra por uma posição inteira, positiva, contínua e determinística. | Essencial |
-| RF-026 | Capítulos não publicados não devem ser exibidos a outros usuários. | Essencial |
-| RF-027 | Para ser publicado, um capítulo deve possuir título e conteúdo entre 500 e 15.000 caracteres, considerando espaços. | Essencial |
-| RF-028 | Todo novo capítulo deve ser acrescentado ao final da sequência existente da obra. | Essencial |
-| RF-029 | O MVP não deve permitir reordenar capítulos nem inserir um novo capítulo entre capítulos já existentes. | Essencial |
+| RF-020 | Criar capítulo de uma obra própria pelo editor. | Implementado |
+| RF-021 | Editar título e conteúdo de capítulo próprio. | Implementado |
+| RF-022 | Excluir capítulo e todos os posteriores pela interface. | Parcial; `deleteChapter` existe, sem controle na interface |
+| RF-023 | Salvar capítulo em rascunho abaixo do mínimo de publicação. | Implementado; a interface exige título e conteúdo não vazios, embora o adapter aceite incompletos |
+| RF-024 | Publicar capítulo elegível no ateliê da obra. | Implementado |
+| RF-025 | Manter posição inteira positiva, única e crescente na sequência da obra. | Implementado; não há reordenação livre |
+| RF-026 | Ocultar rascunhos de terceiros e conteúdo de obra não publicada. | Implementado |
+| RF-027 | Exigir os critérios da RN-026 para publicação e edição de capítulo publicado. | Implementado |
+| RF-028 | Acrescentar novo capítulo ao final. | Implementado |
+| RF-029 | Impedir escolha manual de posição, inserção intermediária e reordenação. | Implementado |
+| RF-029A | Retirar capítulo de publicação pelo ateliê. | Implementado; diferença Mock/Supabase documentada no contrato |
 
-## 2.4 Descoberta e leitura
+## Descoberta e coleção pessoal
 
-| ID | Requisito | Prioridade |
+| ID | Requisito e critério verificável | Situação |
 |---|---|---|
-| RF-030 | A página inicial deve apresentar livros publicados. | Essencial |
-| RF-031 | Visitantes autenticados ou não autenticados devem poder abrir a página de detalhes de um livro publicado. | Essencial |
-| RF-032 | A página pública do livro deve listar seus capítulos publicados. | Essencial |
-| RF-033 | Visitantes autenticados ou não autenticados devem poder abrir um capítulo publicado para leitura. | Essencial |
-| RF-034 | O leitor deve poder navegar para o capítulo anterior e para o próximo quando existirem. | Essencial |
-| RF-035 | O sistema deve permitir busca básica por livro. | Essencial |
-| RF-036 | O sistema deve permitir filtrar ou navegar por gênero. | Essencial |
-| RF-037 | O usuário autenticado deve poder adicionar e remover livros da biblioteca/favoritos. | Essencial |
+| RF-030 | Apresentar obras publicadas na página inicial. | Implementado |
+| RF-031 | Abrir detalhes de obra publicada sem exigir login. | Implementado |
+| RF-032 | Listar capítulos publicados nos detalhes. | Implementado |
+| RF-033 | Ler capítulo publicado de obra publicada como visitante. | Implementado |
+| RF-034 | Navegar para capítulo anterior/próximo publicado quando existir. | Implementado |
+| RF-035 | Buscar obra por texto no catálogo. | Pós-MVP; sem interface/service de busca |
+| RF-036 | Filtrar ou navegar pelo catálogo por gênero. | Pós-MVP; associação de gêneros não equivale a filtro |
+| RF-037 | Adicionar/remover favorito e consultar biblioteca da conta. | Implementado; relações indisponíveis podem ser omitidas pela interface |
 
-## 2.5 Recursos sociais e continuidade
+## Recursos futuros
 
-| ID | Requisito | Prioridade |
+| ID | Requisito | Situação |
 |---|---|---|
-| RF-040 | O sistema poderá registrar histórico de leitura. | Evolutivo |
-| RF-041 | O sistema poderá permitir continuar uma leitura a partir do último capítulo acessado. | Evolutivo |
-| RF-042 | O sistema poderá permitir curtidas ou avaliações. | Evolutivo |
-| RF-043 | O sistema poderá permitir comentários. | Evolutivo |
-| RF-044 | O sistema poderá exibir página pública de autor. | Importante |
-| RF-045 | O sistema poderá registrar seguidores. | Evolutivo |
-| RF-046 | O sistema poderá apresentar ranking de popularidade. | Evolutivo |
-| RF-047 | O sistema poderá recomendar obras com base em sinais de interesse. | Evolutivo |
+| RF-040 | Histórico de leitura. | Pós-MVP |
+| RF-041 | Continuar do último capítulo/ponto lido. | Pós-MVP |
+| RF-042 | Curtidas ou avaliações. | Pós-MVP |
+| RF-043 | Comentários. | Pós-MVP |
+| RF-044 | Página pública dedicada de autor. | Parcial; consultas de perfil/autoria existem, página não |
+| RF-045 | Seguidores. | Pós-MVP |
+| RF-046 | Ranking de popularidade. | Pós-MVP |
+| RF-047 | Recomendações por interesse. | Pós-MVP |
+| RF-050 | Leitura offline. | Pós-MVP |
+| RF-051 | Instalação como PWA. | Pós-MVP |
+| RF-052 | Exportação de conteúdo. | Pós-MVP |
 
-## 2.6 Offline e PWA
+## Requisitos não funcionais
 
-| ID | Requisito | Prioridade |
+| ID | Critério verificável | Situação |
 |---|---|---|
-| RF-050 | O sistema poderá permitir disponibilizar capítulos selecionados para leitura offline. | Evolutivo |
-| RF-051 | A aplicação poderá ser instalável como PWA. | Evolutivo |
-| RF-052 | O sistema poderá permitir exportação de conteúdo em formato adequado, respeitando autorização e regras futuras do produto. | Evolutivo |
+| RNF-001 | Frontend em HTML, CSS e JavaScript sem framework. | Implementado; restrição acadêmica |
+| RNF-002 | Código mantido em Git. | Implementado |
+| RNF-003 | Repositório identificado no GitHub. | Implementado no contexto do projeto |
+| RNF-004 | Hospedagem na Vercel. | Decisão vigente; configuração/estado remoto exigem verificação externa |
+| RNF-005 | Versões no formato `MAJOR.MINOR.PATCH`. | Convenção vigente; identificação das versões em 09 |
+| RNF-010 | Layout responsivo com base adequada a telas pequenas. | Implementado; evidências delimitadas em 10 |
+| RNF-011 | Navegação principal utilizável em tela pequena. | Parcial; menu existe, mas quatro páginas de Auth não possuem o container global esperado pelo teste |
+| RNF-012 | Leitor com coluna limitada e tipografia própria. | Implementado |
+| RNF-013 | Componentes equivalentes compartilham padrões visuais. | Parcial; cards/helpers compartilhados, composições e cabeçalhos não uniformes |
+| RNF-014 | Estados de carga, erro, sucesso e vazio quando aplicáveis. | Implementado nos fluxos principais |
+| RNF-015 | Identificar autoria removida e descontinuação automática após exclusão da conta. | Pós-MVP; depende do fluxo de exclusão |
+| RNF-020 | Escrita/personalização autenticada e leitura publicada anônima. | Implementado em código e políticas versionadas |
+| RNF-021 | Autorização independente dos botões da interface. | Implementado em adapters/RLS/policies |
+| RNF-022 | RLS nas tabelas expostas. | Implementado nas migrations; aplicação remota não certificada nesta auditoria |
+| RNF-023 | Ausência de credenciais privilegiadas no frontend. | Cliente usa configuração pública; não houve auditoria de todo o histórico Git |
+| RNF-024 | Renderizar conteúdo de usuário como texto e reduzir XSS. | Implementado nos fluxos inspecionados; não equivale a auditoria exaustiva |
+| RNF-025 | Restringir tipo/tamanho e propriedade dos uploads. | Implementado no adapter Supabase e nas políticas de Storage versionadas |
+| RNF-026 | Excluir identidade de Auth por mecanismo administrativo protegido. | Pós-MVP; mecanismo não implementado |
+| RNF-030 | PostgreSQL como persistência do backend real. | Implementado |
+| RNF-031 | Chaves estrangeiras nas relações essenciais. | Implementado |
+| RNF-032 | Validar UX e repetir garantias críticas na persistência. | Implementado no backend; Mock possui limitações próprias |
+| RNF-033 | Índices justificados por consultas reais. | Parcial; há índices de PK/UNIQUE, sem índices adicionais explícitos |
+| RNF-034 | Modelo admite obra com autoria nula após remoção de perfil. | Implementado na FK; não entrega exclusão de conta |
+| RNF-035 | Proteger vínculos, posição e publicação. | Implementado nas migrations; diferenças do Mock em 14 |
+| RNF-040 | Organizar JavaScript por responsabilidade. | Implementado |
+| RNF-041 | Reutilizar componentes e reduzir duplicações. | Implementado parcialmente; não implica ausência total de duplicação |
+| RNF-042 | Registrar decisões arquiteturais. | Implementado em 13 |
+| RNF-043 | Atualizar documentação ao mudar escopo. | Processo permanente; esta auditoria sincroniza a referência atual |
+| RNF-050 | Compatibilidade com Chromium, Firefox e Safari. | Parcial; há evidência histórica de Chrome, sem certificação completa dos demais |
+| RNF-051 | Layout funcional em mobile, tablet e desktop. | Implementado com validação parcial registrada em 10 |
+| RNF-052 | Fluxos principais independentes de hover. | Implementado com links, botões e formulários |
 
----
+## Alteração de requisitos
 
-# 3. Requisitos Não Funcionais
-
-## 3.1 Tecnologia e restrições acadêmicas
-
-| ID | Requisito | Prioridade |
-|---|---|---|
-| RNF-001 | O frontend deve ser desenvolvido com HTML, CSS e JavaScript puro enquanto essa for a restrição acadêmica vigente. | Obrigatório |
-| RNF-002 | O código deve ser versionado com Git. | Obrigatório |
-| RNF-003 | O repositório deve ser hospedado no GitHub. | Obrigatório |
-| RNF-004 | A aplicação deve ser hospedada na Vercel. | Obrigatório |
-| RNF-005 | As versões devem seguir `MAJOR.MINOR.PATCH`. | Obrigatório |
-
-## 3.2 Interface e experiência
-
-| ID | Requisito | Prioridade |
-|---|---|---|
-| RNF-010 | A interface deve seguir abordagem mobile first. | Essencial |
-| RNF-011 | A navegação principal deve ser utilizável em telas pequenas. | Essencial |
-| RNF-012 | O leitor deve priorizar legibilidade e conforto visual. | Essencial |
-| RNF-013 | Componentes equivalentes devem manter padrões visuais consistentes. | Essencial |
-| RNF-014 | A aplicação deve possuir estados visuais para carregamento, erro, sucesso e ausência de conteúdo quando aplicável. | Importante |
-| RNF-015 | A interface deve informar de forma clara quando a autoria de uma obra preservada não estiver mais vinculada a uma conta e quando a obra estiver descontinuada. | Essencial |
-
-## 3.3 Segurança
-
-| ID | Requisito | Prioridade |
-|---|---|---|
-| RNF-020 | Operações restritas devem exigir usuário autenticado. A leitura de conteúdo publicado não deve exigir autenticação. | Essencial |
-| RNF-021 | A autorização não pode depender apenas de controles do frontend. | Essencial |
-| RNF-022 | Tabelas expostas devem possuir políticas RLS adequadas para leitura pública e operações autenticadas. | Essencial |
-| RNF-023 | Credenciais privilegiadas não devem ser incorporadas ao código público do frontend. | Essencial |
-| RNF-024 | Entradas de usuário devem ser tratadas de forma a reduzir risco de injeção de conteúdo e XSS. | Essencial |
-| RNF-025 | O upload de arquivos deve restringir formatos e limites definidos pelo projeto. | Importante |
-| RNF-026 | A exclusão definitiva da conta de autenticação e operações que exijam privilégio administrativo devem ocorrer por mecanismo server-side protegido. | Essencial |
-
-## 3.4 Dados
-
-| ID | Requisito | Prioridade |
-|---|---|---|
-| RNF-030 | O sistema deve usar PostgreSQL como banco relacional. | Arquitetural |
-| RNF-031 | Relações essenciais devem usar chaves estrangeiras quando aplicável. | Essencial |
-| RNF-032 | Validações relevantes devem existir no frontend para experiência do usuário e ser novamente garantidas no banco de dados por constraints, RLS, triggers ou mecanismos equivalentes quando aplicável. | Essencial |
-| RNF-033 | Consultas frequentes devem poder receber índices conforme necessidade real. | Importante |
-| RNF-034 | O modelo de dados deve permitir preservar uma obra publicada após a remoção do perfil de seu autor sem manter vínculo obrigatório com a conta excluída. | Essencial |
-| RNF-035 | O banco deve impedir estados estruturais inválidos que possam comprometer relações, ordenação ou publicação de conteúdo. | Essencial |
-
-## 3.5 Manutenção
-
-| ID | Requisito | Prioridade |
-|---|---|---|
-| RNF-040 | O JavaScript deve ser organizado em módulos por responsabilidade. | Essencial |
-| RNF-041 | Código reutilizável não deve ser duplicado desnecessariamente entre páginas. | Importante |
-| RNF-042 | Decisões arquiteturais relevantes devem ser registradas. | Importante |
-| RNF-043 | Alterações de escopo devem atualizar a documentação relacionada. | Importante |
-
-## 3.6 Compatibilidade
-
-| ID | Requisito | Prioridade |
-|---|---|---|
-| RNF-050 | A aplicação deve funcionar em navegadores modernos baseados em Chromium, Firefox e Safari, dentro do escopo de testes do grupo. | Importante |
-| RNF-051 | A aplicação deve possuir layout funcional em mobile, tablet e desktop. | Essencial |
-| RNF-052 | Funcionalidades principais não devem depender exclusivamente de interação por hover. | Essencial |
-
----
-
-# 4. Critérios para alteração de requisitos
-
-Um requisito poderá ser alterado quando:
-
-1. houver decisão do grupo;
-2. a alteração não violar exigência do professor;
-3. o impacto em código, banco, segurança e UX for analisado;
-4. a documentação relacionada for atualizada;
-5. mudanças relevantes forem registradas em `13-Decisoes-Tecnicas.md`.
-
-Requisitos obrigatórios da disciplina não podem ser removidos pelo grupo.
+Preservar os IDs existentes; adicionar novos IDs sem reutilizar os antigos. Mudanças de escopo devem indicar situação, critério de aceite e documentos afetados. Restrições acadêmicas não são removidas por ausência de implementação. Uma decisão aceita pode continuar pendente: [13-Decisoes-Tecnicas.md](13-Decisoes-Tecnicas.md).

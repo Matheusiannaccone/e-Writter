@@ -1,164 +1,85 @@
 # 05 — Modelo de Dados
 
-## 1. Status
+## Referência e limites
 
-**Modelo conceitual do MVP aprovado para implementação.**
+O schema abaixo deriva das 12 migrations em [supabase/migrations](../supabase/migrations/), aplicadas em ordem de nome, de `20260825123210_create_profiles.sql` a `20261025210000_grant_mvp_table_privileges.sql`. A auditoria descreve o SQL versionado; não executou migrations nem certificou o estado do banco remoto.
 
-Este documento é a referência do schema persistido e das relações do banco.
+Modelos em camelCase pertencem a [14-Contrato-Front-Services.md](14-Contrato-Front-Services.md); permissões/RLS, a [11-Seguranca.md](11-Seguranca.md).
 
-Regras de negócio: `03-Regras-de-Negocio.md`.  
-RLS e Storage: `11-Seguranca.md`.  
-Objetos entregues ao frontend: `14-Contrato-Front-Supabase.md`.
+## Relações
 
-## 2. Princípios
-
-- PostgreSQL como banco principal;
-- UUIDs para entidades dinâmicas;
-- chave numérica para gêneros;
-- FKs para relações;
-- constraints para integridade;
-- tabelas associativas para N:N;
-- timestamps para auditoria básica;
-- rascunhos podem ser incompletos, mas não estruturalmente inválidos.
-
-## 3. Modelo conceitual
-
-```text
-auth.users
-   │ 1:1
-   ▼
-profiles
-   │ 1:N
-   ▼
-books
-   │ 1:N
-   ▼
-chapters
-
-books N:N genres
-     via book_genres
-
-profiles N:N books
-         via favorites
+```mermaid
+erDiagram
+  AUTH_USERS ||--|| PROFILES : origina
+  PROFILES o|--o{ BOOKS : autoria
+  BOOKS ||--o{ CHAPTERS : contem
+  BOOKS ||--|{ BOOK_GENRES : classifica
+  GENRES ||--o{ BOOK_GENRES : associa
+  PROFILES ||--o{ FAVORITES : salva
+  BOOKS ||--o{ FAVORITES : recebe
 ```
 
-Após preservação de obras na exclusão da conta, `books.author_id` pode ficar nulo.
+O trigger de cadastro mantém a relação esperada entre Auth e perfil no fluxo normal; a FK, isoladamente, só exige que um perfil tenha uma conta. Uma obra admite zero ou um autor vinculado. Deve manter de uma a três relações de gênero nas operações previstas.
 
-## 4. Tabelas do MVP
+## Tabelas e campos
 
-### 4.1 `profiles`
+### `profiles`
 
-| Campo | Tipo | Regra |
+| Campo | Tipo | Restrição/default |
 |---|---|---|
-| `id` | `uuid` | PK e FK → `auth.users.id` |
-| `username` | `text` | `NOT NULL`, `UNIQUE` |
-| `display_name` | `text` | `NOT NULL` |
-| `bio` | `text` | opcional |
-| `avatar_path` | `text` | opcional |
-| `created_at` | `timestamptz` | `NOT NULL`, default atual |
-| `updated_at` | `timestamptz` | `NOT NULL`, atualizado em alterações |
+| `id` | `uuid` | PK e FK para `auth.users(id)` |
+| `username` | `text` | Obrigatório, único, 3–30 caracteres, minúsculo, aparado e padrão `[a-z0-9._]+` |
+| `display_name` | `text` | Obrigatório, 1–60 caracteres e aparado |
+| `bio` | `text` | Nulo ou até 500 caracteres |
+| `avatar_path` | `text` | Opcional, sem validação de formato na coluna |
+| `created_at` | `timestamptz` | Obrigatório, `now()` |
+| `updated_at` | `timestamptz` | Obrigatório, `now()`, atualizado por trigger |
 
-`profiles` contém apenas dados aplicacionais públicos no MVP. Dados privados de autenticação não pertencem a essa tabela.
+São dados de perfil públicos no modelo atual; e-mail, senha e sessão não são colunas desta tabela.
 
-A criação do registro de `profiles` será automática por trigger após a criação correspondente em `auth.users`.
+### `books`
 
-No cadastro, `username` e `display_name` devem ser fornecidos junto aos dados necessários ao Supabase Auth e disponibilizados ao trigger por metadata do usuário.
-
-A aplicação cliente não deve executar um `INSERT` separado em `profiles` como etapa normal do cadastro.
-
-Invariante do fluxo:
-
-```text
-nova identidade utilizada pela aplicação
-→ deve possuir profile correspondente
-```
-
-A implementação do trigger deve impedir que o cadastro conclua de forma inconsistente quando os dados obrigatórios do profile não puderem ser criados.
-
-### 4.2 `books`
-
-| Campo | Tipo | Regra |
+| Campo | Tipo | Restrição/default |
 |---|---|---|
-| `id` | `uuid` | PK |
-| `author_id` | `uuid` | FK → `profiles.id`; admite `NULL` após preservação |
-| `title` | `text` | `NOT NULL` |
-| `description` | `text` | opcional no rascunho |
-| `cover_path` | `text` | opcional |
-| `status` | `text` | `NOT NULL`, default `draft`, `CHECK` |
-| `publication_status` | `text` | `NOT NULL`, default `ongoing`, `CHECK` |
-| `language` | `text` | `NOT NULL`, default `pt-BR` |
-| `created_at` | `timestamptz` | `NOT NULL`, default atual |
-| `updated_at` | `timestamptz` | `NOT NULL`, atualizado |
-| `published_at` | `timestamptz` | nulo até publicação |
+| `id` | `uuid` | PK, `gen_random_uuid()` |
+| `author_id` | `uuid` | FK anulável para `profiles(id)` |
+| `title` | `text` | Obrigatório e não vazio após `btrim` |
+| `description` | `text` | Opcional no rascunho |
+| `cover_path` | `text` | Opcional, sem validação de formato na coluna |
+| `status` | `text` | Obrigatório, `draft`; CHECK em `draft`/`published` |
+| `publication_status` | `text` | Obrigatório, `ongoing`; CHECK em `ongoing`/`completed`/`discontinued` |
+| `language` | `text` | Obrigatório, `pt-BR`; sem CHECK de domínio ou texto não vazio |
+| `published_at` | `timestamptz` | Nulo em rascunho, mantido por trigger |
+| `created_at` | `timestamptz` | Obrigatório, `now()` |
+| `updated_at` | `timestamptz` | Obrigatório, `now()`, atualizado por trigger |
 
-`status`:
+Não há limite de 180 caracteres no banco para título; esse limite pertence ao campo do ateliê. Autoria anulável permite preservar uma obra na remoção do perfil, mas não implementa o fluxo de exclusão de conta nem descontinuação automática.
 
-```sql
-CHECK (status IN ('draft', 'published'))
-```
+### `chapters`
 
-`publication_status`:
-
-```sql
-CHECK (
-  publication_status IN (
-    'ongoing',
-    'completed',
-    'discontinued'
-  )
-)
-```
-
-`language`:
-
-```text
-text NOT NULL DEFAULT 'pt-BR'
-```
-
-Sem `CHECK` fechado para idiomas no MVP.
-
-Requisitos mínimos de criação e publicação: `03-Regras-de-Negocio.md`, seção **Livros**.
-
-### 4.3 `chapters`
-
-| Campo | Tipo | Regra |
+| Campo | Tipo | Restrição/default |
 |---|---|---|
-| `id` | `uuid` | PK |
-| `book_id` | `uuid` | FK → `books.id`, `NOT NULL` |
-| `title` | `text` | pode estar incompleto em rascunho |
-| `content` | `text` | pode estar incompleto em rascunho |
-| `position` | `integer` | `NOT NULL`, atribuída pelo banco |
-| `status` | `text` | `NOT NULL`, default `draft`, `CHECK` |
-| `created_at` | `timestamptz` | `NOT NULL`, default atual |
-| `updated_at` | `timestamptz` | `NOT NULL`, atualizado |
-| `published_at` | `timestamptz` | nulo até publicação |
+| `id` | `uuid` | PK, `gen_random_uuid()` |
+| `book_id` | `uuid` | Obrigatório, FK para `books(id)` |
+| `title` | `text` | Anulável em rascunho |
+| `content` | `text` | Anulável em rascunho |
+| `status` | `text` | Obrigatório, `draft`; CHECK em `draft`/`published` |
+| `position` | `integer` | Obrigatório, positivo e único por obra; atribuído por trigger |
+| `published_at` | `timestamptz` | Nulo em rascunho, mantido por trigger |
+| `created_at` | `timestamptz` | Obrigatório, `now()` |
+| `updated_at` | `timestamptz` | Obrigatório, `now()`, atualizado por trigger |
 
-Constraints essenciais:
+A constraint `uq_chapters_book_position` garante unicidade, não continuidade por si só. A sequência decorre da atribuição ao final, da imutabilidade de posição/vínculo e da exclusão da cauda. Publicação não exige que as posições anteriores estejam publicadas.
 
-```text
-CHECK(position > 0)
-UNIQUE(book_id, position)
-CHECK(status IN ('draft', 'published'))
-```
+### `genres`
 
-A posição é atribuída pelo banco:
-
-```text
-primeiro capítulo → 1
-demais → MAX(position) + 1
-```
-
-Regras de sequência, exclusão e publicação: `03-Regras-de-Negocio.md`, seção **Capítulos**.
-
-### 4.4 `genres`
-
-| Campo | Tipo | Regra |
+| Campo | Tipo | Restrição/default |
 |---|---|---|
-| `id` | `integer` | PK |
-| `name` | `text` | `NOT NULL`, `UNIQUE` |
-| `slug` | `text` | `NOT NULL`, `UNIQUE` |
+| `id` | `integer` | PK, `GENERATED ALWAYS AS IDENTITY` |
+| `name` | `text` | Obrigatório e único |
+| `slug` | `text` | Obrigatório e único |
 
-Lista inicial:
+Carga inicial na migration `20260912222013_create_genres.sql`:
 
 | Nome | Slug |
 |---|---|
@@ -175,175 +96,74 @@ Lista inicial:
 | Ficção Histórica | `ficcao-historica` |
 | Fanfic | `fanfic` |
 
-### 4.5 `book_genres`
+Os gêneros são populados pela migration, não por um seed separado.
 
-| Campo | Tipo | Regra |
+### `book_genres`
+
+| Campo | Tipo | Restrição |
 |---|---|---|
-| `book_id` | `uuid` | FK → `books.id` |
-| `genre_id` | `integer` | FK → `genres.id` |
+| `book_id` | `uuid` | Obrigatório, FK para `books(id)` |
+| `genre_id` | `integer` | Obrigatório, FK para `genres(id)` |
 
-```text
-PRIMARY KEY (book_id, genre_id)
-```
+PK composta `pk_book_genres(book_id, genre_id)` impede repetição. A quantidade de relações é protegida por triggers e pelas operações de criação/substituição descritas abaixo.
 
-Cada livro deve manter entre 1 e 3 gêneros.
+### `favorites`
 
-Uma constraint por linha não garante a quantidade total; a migration deve utilizar mecanismo adequado para preservar essa integridade.
-
-### 4.6 `favorites`
-
-| Campo | Tipo | Regra |
+| Campo | Tipo | Restrição/default |
 |---|---|---|
-| `user_id` | `uuid` | FK → `profiles.id` |
-| `book_id` | `uuid` | FK → `books.id` |
-| `created_at` | `timestamptz` | `NOT NULL`, default atual |
+| `user_id` | `uuid` | Obrigatório, FK para `profiles(id)` |
+| `book_id` | `uuid` | Obrigatório, FK para `books(id)` |
+| `created_at` | `timestamptz` | Obrigatório, `now()` |
 
-```text
-PRIMARY KEY (user_id, book_id)
-```
+PK composta `pk_favorites(user_id, book_id)` impede duplicidade. Despublicar obra não remove essa relação.
 
-Isso impede duplicação do mesmo favorito.
+## Chaves estrangeiras e exclusões
 
-Privacidade e autorização: `11-Seguranca.md`, seção **Matriz de Autorização RLS**.
+| FK | Ação na exclusão da origem referenciada |
+|---|---|
+| `profiles.id → auth.users.id` | `CASCADE`: remove o perfil |
+| `books.author_id → profiles.id` | `SET NULL`: conserva a obra com autoria nula |
+| `chapters.book_id → books.id` | `CASCADE` |
+| `book_genres.book_id → books.id` | `CASCADE` |
+| `book_genres.genre_id → genres.id` | `RESTRICT`: gênero utilizado não pode ser removido |
+| `favorites.user_id → profiles.id` | `CASCADE` |
+| `favorites.book_id → books.id` | `CASCADE` |
 
-## 5. Relações
+Arquivos do Storage não participam dessas FKs. Excluir uma obra no banco não remove automaticamente o arquivo de capa.
 
-| Origem | Relação | Destino |
-|---|---|---|
-| `auth.users` | 1:1 | `profiles` |
-| `profiles` | 1:N | `books` enquanto houver autoria ativa |
-| `books` | 1:N | `chapters` |
-| `books` | N:N | `genres` via `book_genres` |
-| `profiles` | N:N | `books` via `favorites` |
+## Funções e triggers vigentes
 
-## 6. Exclusões e chaves estrangeiras
+| Função | Acionamento/finalidade |
+|---|---|
+| `handle_new_user` | Trigger `on_auth_user_created`, após inserir em `auth.users`; valida metadata `username`/`display_name` e cria o perfil na mesma transação. |
+| `handle_updated_user` | Triggers `on_profiles_updated`, `on_books_updated` e `on_chapters_updated`; atualiza `updated_at` antes de UPDATE. |
+| `handle_book_publication` | Trigger `on_book_publication_status_changed`; define a data ao publicar, preserva enquanto publicado e limpa em draft. |
+| `assign_chapter_position` | Trigger `on_chapter_created_assign_position`; lock transacional por obra e atribuição de `MAX(position) + 1`. |
+| `prevent_chapter_reorder` | Trigger `on_chapter_updated_prevent_reorder`; impede alterar `position` e `book_id`. |
+| `handle_chapter_publication` | Trigger `on_chapter_publication_status_changed`; valida título/conteúdo publicado e mantém a data de publicação. |
+| `delete_later_chapters` | Trigger `on_chapter_deleted_remove_later`; remove os posteriores, evitando recursão e interferência na cascata de exclusão da obra. |
+| `validate_book_genre_count` | Triggers BEFORE de INSERT/DELETE em `book_genres`; limita a contagem e protege o último gênero, exceto na exclusão da obra. |
+| `ensure_book_has_genres` | Constraint trigger `book_requires_genres`, após INSERT de obra, adiada até o fim da transação. |
+| `validate_book_publication` | Trigger `on_book_validate_publication`; valida qualquer INSERT/UPDATE que deixe obra publicada. |
+| `validate_published_book_chapters` | Trigger de DELETE de capítulo e constraint trigger adiada para mudança de status; rejeita obra publicada sem capítulo publicado. |
 
-### `profiles → books`
+Os critérios funcionais estão na RN-019C e RN-026 de [03-Regras-de-Negocio.md](03-Regras-de-Negocio.md). No banco, o conteúdo é medido por `char_length`; o contrato registra a diferença para `.length` do JavaScript.
 
-```text
-books.author_id → profiles.id
-ON DELETE SET NULL
-```
+## Operações transacionais
 
-Não usar `CASCADE`, pois obras podem ser preservadas.
+| RPC | Resultado e integridade |
+|---|---|
+| `create_book(p_title, p_description, p_genre_ids)` | Retorna UUID; autentica, valida IDs distintos/existentes e cria rascunho e gêneros no mesmo comando transacional. |
+| `set_book_genres(p_book_id, p_genre_ids)` | Retorna void; valida seleção e substitui relações sob lock, atualizando pares quando possível para evitar contagem intermediária inválida. |
+| `unpublish_book(p_book_id)` | Retorna void; verifica obra própria publicada e bloqueia a linha antes de retornar a draft. |
+| `unpublish_chapter(p_chapter_id)` | Retorna void; bloqueia obra/alvo, despublica o alvo e a cauda publicada e despublica a obra se nenhum capítulo publicado restar. |
 
-### Relações pessoais
+A migration `20261020001000_harden_unpublish_integrity.sql` substitui a versão inicial que usava configuração de sessão. O estado final passa a ser avaliado por constraint trigger adiada; o bypass anterior não integra a versão final. O trigger de DELETE permanece imediato.
 
-```text
-favorites.user_id → profiles.id
-ON DELETE CASCADE
-```
+Autorização das RPCs e privilégios elevados são detalhados exclusivamente em [11-Seguranca.md](11-Seguranca.md).
 
-### Dependências de livro
+## Índices e extensão do modelo
 
-```text
-chapters.book_id → books.id
-ON DELETE CASCADE
+As migrations criam índices por PK, UNIQUE de username/nome/slug e unicidade da posição por obra. Não há `CREATE INDEX` adicional explícito. Índices propostos em versões antigas da documentação não devem ser interpretados como criados.
 
-book_genres.book_id → books.id
-ON DELETE CASCADE
-
-favorites.book_id → books.id
-ON DELETE CASCADE
-```
-
-A remoção de arquivos do Storage não é resolvida por FK e deve ser tratada pelo fluxo correspondente.
-
-Regras funcionais de exclusão: `03-Regras-de-Negocio.md`, seções **Capítulos** e **Exclusão de conta e conteúdo**.
-
-## 7. Integridade de publicação
-
-Critérios de publicação pertencem às regras de negócio e estão em `03-Regras-de-Negocio.md`.
-
-O banco deve impedir transições inválidas conforme a estratégia de segurança definida em `11-Seguranca.md`.
-
-## 8. Índices preliminares
-
-Candidatos:
-
-- `books(author_id)`;
-- `books(status, published_at)`;
-- `books(publication_status)`;
-- `chapters(book_id, position)`;
-- `favorites(user_id)`;
-- `book_genres(genre_id, book_id)`.
-
-Criar somente índices justificados por consultas reais.
-
-## 9. Busca
-
-A busca inicial pode considerar:
-
-- título;
-- autor, quando houver;
-- gênero.
-
-Full Text Search e ranking por relevância serão avaliados quando a busca real exigir.
-
-## 10. Integridade resumida
-
-```text
-profiles.id → PK/FK auth.users.id
-profiles.username → UNIQUE
-profiles criado automaticamente por trigger de auth.users
-
-genres.id → integer PK
-genres.name → UNIQUE
-genres.slug → UNIQUE
-
-books.title → NOT NULL
-books.status → CHECK
-books.publication_status → CHECK
-books.language → DEFAULT 'pt-BR'
-
-chapters.position > 0
-UNIQUE(book_id, position)
-
-book_genres → PK composta
-favorites → PK composta
-
-books.author_id → FK anulável após preservação
-chapters.book_id → FK obrigatória
-```
-
-## 11. Contrato com o frontend
-
-Este documento descreve o schema persistido.
-
-A representação utilizada pela aplicação, incluindo `camelCase`, objetos aninhados, `BookSummary`, `BookDetail`, `Profile`, `Chapter`, `Genre`, `Favorite` e assinaturas de services, está em `14-Contrato-Front-Supabase.md`.
-
-## 12. RLS e Storage
-
-Não duplicar policies neste documento.
-
-A fonte oficial é `11-Seguranca.md`, especialmente:
-
-- **Matriz de Autorização RLS**;
-- **Políticas por tabela**;
-- **Storage**;
-- **Uploads**.
-
-## 13. Modelo visual
-
-O DER do MVP deve representar:
-
-- `auth.users`;
-- `profiles`;
-- `books`;
-- `chapters`;
-- `genres`;
-- `book_genres`;
-- `favorites`;
-- PKs/FKs;
-- cardinalidades;
-- nulabilidade de `books.author_id`;
-- ações relevantes de exclusão;
-- constraints principais.
-
-O DER deve permanecer sincronizado com o banco real.
-
-## 14. Evolução
-
-Tabelas para histórico, comentários, avaliações, seguidores e outros recursos só devem ser modeladas quando entrarem efetivamente no escopo.
-
-Roadmap: `08-Backlog-e-Roadmap.md`.
+Não existem tabelas de histórico de leitura, comentários, avaliações ou seguidores. Inclusões futuras exigem requisitos, migração e revisão de segurança próprios.

@@ -1,14 +1,14 @@
 # 13 — Decisões Técnicas (ADR)
 
-## 1. Objetivo
+## Uso deste registro
 
 Registrar **por que** decisões arquiteturais relevantes foram tomadas.
 
-A especificação operacional atual deve permanecer nos documentos especializados. ADRs registram contexto, decisão e consequências sem duplicar toda a especificação.
+A especificação operacional atual permanece nos documentos especializados. Os ADRs anteriores são preservados, inclusive decisões aceitas ainda não entregues. Alternativas são mantidas quando constavam do registro; não se inventa uma discussão histórica para completar campos ausentes. Aceito não significa implementado.
 
 ---
 
-# ADR-001 — Frontend sem framework
+## ADR-001 — Frontend sem framework
 
 **Status:** Aceito
 
@@ -20,7 +20,7 @@ A especificação operacional atual deve permanecer nos documentos especializado
 
 ---
 
-# ADR-002 — PostgreSQL em vez de Firestore
+## ADR-002 — PostgreSQL em vez de Firestore
 
 **Status:** Aceito
 
@@ -34,7 +34,7 @@ A especificação operacional atual deve permanecer nos documentos especializado
 
 ---
 
-# ADR-003 — Supabase como Backend as a Service
+## ADR-003 — Supabase como Backend as a Service
 
 **Status:** Aceito
 
@@ -46,7 +46,7 @@ A especificação operacional atual deve permanecer nos documentos especializado
 
 ---
 
-# ADR-004 — Autorização por RLS
+## ADR-004 — Autorização por RLS
 
 **Status:** Aceito
 
@@ -54,13 +54,13 @@ A especificação operacional atual deve permanecer nos documentos especializado
 
 **Decisão:** RLS será a camada obrigatória de autorização dos dados expostos.
 
-**Referência atual:** `11-Seguranca.md`, seção **Matriz de Autorização RLS**.
+**Referência atual:** [11-Seguranca.md](11-Seguranca.md), seção **Matriz de acesso às tabelas**.
 
 **Consequências:** UI não é barreira de segurança; policies precisam ser testadas com usuários distintos.
 
 ---
 
-# ADR-005 — Vercel para hospedagem
+## ADR-005 — Vercel para hospedagem
 
 **Status:** Aceito / obrigatório
 
@@ -70,17 +70,17 @@ A especificação operacional atual deve permanecer nos documentos especializado
 
 ---
 
-# ADR-006 — Mobile first
+## ADR-006 — Mobile first
 
 **Status:** Aceito
 
 **Decisão:** CSS base parte de mobile e amplia com `min-width`.
 
-**Consequências:** componentes devem ser projetados primeiro para telas pequenas e toque.
+**Consequências:** componentes priorizam telas pequenas e toque. A implementação atual combina media queries de `min-width` e `max-width`; os valores observados estão em [07-Design-System.md](07-Design-System.md).
 
 ---
 
-# ADR-007 — Uma conta para leitor e escritor
+## ADR-007 — Uma conta para leitor e escritor
 
 **Status:** Aceito
 
@@ -92,7 +92,7 @@ A especificação operacional atual deve permanecer nos documentos especializado
 
 ---
 
-# ADR-008 — Editor simples no MVP
+## ADR-008 — Editor simples no MVP
 
 **Status:** Aceito
 
@@ -102,7 +102,7 @@ A especificação operacional atual deve permanecer nos documentos especializado
 
 ---
 
-# ADR-009 — Biblioteca por relação N:N
+## ADR-009 — Biblioteca por relação N:N
 
 **Status:** Aceito
 
@@ -110,11 +110,11 @@ A especificação operacional atual deve permanecer nos documentos especializado
 
 A biblioteca é privada e apenas livros publicados podem ser adicionados.
 
-**Referências:** `05-Modelo-de-Dados.md` e `11-Seguranca.md`.
+**Referências:** [05-Modelo-de-Dados.md](05-Modelo-de-Dados.md) e [11-Seguranca.md](11-Seguranca.md).
 
 ---
 
-# ADR-010 — Offline como evolução
+## ADR-010 — Offline como evolução
 
 **Status:** Aceito
 
@@ -124,17 +124,17 @@ A biblioteca é privada e apenas livros publicados podem ser adicionados.
 
 ---
 
-# ADR-011 — Semantic Versioning
+## ADR-011 — Semantic Versioning
 
 **Status:** Aceito / obrigatório
 
 **Decisão:** usar `MAJOR.MINOR.PATCH`; desenvolvimento em `0.x.y`; primeiro MVP estável em `1.0.0`.
 
-**Referência:** `09-Git-e-Versionamento.md`.
+**Referência:** [09-Git-e-Versionamento.md](09-Git-e-Versionamento.md).
 
 ---
 
-# ADR-012 — Funções server-side somente quando justificadas
+## ADR-012 — Funções server-side somente quando justificadas
 
 **Status:** Aceito
 
@@ -144,7 +144,7 @@ A biblioteca é privada e apenas livros publicados podem ser adicionados.
 
 ---
 
-# ADR-013 — Leitura pública de conteúdo publicado
+## ADR-013 — Leitura pública de conteúdo publicado
 
 **Status:** Aceito
 
@@ -156,33 +156,33 @@ A biblioteca é privada e apenas livros publicados podem ser adicionados.
 
 ---
 
-# ADR-014 — Critérios mínimos de publicação
+## ADR-014 — Critérios mínimos de publicação
 
 **Status:** Aceito
 
 **Decisão:** livros e capítulos possuem critérios mínimos antes da publicação, mas rascunhos podem permanecer incompletos.
 
-**Especificação vigente:** `03-Regras-de-Negocio.md`, RN-019C e RN-026.
+**Especificação vigente:** [03-Regras-de-Negocio.md](03-Regras-de-Negocio.md), RN-019C e RN-026.
 
 **Consequências:** critérios de publicação não devem ser transformados indiscriminadamente em `NOT NULL` permanentes.
 
 ---
 
-# ADR-015 — Lista de gêneros e limite por livro
+## ADR-015 — Lista de gêneros e limite por livro
 
 **Status:** Aceito
 
 **Decisão:** lista controlada de gêneros e limite de 1 a 3 por obra.
 
-**Especificação vigente:** `05-Modelo-de-Dados.md`, seção **genres**.
+**Especificação vigente:** [05-Modelo-de-Dados.md](05-Modelo-de-Dados.md), seção **genres**.
 
 **Consequências:** filtros consistentes; escrita de `genres` não fica disponível a usuários comuns.
 
 ---
 
-# ADR-016 — Exclusão de conta com escolha sobre obras
+## ADR-016 — Exclusão de conta com escolha sobre obras
 
-**Status:** Aceito
+**Status:** Aceito no planejamento; não implementado no MVP.
 
 **Alternativas:** sempre excluir; sempre preservar; permitir escolha.
 
@@ -190,13 +190,13 @@ A biblioteca é privada e apenas livros publicados podem ser adicionados.
 
 Obras preservadas perdem o vínculo com o perfil, exibem **Autor desconhecido** e, se não concluídas, tornam-se `discontinued`.
 
-**Referências:** `03-Regras-de-Negocio.md` e `05-Modelo-de-Dados.md`.
+**Referências:** [03-Regras-de-Negocio.md](03-Regras-de-Negocio.md) e [05-Modelo-de-Dados.md](05-Modelo-de-Dados.md).
 
-**Consequências:** `books.author_id` admite `NULL`; relação com profile usa estratégia compatível com preservação.
+**Consequências:** `books.author_id` admite `NULL`; a FK está implementada, mas não há fluxo de exclusão da conta, escolha sobre obras ou descontinuação automática. O requisito continua pós-MVP; o fallback atual de autoria não equivale ao texto planejado nesta decisão.
 
 ---
 
-# ADR-017 — Validade mínima do livro desde a criação
+## ADR-017 — Validade mínima do livro desde a criação
 
 **Status:** Aceito
 
@@ -208,7 +208,7 @@ Obras preservadas perdem o vínculo com o perfil, exibem **Autor desconhecido** 
 
 ---
 
-# ADR-018 — Estados com `text + CHECK`
+## ADR-018 — Estados com `text + CHECK`
 
 **Status:** Aceito
 
@@ -220,7 +220,7 @@ Obras preservadas perdem o vínculo com o perfil, exibem **Autor desconhecido** 
 
 ---
 
-# ADR-019 — Idioma padrão `pt-BR` sem domínio fechado
+## ADR-019 — Idioma padrão `pt-BR` sem domínio fechado
 
 **Status:** Aceito
 
@@ -236,7 +236,7 @@ Sem `CHECK` fechado para idiomas.
 
 ---
 
-# ADR-020 — Validação no frontend e na camada persistente
+## ADR-020 — Validação no frontend e na camada persistente
 
 **Status:** Aceito
 
@@ -244,13 +244,13 @@ Sem `CHECK` fechado para idiomas.
 
 **Decisão:** frontend valida para UX; banco/Storage validam para integridade e segurança.
 
-**Referência:** `11-Seguranca.md`, seção **Validação e proteção no banco**.
+**Referência:** [11-Seguranca.md](11-Seguranca.md) e [05-Modelo-de-Dados.md](05-Modelo-de-Dados.md).
 
 **Consequências:** chamadas diretas à API não podem contornar regras críticas.
 
 ---
 
-# ADR-021 — Sequência imutável de capítulos no MVP
+## ADR-021 — Sequência imutável de capítulos no MVP
 
 **Status:** Aceito
 
@@ -258,13 +258,13 @@ Sem `CHECK` fechado para idiomas.
 
 **Decisão:** posições contínuas, novos capítulos ao final, sem reordenação. Exclusão intermediária remove posteriores.
 
-**Especificação:** `03-Regras-de-Negocio.md`, seção **Capítulos**.
+**Especificação:** [03-Regras-de-Negocio.md](03-Regras-de-Negocio.md), seção **Capítulos**.
 
 **Consequências:** implementação simples; reorganização avançada fica pós-MVP.
 
 ---
 
-# ADR-022 — ID numérico e slug para gêneros
+## ADR-022 — ID numérico e slug para gêneros
 
 **Status:** Aceito
 
@@ -272,11 +272,11 @@ Sem `CHECK` fechado para idiomas.
 
 **Decisão:** `genres.id` inteiro como PK e `slug` `UNIQUE` para uso legível.
 
-**Consequências:** identidade interna estável e URLs/filtros legíveis.
+**Consequências:** identidade interna estável e identificação legível dos gêneros. Filtros de catálogo continuam não implementados.
 
 ---
 
-# ADR-023 — Matriz RLS 1.0
+## ADR-023 — Matriz RLS 1.0
 
 **Status:** Aceito
 
@@ -284,13 +284,13 @@ Sem `CHECK` fechado para idiomas.
 
 **Decisão:** adotar a Matriz RLS 1.0.
 
-**Especificação oficial:** `11-Seguranca.md`, seção **Matriz de Autorização RLS**.
+**Especificação oficial:** [11-Seguranca.md](11-Seguranca.md), seção **Matriz de acesso às tabelas**.
 
 **Consequências:** autorização passa a ter baseline versionada e testes associados.
 
 ---
 
-# ADR-024 — Buckets públicos com escrita protegida
+## ADR-024 — Buckets públicos com escrita protegida
 
 **Status:** Aceito
 
@@ -298,13 +298,13 @@ Sem `CHECK` fechado para idiomas.
 
 **Decisão:** `avatars` e `covers` são públicos para leitura; escrita depende de propriedade.
 
-**Especificação:** `11-Seguranca.md`, seção **Storage**.
+**Especificação:** [11-Seguranca.md](11-Seguranca.md), seção **Storage e paths**.
 
 **Consequências:** assets públicos simples de servir; capa de rascunho não possui confidencialidade absoluta.
 
 ---
 
-# ADR-025 — Conversão client-side para WebP
+## ADR-025 — Conversão client-side para WebP
 
 **Status:** Aceito
 
@@ -312,13 +312,13 @@ Sem `CHECK` fechado para idiomas.
 
 **Decisão:** aceitar JPEG/PNG/WebP, converter no cliente e persistir WebP.
 
-**Especificação:** `11-Seguranca.md`, seção **Uploads**.
+**Especificação:** [11-Seguranca.md](11-Seguranca.md), seção **Uploads do backend real**.
 
-**Consequências:** padronização e menor tráfego sem função server-side; Storage ainda precisa validar propriedade e limites.
+**Consequências:** pipeline implementado no adapter Supabase sem função própria de processamento. O Mock conserva o arquivo original e não oferece a mesma conversão. Proteções atuais estão em [11-Seguranca.md](11-Seguranca.md).
 
 ---
 
-# ADR-026 — Contrato Front ↔ Supabase 1.0
+## ADR-026 — Contrato Front ↔ Supabase 1.0
 
 **Status:** Aceito
 
@@ -328,13 +328,13 @@ Sem `CHECK` fechado para idiomas.
 
 **Decisão:** usar service → adapter mock/Supabase.
 
-**Especificação:** `14-Contrato-Front-Supabase.md`.
+**Especificação:** [14-Contrato-Front-Services.md](14-Contrato-Front-Services.md).
 
 **Consequências:** mock pode ser substituído sem reestruturar páginas.
 
 ---
 
-# ADR-027 — Services como fronteira de acesso a dados
+## ADR-027 — Services como fronteira de acesso a dados
 
 **Status:** Aceito
 
@@ -342,13 +342,13 @@ Sem `CHECK` fechado para idiomas.
 
 **Decisão:** `pages/` e `components/` não chamam diretamente `supabase.from`, Auth ou Storage.
 
-**Referência:** `04-Arquitetura.md` e `14-Contrato-Front-Supabase.md`.
+**Referência:** [04-Arquitetura.md](04-Arquitetura.md) e [14-Contrato-Front-Services.md](14-Contrato-Front-Services.md).
 
 **Consequências:** UI fica desacoplada da implementação de persistência.
 
 ---
 
-# ADR-028 — Mocks orientados pelo contrato
+## ADR-028 — Mocks orientados pelo contrato
 
 **Status:** Aceito
 
@@ -356,13 +356,13 @@ Sem `CHECK` fechado para idiomas.
 
 **Decisão:** mocks reproduzem o contrato dos services, não o schema bruto do PostgreSQL.
 
-**Referência:** `14-Contrato-Front-Supabase.md`, seção **Mocks**.
+**Referência:** [14-Contrato-Front-Services.md](14-Contrato-Front-Services.md), seção **Diferenças entre Mock e Supabase**.
 
-**Consequências:** UI pode testar sucesso, vazio e erros antes da integração real.
+**Consequências:** UI pode testar sucesso, vazio e erros sem a integração real. Há diferenças de comportamento e persistência ainda existentes, registradas em [14-Contrato-Front-Services.md](14-Contrato-Front-Services.md); a decisão não certifica equivalência integral.
 
 ---
 
-# ADR-029 — Criação automática de `profiles`
+## ADR-029 — Criação automática de `profiles`
 
 **Status:** Aceito
 
@@ -380,7 +380,7 @@ O frontend não executa `INSERT profiles` como etapa normal do cadastro.
 
 ---
 
-# ADR-030 — Adapters internos à camada de services
+## ADR-030 — Adapters internos à camada de services
 
 **Status:** Aceito
 
@@ -402,9 +402,9 @@ js/services/adapters/
 
 ---
 
-# ADR-031 — Seleção temporária de datasource por hostname
+## ADR-031 — Seleção temporária de datasource por hostname
 
-**Status:** Aceito
+**Status:** Refinado pelo ADR-032; regra sem a exceção de query é histórica.
 
 **Contexto:** durante a fase atual é desejável alternar automaticamente entre mock local e Supabase publicado sem editar o código a cada teste.
 
@@ -419,15 +419,45 @@ outros hostnames       → supabase
 
 A seleção deve permanecer centralizada.
 
-**Consequências:** desenvolvimento local utiliza mocks automaticamente e Vercel/produção utiliza Supabase real. Se houver necessidade de testar Supabase real em localhost, essa estratégia deverá ser revisada.
+**Consequências históricas:** seleção automática por hostname. A implementação passou a aceitar uma exceção local por query, registrada no ADR-032; não é mais necessário propor essa possibilidade como inexistente.
 
 ---
 
-# 2. Decisões pendentes
+## ADR-032 — Fonte e endpoint selecionados separadamente
+
+**Status:** Implementado; registrado nesta auditoria a partir do código.
+
+**Refina:** ADR-031.
+
+**Contexto observado:** `dataSource.js` contém uma exceção por query para testar o adapter Supabase em host local. `supabaseClient.js` escolhe o endpoint independentemente pelo hostname.
+
+**Decisão implementada:** local usa Mock por padrão e Supabase quando o primeiro `datasource` é `supabase`; outros hosts usam Supabase. O endpoint local continua local mesmo com essa query.
+
+**Alternativa histórica:** regra apenas por hostname do ADR-031. Não há registro de outras alternativas discutidas para este refinamento.
+
+**Consequências:** não é possível forçar Mock em produção nem escolher o banco remoto em localhost pela query. Configuração operacional: [12-Deploy-e-Ambientes.md](12-Deploy-e-Ambientes.md).
+
+---
+
+## ADR-033 — Integridade final da despublicação
+
+**Status:** Implementado; registrado a partir das migrations de despublicação.
+
+**Contexto:** retirar um capítulo pode alterar a cauda publicada antes de decidir se a obra continua pública. A migration inicial usava configuração de sessão durante essa operação.
+
+**Decisão implementada:** a migration de endurecimento substitui esse mecanismo por validação adiada do estado final, mantendo autenticação/autoria explícitas e locks na RPC.
+
+**Alternativa substituída:** bypass por configuração transacional da primeira migration.
+
+**Consequências:** o estado intermediário pode ser atualizado dentro da transação sem dispensar a validação final. Isso não transforma o Mock em implementação da mesma cascata. Referências: [05-Modelo-de-Dados.md](05-Modelo-de-Dados.md) e [14-Contrato-Front-Services.md](14-Contrato-Front-Services.md).
+
+---
+
+## Decisões futuras
 
 Criar novos ADRs quando forem fechadas decisões sobre:
 
-- nome e identidade visual;
+- mudanças de identidade visual além do CSS entregue;
 - avaliação/curtida;
 - comentários/moderação;
 - Full Text Search;
@@ -438,8 +468,8 @@ Criar novos ADRs quando forem fechadas decisões sobre:
 - novos tipos de Storage privado;
 - variantes de imagem.
 
-## 3. Regra de manutenção
+## Manutenção
 
-ADR aceito não deve ser apagado quando uma decisão mudar.
+ADR aceito não deve ser apagado quando uma decisão mudar. O título histórico do ADR-026 foi preservado; sua referência atual é o contrato de Services.
 
 Criar novo ADR indicando qual decisão substitui ou refina, preservando histórico.

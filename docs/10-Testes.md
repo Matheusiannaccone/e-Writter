@@ -1,274 +1,103 @@
 # 10 — Testes
 
-## 1. Objetivo
+## Estratégia e alcance
 
-Definir uma estratégia prática de validação e regressão.
+A validação combina testes de contrato/adapters, execução dos controladores reais em DOM mínimo, scripts de navegador e cenários manuais de integração. Simular um service não comprova RLS, banco remoto, envio de e-mail ou Storage reais.
 
-O projeto pode iniciar com testes manuais estruturados e evoluir para automação quando houver benefício claro.
+Requisitos: [02-Requisitos.md](02-Requisitos.md). Matriz de autorização para os cenários de segurança: [11-Seguranca.md](11-Seguranca.md).
 
-## 2. Tipos de teste
+## Execução automatizada
 
-- **Funcional:** requisito funciona.
-- **Autorização:** acesso indevido é bloqueado.
-- **Responsividade:** interface funciona em larguras diferentes.
-- **Integração:** Auth, banco, Storage e frontend funcionam em conjunto.
-- **Regressão:** fluxos essenciais continuam funcionando antes de release.
-
-## 3. Casos mínimos
-
-### Autenticação
-
-**T-001 — Cadastro válido**  
-Esperado: identidade e perfil criados conforme fluxo.
-
-**T-002 — Cadastro inválido**  
-Esperado: não produzir perfil inconsistente.
-
-**T-003 — Login válido**  
-Esperado: sessão criada.
-
-**T-004 — Login inválido**  
-Esperado: erro adequado sem informação sensível.
-
-**T-005 — Logout**  
-Esperado: sessão encerrada e recursos privados indisponíveis.
-
-### Livros
-
-**T-010 — Criar livro**  
-Esperado: obra válida criada para o usuário autenticado.
-
-**T-011 — Editar livro próprio**  
-Esperado: permitido.
-
-**T-012 — Editar livro alheio**  
-Esperado: negado por RLS.
-
-**T-013 — Rascunho não público**  
-Esperado: externo não consegue consultar.
-
-**T-014 — Publicar livro**  
-Esperado: publicação somente quando critérios forem atendidos.
-
-**T-015 — Excluir livro próprio**  
-Esperado: dependências tratadas corretamente.
-
-### Capítulos
-
-**T-020 — Criar capítulo**  
-Esperado: vínculo correto e posição atribuída conforme regra.
-
-**T-021 — Ordem**  
-Esperado: sequência correta.
-
-**T-022 — Rascunho de capítulo**  
-Esperado: privado ao autor.
-
-**T-023 — Publicação de capítulo**  
-Esperado: público apenas quando capítulo e livro forem elegíveis.
-
-**T-024 — Navegação anterior/próximo**  
-Esperado: respeita capítulos publicados e ordem.
-
-### Biblioteca
-
-**T-030 — Favoritar**  
-Esperado: relação criada.
-
-**T-031 — Favoritar repetido**  
-Esperado: sem duplicata.
-
-**T-032 — Remover favorito**  
-Esperado: relação removida sem alterar livro.
-
-### Busca e gêneros
-
-**T-040 — Filtrar por gênero**  
-Esperado: somente obras elegíveis relacionadas.
-
-**T-041 — Busca sem resultado**  
-Esperado: estado vazio, não erro.
-
-## 4. Matriz de segurança com dois usuários
-
-| Ação sobre conteúdo de A | Usuário A | Usuário B |
-|---|---:|---:|
-| Ler livro publicado | permitido | permitido |
-| Ler rascunho | permitido | negado |
-| Editar livro | permitido | negado |
-| Excluir livro | permitido | negado |
-| Editar capítulo | permitido | negado |
-| Ler favoritos de A | permitido | negado |
-
-Repetir testes afetados quando a Matriz RLS mudar.
-
-Fonte das políticas: `11-Seguranca.md`.
-
-## 5. Responsividade
-
-Validar ao menos:
-
-- mobile pequeno;
-- mobile comum;
-- tablet;
-- desktop.
-
-Verificar:
-
-- overflow;
-- navegação;
-- formulários;
-- cards;
-- leitor;
-- botões;
-- mensagens longas;
-- capas.
-
-## 6. Navegadores
-
-Próximo da entrega, validar:
-
-- Chrome/Chromium;
-- Firefox;
-- Safari quando houver ambiente disponível.
-
-Registrar limitações reais.
-
-## 7. Checklist de regressão
-
-Antes de uma release candidata:
-
-- [ ] cadastro;
-- [ ] login;
-- [ ] logout;
-- [ ] sessão;
-- [ ] perfil;
-- [ ] criar/editar/excluir/publicar livro;
-- [ ] upload de capa;
-- [ ] criar/editar/excluir/publicar capítulo;
-- [ ] leitura e navegação;
-- [ ] busca e gênero;
-- [ ] biblioteca;
-- [ ] usuário A não altera dados de B;
-- [ ] mobile e desktop;
-- [ ] 404;
-- [ ] console sem erro crítico conhecido;
-- [ ] documentação compatível.
-
-O checklist operacional de produção em `12-Deploy-e-Ambientes.md` deve referenciar esta regressão, não duplicá-la.
-
-## 8. Registro de bugs
-
-Registrar:
-
-```text
-Título
-Versão
-Ambiente
-Pré-condição
-Passos
-Resultado atual
-Resultado esperado
-Evidência
-Severidade
-```
-
-Preferir GitHub Issues.
-
-## 9. Severidade
-
-- **Crítica:** perda de dados, falha de segurança ou aplicação inutilizável;
-- **Alta:** fluxo principal quebrado;
-- **Média:** funcionalidade secundária incorreta;
-- **Baixa:** problema visual ou inconveniente não bloqueante.
-
-## 10. Integração do editor de capítulos — 0.43.1 em diante
-
-A página `chapter-editor.html` usa o script de Lucas Emmanoel recuperado do PR #44
-no commit 0.43.0. A integração mantém esse commit e a página `book-editor.html`.
-
-Validação automatizada, sem dependências adicionais:
+O ambiente desta auditoria usou Node.js `v22.17.1`. A suíte utiliza `node:test`, VM e Web Crypto do Node. O subprocesso do grafo habilita `--experimental-vm-modules` internamente.
 
 ```sh
+npm test
 npm run test:chapter-editor
-node --check js/pages/chapterEditorPage.js
-node --check js/pages/book-editor.js
-git diff --check
+npm run test:favorites
 ```
 
-Os testes executam os handlers reais das páginas em um DOM mínimo com services
-controlados. Cobrem IDs e assets locais, sessão ausente/expirada, obra indisponível,
-estados vazios, falhas retornadas/exceções, respostas fora de ordem, bloqueio durante
-save, prevenção de submit duplicado, atualização da lista, preservação de texto em
-erro e navegação com `bookId`/`datasource`. Não substituem testes em navegador ou RLS.
-O comando `npm test` anterior continua sendo um placeholder que termina com erro.
+`npm test` executa os 11 arquivos `tests/*.test.cjs`; deixou de ser placeholder. Os comandos específicos são recortes e não substituem o conjunto.
 
-Contratos conferidos com `14-Contrato-Front-Services.md`, seções 10.2, 10.4 e 10.5,
-e com os adapters mock/Supabase: `getChaptersByBook(bookId)`,
-`createChapter(bookId, { title, content })` e `updateChapter(id, { title, content })`.
-Nenhuma chamada envia posição, status ou campos de autoria. A posição e as
-permissões continuam nos services/adapters. A validação de título/conteúdo
-obrigatórios já presente no script de Lucas foi mantida; os services permitem
-rascunhos incompletos. As restrições de capítulos publicados continuam no backend.
+| Suíte em `tests/` | Regra/fluxo validado |
+|---|---|
+| `auth-adapters.test.cjs` | Recuperação, cadastro, erros de Auth, sessão e encaminhamento pelo service. |
+| `auth-feedback.test.cjs` | Validação/foco, processamento, Perfil, redefinição e prazo de recuperação entre abas simuladas. |
+| `auth-navigation.test.cjs` | Menu de conta, contexto, saída e presença do cabeçalho nas páginas. |
+| `chapter-editor.test.cjs` | Seleção própria, escrita, erros, respostas atrasadas, contexto de URL e perda de sessão. |
+| `favorite-session.test.cjs` | Invalidação de favoritos e ciclo dos controles montados. |
+| `favorites-page.test.cjs` | Coleção, cards reais, remoção/foco, imagens, navegação e destinos públicos. |
+| `logout-session.test.cjs` | Sessão Mock, limpeza, falhas do storage e autenticações pendentes. |
+| `mock-identity.test.cjs` | Restauração de contas/perfis, verificadores, conflitos e falhas de persistência. |
+| `module-graph.test.cjs` | Sintaxe e ligação dos imports estáticos locais, sem avaliar o SDK real. |
+| `session-boundary.test.cjs` | Gerações, troca de identidade, histórico e encerramento de inscrições. |
+| `supabase-unpublish.test.cjs` | Autenticação, chamada de RPC e leitura posterior com cliente Supabase simulado. |
 
-Pendências de teste manual:
+Os helpers de [tests/helpers](../tests/helpers/) recriam contextos independentes e storages compartilháveis. Promises controladas reproduzem latência e ordem de respostas; o teste de identidade usa derivação criptográfica real. Não são testes de banco.
 
-- Em mock local e com `?datasource=supabase`, criar uma obra, abrir o editor,
-  criar/editar capítulos e voltar ao ateliê com a mesma obra e fonte de dados.
-- Repetir T-010, T-011, T-014, T-020, T-021, T-022 e T-023; incluir upload/remoção
-  de capa, publicação/retirada de publicação e conteúdo publicado de 499/500/15.000
-  caracteres. Conferir persistência após recarregar e os bloqueios existentes.
-- Repetir a matriz com autor A, usuário B e visitante no Supabase real; verificar
-  que `bookId` alheio não concede acesso e que a sessão expirada não grava dados.
-- Simular rede lenta/offline, alternar rapidamente entre obras e salvar durante
-  latência. Confirmar mensagens e lista da obra atual. Se o save confirmar e a
-  atualização da lista falhar, confirmar o aviso e selecionar novamente a obra.
-- Validar em 320px, mobile, tablet e desktop: ausência de overflow, título longo,
-  textarea, header/footer, menu, foco visível, ordem de tabulação, skip link,
-  labels e anúncios das mensagens com leitor de tela. Conferir Chrome e Firefox.
+## Resultado atual da auditoria
 
-### Revisão A01/D06 — 0.43.5
+Em **27/10/2026**, sobre o código do commit `e23680d`, `npm test` executou **133 testes: 129 aprovados e 4 falhas**, sem cancelamentos ou testes ignorados. A execução antecedeu as edições Markdown; código e assertions foram preservados.
 
-Resultado manual informado pelo usuário antes deste patch: Mock com 27 aprovados,
-2 falhas (A01 e D06) e 1 pendente (A05). Supabase ainda não testado. Os resultados
-anteriores não representam aprovação manual do patch.
+| Falha | Evidência observada |
+|---|---|
+| Cabeçalho em todas as páginas — teste 40 | [auth-navigation.test.cjs](../tests/auth-navigation.test.cjs) exige container global; `cadastro.html` não o possui. Login, recuperação e redefinição também usam composição sem esse container. |
+| B05 — teste 88 | [favorites-page.test.cjs](../tests/favorites-page.test.cjs) espera `/detalhes-obra` em rota limpa; o helper atual gera `/detalhes-obra.html`. |
+| A08 — teste 89 | A mesma suíte espera `/chapter`; o destino atual é `/chapter.html`. |
+| Home na raiz — teste 95 | A suíte espera detalhes sem extensão; o destino atual mantém `.html`. |
 
-Causa reproduzida com o `serve-handler` disponível no ambiente, usado por
-`npx serve .`: pedidos HEAD para `/chapter-editor.html?bookId=...&datasource=...`
-e `/book-editor.html?bookId=...&datasource=...` retornaram 301 com `Location`
-sem extensão **e sem query**. As respectivas rotas sem extensão retornaram 200.
-Portanto o `bookId` de A01 se perdia antes de `getMyBooks`/seleção inicial.
-Em D06, além desse redirecionamento, o menu Ateliê usava um link sem parâmetros
-e os links dedicados copiavam somente parte da query.
+Os três casos de URL revelam divergência entre testes e implementação; não demonstram, isoladamente, falha em todo servidor estático. Há commits posteriores aos relatórios antigos preservando extensões HTML. A decisão de manter/remover essas expectativas precisa ser tratada em tarefa de código/testes, com o servidor-alvo definido.
 
-O helper `js/components/editor-navigation.js` mantém o formato de rota atual
-(`.html` em servidor estático, sem extensão em clean URLs), preserva a query,
-normaliza `bookId`/`datasource` sem duplicar e mantém o primeiro datasource,
-conforme a regra já usada pelo service. O ateliê ainda aceita o parâmetro legado
-`book`, mas as novas URLs usam `bookId`. A seleção inicial de capítulos somente
-ocorre depois de a obra ser retornada por `getMyBooks`; sem `bookId`, nenhuma
-obra é escolhida, inclusive quando existe apenas uma.
+Esta revisão não declara a suíte integralmente aprovada nem altera testes para obter aprovação.
 
-Com `npx serve .`, iniciar os retestes pelas rotas sem extensão, por exemplo
-`http://localhost:3000/book-editor?datasource=mock`. Entrar manualmente por
-`.html?datasource=...` ainda passa pelo redirect do servidor antes de executar
-qualquer script da página. Não houve alteração de configuração do servidor,
-adapter ou seleção de datasource.
+## Navegador e fixture visual
 
-Testes automatizados adicionados: carregamento atrasado de obras, ausência de
-bookId, percurso completo botão → capítulos → retorno (link e header), rotas com
-e sem extensão, parâmetros codificados/repetidos, limpeza de seleção, compatibilidade
-de links antigos e regra real de `getDataSource`. Usam services controlados; os
-casos com query `datasource=supabase` **não acessam o Supabase**.
+| Arquivo | Execução/finalidade |
+|---|---|
+| [logout-browser.cjs](../tests/logout-browser.cjs) | `npm run test:session-browser`: login, saída, páginas privadas, latência e histórico. |
+| [headers-browser.cjs](../tests/headers-browser.cjs) | `node tests/headers-browser.cjs`: cabeçalhos, sessões, links e larguras. |
+| [reading-visual-browser.cjs](../tests/reading-visual-browser.cjs) | `node tests/reading-visual-browser.cjs`: detalhes, leitura e imagens de revisão em `tmp/reading-review`. |
+| [recovery-cooldown-browser.cjs](../tests/recovery-cooldown-browser.cjs) | `node tests/recovery-cooldown-browser.cjs`: prazo absoluto, recarga, duas abas e falhas simuladas. |
+| [card-layout.html](../tests/card-layout.html) | Abrir pelo servidor local: contenção/interseção dos cards e validação sintática de e-mail comparada ao navegador. |
 
-Validação desta revisão: 23 testes automatizados aprovados, `node --check` em
-42 arquivos aprovado e `git diff --check` aprovado. As URLs de ida e volta
-efetivamente geradas pelo helper foram consultadas via HEAD no `serve-handler`
-local: 200 sem redirect nas quatro combinações (ida/volta × mock/supabase).
-Essa verificação HTTP não executa a interface nem os services no navegador.
+Os quatro scripts exigem Playwright resolvível por Node e Chrome instalado, ou `PLAYWRIGHT_CHROME_EXECUTABLE`. Playwright não é dependência declarada no pacote. Se fornecido externamente, `NODE_PATH` pode apontar para o diretório de pacotes correspondente, sem mudar o projeto.
 
-Ainda executar manualmente A01 e D06 novamente em Mock, a regressão dos fluxos
-afetados (criação/edição de capítulos, formulário, publicação/despublicação,
-erros, autenticação e responsividade), A05 no Supabase com dois usuários e os
-demais testes reais do Supabase. Nenhum desses retestes foi marcado como aprovado
-por esta revisão.
+Os scripts de navegador usam servidor temporário e interceptam o SDK/fontes externos. Não validam CDN, tipografia remota ou Supabase real. Os scripts não foram reexecutados nesta auditoria documental. A fixture monta controles, mas o roteiro visual não equivale a testar mutações reais de favoritos.
+
+## Evidências históricas preservadas
+
+Os resultados abaixo foram relatados durante implementações anteriores. São evidências delimitadas, não uma nova aprovação do checkout atual.
+
+| Origem/marco | Resultado registrado e limite |
+|---|---|
+| Integração de capítulos, revisão 0.43.5 | 23 testes automatizados aprovados e verificações HTTP locais; o aceite manual anterior tinha 27 aprovações, 2 falhas e 1 pendente no Mock. Supabase não havia sido testado nesse relato. |
+| Revisão de Biblioteca 0.44.4/0.44.5 | 47 testes aprovados e diagnóstico de redirects 301 que descartavam query; não houve novo aceite manual nem integração real com Supabase. A implementação de rotas mudou depois. |
+| Revisão visual de Auth/Perfil | Fixture com 18 cards, 9 controles e mensagens longas em 320, 360, 390, 768 e 1024px: relatados zero overflow/interseções e foco de 3px por teclado. Não cobriu zoom, leitor de tela ou rotas completas com contas reais. |
+| Logout, relatório de 25/10/2026 | 107 testes Node aprovados e script de sessão aprovado em Chrome headless; relatados cenários privados/histórico sem erros JavaScript e sem overflow em 390, 768, 1024 e 1280px. SDK e fontes foram substituídos. `pageshow.persisted` foi disparado deterministicamente, sem comprovar uso nativo de bfcache. |
+
+O Git conserva os relatórios originais e sua proveniência. Foram consolidados aqui os resultados úteis e os limites; listas de arquivos alterados, cartões e logs de branches deixaram de ser guias atuais.
+
+## Regressão manual permanente
+
+Usar ambiente de teste, dados fictícios e duas contas distintas. Registrar ambiente, commit, passos, resultado e evidência; não registrar senhas ou tokens.
+
+| Área | Cenários mínimos |
+|---|---|
+| Conta | Cadastro válido/inválido, conflito de username, confirmação habilitada/desabilitada conforme ambiente, login, refresh e saída com erro/retry. |
+| Recuperação | Endereços conhecidos/desconhecidos, formato inválido, 60s por origem, Enter, troca de e-mail, recarga, duas abas, rede/limite, link válido/expirado e login com senha alterada. |
+| Perfil | Carga, edição, cancelamento, conflito, falha de persistência, sessão expirada e logout durante carga/save. |
+| Obras/capa | Criação, edição, requisitos de publicação, salvar antes de abrir capítulos, envio/remoção e falha parcial após salvar metadados. |
+| Capítulos | Obra correta pelo contexto, vazio, criar/editar, 499/500/15.000 caracteres, Unicode fora do BMP, mudanças rápidas de obra e resposta atrasada. |
+| Publicação | Obra/capítulo elegíveis, rascunho invisível, retirada, bloqueio do único capítulo na interface e cascata técnica do Supabase. |
+| Leitura | Catálogo → detalhes → capítulo → anterior/próximo, capítulos ocultos, ID ausente/inválido, capa indisponível e erro com retry. |
+| Biblioteca | Duplicidade, remoção por teclado, foco após último card, persistência, payload inválido, obra indisponível e troca de conta durante operação. |
+| Autorização | Visitante, autor A e usuário B: consultar rascunhos, alterar obras/capítulos, acessar favoritos e escrever em paths de imagem alheios. |
+| Ciclo de página | Voltar/Avançar, troca de identidade, expiração e bfcache nativo quando disponível; nenhum resultado privado antigo deve reaparecer. |
+| Interface | 320px, mobile comum, tablet, desktop, zoom de 200%, teclado, mensagens longas, foco, contraste, movimento reduzido e leitor de tela. |
+
+Exclusões técnicas de obra/capítulo são validadas no nível service/banco, sem inventar uma ação de interface. Busca, conta excluída e 404 própria não pertencem ao roteiro funcional atual. A matriz RLS é referenciada em 11, sem ser duplicada aqui.
+
+## Limitações e interpretação
+
+Não há nova certificação de Firefox/Safari, tecnologia assistiva, bfcache nativo, e-mail, CDN, banco ou hospedagem remota. Um teste com `datasource=supabase` em URL e service simulado não é integração real. A configuração efetivamente implantada precisa ser confrontada com as migrations em ambiente autorizado.
+
+Falhas devem ser classificadas e investigadas, preservando o resultado anterior à alteração. Para falhas de segurança/perda de dados, priorizar o impacto real; para divergências de teste/rota, registrar a condição do servidor. Nenhuma contagem histórica substitui uma execução atual.
