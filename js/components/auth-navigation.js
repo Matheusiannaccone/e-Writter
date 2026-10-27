@@ -1,6 +1,6 @@
 import { onSessionVerificationFailure } from './session-status.js';
 import { getCurrentUser, onAuthStateChange, signOut } from '../services/authService.js';
-import { withDataSource, preserveDataSource } from './navigation-context.js';
+import { withHeaderContext, preserveDataSource } from './navigation-context.js';
 
 // A mesma navegação de conta atende o cabeçalho global e os cabeçalhos próprios.
 export function initAuthNavigation(header) {
@@ -27,7 +27,7 @@ export function initAuthNavigation(header) {
     const node = document.createElement('a');
     node.className = 'site-nav__link';
     node.textContent = label;
-    node.href = withDataSource(target).href;
+    node.href = withHeaderContext(target).href;
     if (new URL(node.href).pathname === window.location.pathname) node.setAttribute('aria-current', 'page');
     actions.append(node);
   }

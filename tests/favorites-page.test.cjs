@@ -243,7 +243,7 @@ test('HTML contém IDs únicos, assets locais e layout compartilhado sem caminho
   assert.doesNotMatch(html, /\.\.\/|styles.css|responsive.css|user-pages.css/);
   assert.doesNotMatch(read('js/pages/favoritesPage.js'), /mockData|services\/adapters|supabase\./i);
   for (const file of ['perfil.html', 'meuslivros.html', 'js/components/site-layout.js']) {
-    assert.match(read(file), /biblioteca.html/);
+    assert.match(read(file), file.endsWith('.html') ? /data-site-header/ : /biblioteca.html/);
     assert.doesNotMatch(read(file), /livrosfavoritos.html|livros-favoritos.html/);
   }
 });

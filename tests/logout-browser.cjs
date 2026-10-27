@@ -77,7 +77,7 @@ const server = http.createServer((req, res) => {
   }
   // Navegação real Voltar/Avançar e evento pageshow.persisted exercitam caminhos complementares.
   await go('perfil.html'); await page.waitForFunction(() => !document.querySelector('#profile-save-button').disabled);
-  await page.locator('.user-page-brand').click(); await sessionState('authenticated');
+  await page.locator('.site-brand').click(); await sessionState('authenticated');
   assert.equal(new URL(page.url()).searchParams.get('datasource'), 'mock');
   await page.getByRole('button', { name: 'Sair', exact: true }).click(); await sessionState('guest');
   await page.goBack(); await page.waitForURL('**/login.html?next=perfil.html&datasource=mock');

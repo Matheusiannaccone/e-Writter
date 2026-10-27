@@ -44,3 +44,31 @@ test('histórico revalida e resposta anterior não restaura navegação autentic
 test('rede na consulta distingue falha de visitante e permite retry',async()=>{
  let fail=true;const h=navHarness({getCurrentUser:async()=>fail?{data:null,error:{code:'NETWORK_ERROR'}}:ok(null)});await flush();assert.equal(h.host.dataset.sessionState,'error');fail=false;await h.actions.children[0].handlers.click();assert.equal(h.host.dataset.sessionState,'guest');
 });
+
+test('todas as páginas HTML do MVP usam apenas o header global, sem listas próprias', () => {
+  for (const file of fs.readdirSync('.').filter(file => file.endsWith('.html'))) {
+    const html = fs.readFileSync(file, 'utf8');
+    assert.equal((html.match(/data-site-header/g) || []).length, 1, file);
+    assert.match(html, /<header class="site-header" data-site-header><\/header>/, file);
+    assert.equal((html.match(/src="\.\/js\/components\/site-layout.js"/g) || []).length, 1, file);
+    assert.doesNotMatch(html, /class="user-page-nav"/, file);
+  }
+  const layout = fs.readFileSync('js/components/site-layout.js', 'utf8');
+  assert.match(layout, />Início<\/a>/);
+  assert.match(layout, />Ateliê<\/a>/);
+  assert.doesNotMatch(layout, />Leitura<\/a>|>Escrever<\/a>/);
+});
+
+test('links da conta preservam bookId, datasource e destaque em qualquer header', async () => {
+  const h = navHarness({window: {location: new URL('http://localhost/perfil.html?datasource=mock&bookId=obra-123'), addEventListener() {}}});
+  await flush();
+  for (const link of h.actions.children.filter(node => node.href)) {
+    const url = new URL(link.href);
+    assert.equal(url.searchParams.get('bookId'), 'obra-123');
+    assert.equal(url.searchParams.get('datasource'), 'mock');
+    assert.ok(url.pathname.endsWith('.html'));
+    assert.equal(link.attributes['aria-current'], link.textContent === 'Perfil' ? 'page' : undefined);
+  }
+  h.auth('SIGNED_OUT', null);
+  for (const link of h.actions.children) assert.equal(new URL(link.href).searchParams.get('bookId'), 'obra-123');
+});

@@ -35,45 +35,74 @@ const server = http.createServer((req, res) => {
     unexpected.push(url); return route.abort();
   });
 
+
   const page = await context.newPage();
-  const pages = ['index.html', 'biblioteca.html', 'detalhes-obra.html', 'chapter.html', 'book-editor.html', 'chapter-editor.html', 'perfil.html', 'meuslivros.html'];
-  // Autenticar somente no adapter Mock local.
-  await page.goto(base + '/login.html?datasource=mock');
-  await page.locator('#email').fill('teste1@gmail.com');
-  await page.locator('#password').fill('090909');
-  await page.locator('#login-button').click();
-  await page.waitForURL('**/biblioteca.html?datasource=mock');
-  for (const width of [320, 390, 768, 1024, 1280]) {
-    await page.setViewportSize({width, height: 844});
-    let baseline;
-    for (const file of pages) {
-      await page.goto(base + '/' + file + '?datasource=mock&bookId=abc&chapterId=def');
-      await page.waitForFunction(() => document.querySelector('.session-nav')?.dataset.sessionState === 'authenticated');
-      const style = await page.locator('.site-header').evaluate(header => {
-        const brand = header.querySelector('.site-brand'), inner = header.querySelector('.site-header__inner');
-        const css = getComputedStyle(header), b = getComputedStyle(brand), i = getComputedStyle(inner);
-        return {font: css.font, background: css.backgroundColor, brand: b.font, mark: getComputedStyle(brand.firstElementChild).width, padding: i.paddingBlock, minHeight: i.minHeight, left: inner.getBoundingClientRect().left};
-      });
-      if (!baseline) baseline = style;
-      assert.deepEqual(style, baseline, file + ' em ' + width);
-      if (width < 768) {
-        assert.equal(await page.locator('.site-nav').isVisible(), false);
-        await page.locator('.site-nav-toggle').click();
-        assert.equal(await page.locator('.site-nav').isVisible(), true);
-        await page.locator('.site-nav-toggle').press('Escape');
-        assert.equal(await page.locator('.site-nav').isVisible(), false);
-        await page.locator('.site-nav-toggle').click();
-      }
-      assert.equal(await page.locator('.session-nav').count(), 1);
-      assert.equal(await page.getByRole('button', {name: 'Sair', exact: true}).count(), 1);
-      assert.equal(await page.evaluate(() => document.querySelector('.site-header').scrollWidth > innerWidth), false, file + ' overflow em ' + width);
-      const links = await page.locator('.site-header a').evaluateAll(nodes => nodes.map(node => node.href));
-      assert.ok(links.every(link => new URL(link).searchParams.get('datasource') === 'mock'));
-      assert.equal(new URL(page.url()).searchParams.get('bookId'), 'abc');
-      assert.equal(new URL(page.url()).searchParams.get('chapterId'), 'def');
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  const pages = fs.readdirSync(root).filter(file => file.endsWith('.html'));
+  const menus = {
+    guest: ['Início', 'Entrar', 'Criar conta'],
+    authenticated: ['Início', 'Biblioteca', 'Ateliê', 'Perfil', 'Meus Livros', 'Sair']
+  };
+  const targets = { 'Início': 'index.html', 'Biblioteca': 'biblioteca.html', 'Ateliê': 'book-editor.html', 'Perfil': 'perfil.html', 'Meus Livros': 'meuslivros.html', 'Entrar': 'login.html', 'Criar conta': 'cadastro.html' };
+  for (const state of ['guest', 'authenticated']) {
+    if (state === 'authenticated') {
+      await page.setViewportSize({width: 1280, height: 844});
+      await page.goto(base + '/login.html?datasource=mock');
+      await page.locator('#email').fill('teste1@gmail.com');
+      await page.locator('#password').fill('090909');
+      await page.locator('#login-button').click();
+      await page.waitForURL('**/biblioteca.html?datasource=mock');
     }
-    console.log('PASS headers em ' + width + 'px: tipografia, dimensões, alinhamento, menu e sessão');
+    for (const width of [320, 390, 768, 1024, 1280]) {
+      await page.setViewportSize({width, height: 844});
+      let baseline;
+      for (const file of pages) {
+        await page.goto(base + '/' + file + '?datasource=mock&bookId=11111111-1111-1111-1111-111111111111&chapterId=def');
+        if (state === 'guest' && file === 'perfil.html') await page.waitForURL('**/login.html?*');
+        await page.waitForFunction(state => document.querySelector('.session-nav')?.dataset.sessionState === state, state);
+        if (state === 'authenticated' && file === 'book-editor.html') await page.waitForFunction(() => document.querySelector('#book-picker').value === '11111111-1111-1111-1111-111111111111');
+        if (state === 'authenticated' && file === 'chapter-editor.html') await page.waitForFunction(() => document.querySelector('#chapter-book-select').value === '11111111-1111-1111-1111-111111111111');
+        const header = page.locator('[data-site-header]');
+        assert.equal(await header.count(), 1);
+        const style = await header.evaluate(header => {
+          const brand = header.querySelector('.site-brand'), inner = header.querySelector('.site-header__inner');
+          const css = getComputedStyle(header), b = getComputedStyle(brand), i = getComputedStyle(inner);
+          return {font: css.font, background: css.backgroundColor, brand: b.font, mark: getComputedStyle(brand.firstElementChild).width, padding: i.paddingBlock, minHeight: i.minHeight, left: inner.getBoundingClientRect().left};
+        });
+        if (!baseline) baseline = style;
+        assert.deepEqual(style, baseline, file + ' em ' + width);
+        if (width < 768) {
+          assert.equal(await header.locator('.site-nav').isVisible(), false);
+          await header.locator('.site-nav-toggle').click();
+          assert.equal(await header.locator('.site-nav-toggle').getAttribute('aria-expanded'), 'true');
+          await header.locator('.site-nav-toggle').press('Escape');
+          assert.equal(await header.locator('.site-nav').isVisible(), false);
+          await header.locator('.site-nav-toggle').click();
+        }
+        assert.deepEqual(await header.locator('.site-nav__link:visible').allTextContents(), menus[state], file + ': ' + state);
+        assert.equal(await header.getByRole('link', {name: 'Leitura', exact: true}).count(), 0);
+        assert.equal(await header.getByRole('link', {name: 'Escrever', exact: true}).count(), 0);
+        assert.equal(await header.locator('.session-nav').count(), 1);
+        assert.equal(await header.evaluate(node => node.scrollWidth > innerWidth), false, file + ' overflow em ' + width);
+        for (const label of menus[state].filter(label => label !== 'Sair')) {
+          const link = header.getByRole('link', {name: label, exact: true});
+          const target = new URL(await link.getAttribute('href'));
+          assert.equal(target.pathname, '/' + targets[label]);
+          assert.equal(target.searchParams.get('datasource'), 'mock');
+          if (new URL(page.url()).searchParams.has('bookId')) assert.equal(target.searchParams.get('bookId'), '11111111-1111-1111-1111-111111111111', file + ': ' + label);
+          const current = target.pathname === new URL(page.url()).pathname;
+          assert.equal(await link.getAttribute('aria-current'), current ? 'page' : null);
+        }
+        if (width < 768) {
+          await header.getByRole('link', {name: 'Início', exact: true}).click();
+          await page.waitForURL('**/index.html?*');
+          await page.waitForFunction(state => document.querySelector('.session-nav')?.dataset.sessionState === state, state);
+          assert.equal(await page.locator('.site-nav').isVisible(), false);
+        }
+      }
+      console.log('PASS ' + state + ': ' + pages.length + ' páginas em ' + width + 'px; menu, destinos, parâmetros, destaque e acessibilidade');
+    }
   }
-  assert.deepEqual(unexpected, []);
+  assert.deepEqual(errors, []); assert.deepEqual(unexpected, []);
  } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

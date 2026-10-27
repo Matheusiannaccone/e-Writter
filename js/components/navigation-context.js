@@ -24,3 +24,12 @@ export function bookDetailsUrl(bookId) {
   url.searchParams.set("id", bookId);
   return url;
 }
+
+// Somente a navegação global carrega o contexto da obra entre páginas.
+export function withHeaderContext(path) {
+  const url = withDataSource(path);
+  const current = new URL(window.location.href);
+  const bookId = current.searchParams.get('bookId') || current.searchParams.get('book');
+  if (bookId) url.searchParams.set('bookId', bookId);
+  return url;
+}
