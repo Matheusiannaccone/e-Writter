@@ -473,3 +473,30 @@ test('Detalhes sincroniza estado pessoal e descarta favorito atrasado após logo
   assert.match(h.$('favorite-status').textContent, /Entre/);
   assert.equal(h.$('obra-content').hidden, false);
 });
+
+test('Detalhes usa cards numerados, preserva ordem, contador e links somente de capítulos publicados', async () => {
+  const chapters = [
+    {id: 'third', position: 3, title: 'Terceiro', status: 'published'},
+    {id: 'draft', position: 2, title: 'Não mostrar', status: 'draft'},
+    {id: 'first', position: 1, title: 'Primeiro', status: 'published'}
+  ];
+  for (const count of [0, 1, 2]) {
+    const selected = count === 0 ? [] : count === 1 ? [chapters[2], chapters[1]] : chapters;
+    const h = await destinationPage('detalhesObraPage.js', `http://localhost/detalhes-obra.html?id=${idA}&datasource=mock`, {getChaptersByBook: async () => ok(selected)});
+    assert.equal(h.$('chapter-count-label').textContent, `${count} publicado${count === 1 ? '' : 's'}`);
+    const cards = h.$('chapter-list').children;
+    if (!count) {
+      assert.equal(cards[0].className, 'chapters-empty');
+      assert.equal(h.$('start-reading').attributes['aria-disabled'], 'true');
+      continue;
+    }
+    assert.deepEqual(cards.map(card => card.className), Array(count).fill('chapter-card'));
+    assert.deepEqual(cards.map(card => card.children[0].textContent), count === 1 ? ['01'] : ['01', '03']);
+    assert.equal(cards[0].children[1].className, 'chapter-details');
+    assert.equal(cards[0].children[1].children[0].textContent, 'Primeiro');
+    assert.equal(cards[0].attributes['aria-label'], 'Capítulo 1: Primeiro');
+    const link = new URL(cards[0].href);
+    assert.equal(link.pathname, '/chapter.html'); assert.equal(link.searchParams.get('id'), 'first'); assert.equal(link.searchParams.get('datasource'), 'mock');
+    assert.equal(h.$('start-reading').href, cards[0].href);
+  }
+});

@@ -124,8 +124,11 @@ async function loadChapter() {
     setNeighbor("previous-chapter", "previous-title", chapters[index - 1]);
     setNeighbor("next-chapter", "next-title", chapters[index + 1]);
     navigation.hidden = chapters.length <= 1;
-    navigationShortcut.hidden = navigation.hidden;
-    returnLink.hidden = navigation.hidden;
+    const bookUrl = withDataSource("./detalhes-obra.html");
+    bookUrl.searchParams.set("id", chapter.bookId);
+    navigationShortcut.href = bookUrl.href;
+    navigationShortcut.hidden = false;
+    returnLink.hidden = false;
     chapterElement.hidden = false;
     state.hidden = true;
   } catch {

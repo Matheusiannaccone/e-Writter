@@ -154,7 +154,7 @@ function renderChapters(chapters = []) {
 
   if (!chapters.length) {
     const empty = document.createElement("p");
-    empty.className = "capitulos-vazio";
+    empty.className = "chapters-empty";
     empty.textContent = "Esta obra ainda não possui capítulos publicados.";
     elements.capitulosLista.appendChild(empty);
     elements.btnComecar.setAttribute("aria-disabled", "true");
@@ -165,20 +165,30 @@ function renderChapters(chapters = []) {
   elements.btnComecar.removeAttribute("aria-disabled");
   elements.btnComecar.href = getChapterUrl(chapters[0].id);
   chapters.forEach((chapter, index) => {
-    const item = document.createElement("article");
-    item.className = "capitulo-item";
-
+    const position = chapter.position ?? index + 1;
     const link = document.createElement("a");
-    link.className = "capitulo-link";
+    link.className = "chapter-card";
     link.href = getChapterUrl(chapter.id);
-    link.textContent = `Capítulo ${chapter.position ?? index + 1} — ${chapter.title}`;
+    link.setAttribute("aria-label", `Capítulo ${position}: ${chapter.title}`);
 
-    const info = document.createElement("span");
-    info.className = "capitulo-info";
-    info.textContent = "Publicado";
+    const number = document.createElement("span");
+    number.className = "chapter-number";
+    number.textContent = String(position).padStart(2, "0");
+    number.setAttribute("aria-hidden", "true");
 
-    item.append(link, info);
-    elements.capitulosLista.appendChild(item);
+    const details = document.createElement("span");
+    details.className = "chapter-details";
+    const title = document.createElement("strong");
+    title.textContent = chapter.title;
+    details.appendChild(title);
+
+    const arrow = document.createElement("span");
+    arrow.className = "chapter-arrow";
+    arrow.textContent = "→";
+    arrow.setAttribute("aria-hidden", "true");
+
+    link.append(number, details, arrow);
+    elements.capitulosLista.appendChild(link);
   });
 }
 
