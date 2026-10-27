@@ -1,5 +1,8 @@
-// Adapter Supabase responsável pelas operações de livros.
-
+/**
+ * Adapta consultas e mutações de books para o contrato em camelCase dos services.
+ * RLS delimita visibilidade/autoria; RPCs criam a obra com gêneros e despublicam atomicamente.
+ * Atualizar campos da obra e substituir gêneros são chamadas separadas.
+ */
 import { supabase } from "../../supabaseClient.js";
 
 // Campos retornados nas consultas de livros.
@@ -61,7 +64,11 @@ function isNetworkError(error) {
   );
 }
 
-// Normaliza o objeto retornado pelo Supabase.
+/**
+ * Converte colunas snake_case e achata book_genres/genres para o contrato de obra.
+ * @param {object|null} book - Registro retornado por BOOK_SELECT.
+ * @returns {object|null} Obra em camelCase com lista de gêneros.
+ */
 function normalizeBook(book) {
   if (!book) {
     return null;
@@ -715,7 +722,8 @@ export const supabaseBookAdapter = {
       }
     }
 
-    // Atualiza os gêneros pela RPC segura.
+    // Esta RPC é outra chamada: falha aqui não desfaz os campos de books já atualizados.
+    // SECURITY DEFINER verifica autenticação/autoria e mantém a contagem válida ao substituir gêneros.
     if ("genreIds" in data) {
       const {
         error
@@ -739,7 +747,7 @@ export const supabaseBookAdapter = {
     return fetchBookById(id);
   },
 
-  // Publica um livro.
+  // O trigger de books exige descrição, gêneros e capítulo publicado também em edições posteriores.
   async publishBook(id) {
     if (!isValidUuid(id)) {
       return createError(
@@ -788,7 +796,7 @@ export const supabaseBookAdapter = {
     return fetchBookById(id);
   },
 
-  // Retira uma obra própria do catálogo em uma função atômica do banco.
+  // A RPC retorna void: a leitura seguinte fornece o contrato de obra atualizado ao frontend.
   async unpublishBook(id) {
     if (!isValidUuid(id)) return createError("VALIDATION_ERROR", "ID de livro inválido.");
     const auth = await getAuthenticatedUser();

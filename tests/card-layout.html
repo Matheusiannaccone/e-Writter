@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../css/components.css">
 <link rel="stylesheet" href="../css/biblioteca.css">
 <link rel="stylesheet" href="../css/user-pages.css">
+<!-- Fixture visual local: monta os cards reais e apresenta o resultado das verificações no navegador. -->
 <main class="page-container">
   <h1>Regressão dos cards</h1>
   <p>Fixture local: não aciona favoritos, cadastro ou gravações.</p>
@@ -38,6 +39,7 @@
   document.querySelectorAll('.favorite-feedback').forEach((node, index) => {
     node.textContent = index % 2 ? 'Obra adicionada à biblioteca.' : 'Não foi possível atualizar sua biblioteca. Tente novamente. Mensagem longa para verificar a quebra em telas estreitas.';
   });
+  // Verifica limites dos cards, interseções e compatibilidade da validação de e-mail com o navegador.
   function inspect() {
     const errors = [];
     if (document.documentElement.scrollWidth > innerWidth) errors.push('Overflow horizontal da página');

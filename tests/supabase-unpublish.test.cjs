@@ -1,3 +1,7 @@
+/**
+ * Contrato de despublicação dos adapters Supabase com um cliente simulado.
+ * Confere autenticação, RPC void e leitura posterior; não executa funções SQL nem valida RLS no banco.
+ */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -27,7 +31,7 @@ function harness(kind, options = {}) {
         eq: (column, value) => { assert.equal(column, 'id'); assert.equal(value, id); return query; },
         maybeSingle: async () => options.read || ok(row)
       };
-      // Any direct UPDATE fails: the only allowed mutation is the RPC.
+      // UPDATE direto falha no stub: a única mutação disponibilizada é a RPC.
       return query;
     }
   };

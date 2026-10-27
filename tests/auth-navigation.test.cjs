@@ -1,3 +1,8 @@
+/**
+ * Estados do menu de conta e propagação do contexto de navegação com DOM mínimo.
+ * Eventos e respostas controlados exercitam logout, falhas e restauração pelo histórico;
+ * a suíte também inspeciona a integração do cabeçalho nas páginas HTML.
+ */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

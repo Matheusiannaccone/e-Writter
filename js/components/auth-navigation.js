@@ -1,8 +1,16 @@
+/**
+ * Controla os estados visitante, autenticado, verificação e erro do menu de conta.
+ * Eventos de Auth e falhas reportadas pelas páginas atualizam a mesma navegação.
+ */
 import { onSessionVerificationFailure } from './session-status.js';
 import { getCurrentUser, onAuthStateChange, signOut } from '../services/authService.js';
 import { withHeaderContext, preserveDataSource } from './navigation-context.js';
 
-// A mesma navegação de conta atende o cabeçalho global e os cabeçalhos próprios.
+/**
+ * Monta o menu da conta e instala verificações e eventos para este cabeçalho.
+ * @param {HTMLElement} header - Cabeçalho que contém nav.
+ * @returns {void} Sem nav, encerra a inicialização.
+ */
 export function initAuthNavigation(header) {
   const nav = header.querySelector('nav');
   if (!nav) return;
@@ -57,6 +65,7 @@ export function initAuthNavigation(header) {
     }
   }
   async function verify() {
+    // Um evento de Auth posterior torna esta consulta incapaz de restaurar o menu antigo.
     const version = ++generation;
     state = 'checking'; render();
     try {

@@ -1,5 +1,8 @@
-// Adapter Supabase responsável pelas operações de imagens.
-
+/**
+ * Integra imagens ao Storage e atualiza os caminhos lógicos em profiles/books.
+ * Valida tipo e tamanho, reduz dimensões sem ampliar e converte arquivos para WebP.
+ * Upload/remoção no bucket e atualização da tabela são etapas separadas, sujeitas às políticas RLS.
+ */
 import { supabase } from "../../supabaseClient.js";
 
 const ALLOWED_IMAGE_TYPES = [
@@ -228,7 +231,13 @@ function loadImage(file) {
   );
 }
 
-// Redimensiona e converte a imagem para WebP.
+/**
+ * Decodifica, reduz proporcionalmente sem ampliar e exporta em WebP com qualidade 0,85.
+ * @param {Blob} file - Arquivo validado antes da conversão.
+ * @param {number} maxWidth - Largura máxima em pixels.
+ * @param {number} maxHeight - Altura máxima em pixels.
+ * @returns {Promise<{data: Blob|null, error: object|null}>} Imagem convertida ou erro.
+ */
 async function convertToWebp(
   file,
   maxWidth,
@@ -444,6 +453,7 @@ export const supabaseImageAdapter = {
       );
     }
 
+    // O objeto já foi enviado; erro na tabela é retornado sem rollback do Storage.
     const pathUpdate =
       await updateAvatarPath(
         auth.user.id,
@@ -584,6 +594,7 @@ export const supabaseImageAdapter = {
       );
     }
 
+    // O envio ao bucket e a referência em books não compartilham uma transação.
     const pathUpdate =
       await updateBookCoverPath(
         bookId,
@@ -607,6 +618,7 @@ export const supabaseImageAdapter = {
     const match = /^covers\/([0-9a-f-]{36})\/cover\.webp$/i.exec(path ?? "");
     if (!match) return createError("VALIDATION_ERROR", "Caminho de capa inválido.");
     const { data } = supabase.storage.from("covers").getPublicUrl(`${match[1]}/cover.webp`);
+    // O nome do objeto é fixo; a versão evita reutilizar uma capa anterior do cache.
     return data?.publicUrl
       ? { data: { url: `${data.publicUrl}?v=${Date.now()}` }, error: null }
       : createError("UNKNOWN", "Não foi possível carregar a capa.");

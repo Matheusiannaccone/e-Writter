@@ -1,8 +1,16 @@
-// services/adapters/supabase/authAdapter.js
-// Este arquivo contém funções para operações de autenticação usando Supabase.
-
+/**
+ * Adapta Supabase Auth ao contrato de authService e normaliza erros conhecidos.
+ * Metadados de cadastro alimentam o trigger de profiles; o SDK gerencia a sessão.
+ * A recuperação usa a sessão inicializada pelo SDK e informa problemas de redirect/expiração.
+ */
 import { supabase } from "../../supabaseClient.js";
 
+/**
+ * Traduz códigos/status do SDK para categorias de feedback do frontend.
+ * Falhas sem classificação conhecida preservam um erro genérico, sem expor detalhes do servidor.
+ * @param {object|null} error - Erro retornado ou capturado do SDK.
+ * @returns {{code: string, message: string}|null} Erro normalizado ou null em sucesso.
+ */
 function normalizeAuthError(error) {
   if (!error) {
     return null;
@@ -142,6 +150,11 @@ export const supabaseAuthAdapter = {
     };
   },
 
+  /**
+   * Monta o redirect de redefinição no mesmo diretório e solicita o envio uma única vez.
+   * @param {{email: string}} data - Endereço a encaminhar ao Auth.
+   * @returns {Promise<{data: object|null, error: object|null}>} Resposta de envio ou erro normalizado.
+   */
   async resetPasswordForEmail({ email }) {
     const redirect = new URL("redefinir-senha.html", window.location.href);
     if (new URLSearchParams(window.location.search).has("datasource")) redirect.searchParams.set("datasource", "supabase");
@@ -155,6 +168,11 @@ export const supabaseAuthAdapter = {
     }
   },
 
+  /**
+   * Rejeita erros na URL e exige sessão não expirada após a inicialização do SDK.
+   * A implementação aceita a sessão existente; não exige uma marca adicional de tipo recovery.
+   * @returns {Promise<{data: object|null, error: object|null}>} Sessão aceita ou erro de recuperação.
+   */
   async getPasswordRecoverySession() {
     const hash = new URLSearchParams(window.location.hash.slice(1));
     const query = new URLSearchParams(window.location.search);

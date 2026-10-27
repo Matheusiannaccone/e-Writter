@@ -1,5 +1,8 @@
-// Dados compartilhados entre os adapters do ambiente Mock.
-
+/**
+ * Fixtures e arrays compartilhados pelos adapters de catálogo, capítulos, gêneros e imagens.
+ * A restauração local substitui o conteúdo dos arrays por splice para preservar referências.
+ * Contas e perfis editados são persistidos separadamente por identityStorage.
+ */
 export const mockUsers = [
   {
     id: "mock-user-1",
@@ -185,6 +188,10 @@ try {
   // O mock continua com os dados iniciais quando storage está indisponível.
 }
 
+/**
+ * Persiste obras, relações de gênero e capítulos, sem incluir contas ou favoritos.
+ * @returns {void} Falha de storage é absorvida e mantém apenas as alterações em memória.
+ */
 export function saveMockLibrary() {
   try {
     localStorage.setItem(LIBRARY_KEY, JSON.stringify({

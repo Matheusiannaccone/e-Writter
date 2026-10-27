@@ -1,3 +1,5 @@
+// Exercita login, logout, limpeza de dados privados e navegação pelo histórico em navegador real.
+// Execução independente: npm test seleciona apenas arquivos com sufixo .test.cjs.
 // Navegador real contra servidor local; nenhum tráfego ao Supabase é permitido.
 // Requer Playwright resolvível por Node e Chrome instalado (ou PLAYWRIGHT_CHROME_EXECUTABLE).
 const { chromium } = require('playwright');

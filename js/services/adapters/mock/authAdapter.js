@@ -1,3 +1,8 @@
+/**
+ * Simula autenticação e recuperação usando identidade persistida no navegador.
+ * Contas e perfis ficam em identityStorage/localStorage; a sessão é isolada por aba
+ * em sessionStorage. O contador de revisão impede que login pendente reabra uma sessão encerrada.
+ */
 import { readIdentity, writeIdentity, identityUser, createVerifier, verifyPassword, identityFailure } from './identityStorage.js';
 import { isValidEmail } from '../../../validation/email.js';
 
@@ -8,6 +13,12 @@ let cleanupPending = false;
 const SESSION_KEY = 'e-writter-mock-user';
 const SESSION_SECONDS = 3600;
 
+/**
+ * Invalida operações pendentes antes de tentar limpar a sessão da aba.
+ * Falha de remoção mantém cleanupPending e emite SESSION_ERROR para bloquear a interface.
+ * @returns {void} Em sucesso emite SIGNED_OUT.
+ * @throws {Error} Se não for possível remover a sessão do armazenamento.
+ */
 function endSession() {
   sessionRevision++;
   currentUser = null;
@@ -26,6 +37,12 @@ const authListeners = [];
 const fail = (code, message) => ({ data: null, error: { code, message } });
 const conflict = message => { throw Object.assign(new Error(message), { code: 'CONFLICT' }); };
 
+/**
+ * Reconcilia a sessão em memória com sessionStorage e com o snapshot de identidade.
+ * Sessão inválida, expirada ou sem conta/perfil é encerrada sem apagar a identidade persistida.
+ * @param {object} state - Snapshot validado de contas e perfis.
+ * @returns {object|null} Sessão atual com usuário atualizado ou null.
+ */
 function sessionFor(state) {
   if (cleanupPending) endSession();
   // Um documento restaurado pelo bfcache pode manter a sessão antiga em memória.
@@ -99,11 +116,13 @@ export const mockAuthAdapter = {
     } catch (error) { return identityFailure(error); }
   },
 
+  // Resposta neutra: a demonstração não envia e-mail nem confirma se a conta existe.
   async resetPasswordForEmail({ email }) {
     if (!isValidEmail(email)) return fail('VALIDATION_ERROR', 'Informe um e-mail válido.');
     return { data: { message: 'Solicitação de recuperação simulada. Nenhum e-mail foi enviado. Use uma conta de teste autenticada para demonstrar a redefinição.' }, error: null };
   },
 
+  // No Mock, uma sessão autenticada comum habilita a demonstração da redefinição.
   async getPasswordRecoverySession() {
     try {
       const session = sessionFor(readIdentity());

@@ -1,3 +1,8 @@
+/**
+ * Coordenação de favoritos com consulta/mutação pendentes durante logout.
+ * O conjunto de elementos montados simula a busca no DOM para validar o listener único
+ * e a ausência de recargas em controles removidos ou nunca inseridos.
+ */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

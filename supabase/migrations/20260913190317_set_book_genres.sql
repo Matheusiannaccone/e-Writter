@@ -1,5 +1,7 @@
 -- Substitui os gêneros de um livro mantendo as regras de integridade.
 
+-- SECURITY DEFINER permite substituir relações por UPDATE sem concedê-lo ao cliente.
+-- Por isso a função verifica auth.uid(), autoria e IDs explicitamente antes de escrever.
 create or replace function public.set_book_genres(
     p_book_id uuid,
     p_genre_ids integer[]
@@ -146,6 +148,7 @@ begin
 end;
 $$;
 
+-- A RPC elevada só pode ser executada pelo papel authenticated, após as validações internas.
 revoke all
 on function public.set_book_genres(uuid, integer[])
 from public;

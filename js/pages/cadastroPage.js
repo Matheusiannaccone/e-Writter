@@ -1,3 +1,7 @@
+/**
+ * Controla cadastro, validação local e feedback através de authService.
+ * O resultado distingue conta com sessão ativa de cadastro que requer confirmação por e-mail.
+ */
 import { showFeedback, setProcessing, prepareFormValidation } from '../components/feedback.js';
 import { signUp } from "../services/authService.js";
 
@@ -32,6 +36,7 @@ form.addEventListener('submit',async e=>{
       return;
     }
 
+ // O cadastro pode concluir sem autenticar quando o serviço exige confirmação de e-mail.
  showMessage(result.data?.session ? 'Conta criada! Sua sessão está ativa. Você já pode acessar a biblioteca.' : 'Cadastro recebido. Verifique seu e-mail para confirmar a conta antes de entrar.', 'success');
 
  }

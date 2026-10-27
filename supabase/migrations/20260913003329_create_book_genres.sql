@@ -1,3 +1,5 @@
+-- Associação de muitos para muitos; a chave composta impede repetir um gênero na obra.
+-- Excluir obra remove associações; excluir gênero ainda utilizado é bloqueado.
 create table public.book_genres (
     book_id uuid not null,
 
@@ -17,6 +19,8 @@ create table public.book_genres (
         primary key (book_id, genre_id)
 );
 
+-- A visibilidade acompanha a obra; apenas o autor insere ou remove suas associações.
+-- A substituição por UPDATE é realizada pela RPC SECURITY DEFINER de migration posterior.
 alter table public.book_genres enable row level security;
 
 create policy "book_genres_select_visible"
@@ -60,6 +64,8 @@ using (
     )
 );
 
+-- Triggers BEFORE validam a contagem anterior à inserção/exclusão sob lock por obra.
+-- O máximo é três; remover o último gênero é proibido enquanto o livro existir.
 create or replace function public.validate_book_genre_count()
 returns trigger
 language plpgsql

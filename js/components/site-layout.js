@@ -1,9 +1,19 @@
+/**
+ * Inicializa cabeçalho e rodapé nos pontos de montagem presentes no HTML.
+ * Integra menu responsivo, contexto de navegação e estados de autenticação.
+ */
 import { initAuthNavigation } from './auth-navigation.js';
 import { syncEditorLinks } from './editor-navigation.js';
 import { withHeaderContext } from './navigation-context.js';
 
 const BREAKPOINT = 768;
 
+/**
+ * Sincroniza visibilidade e aria-expanded no breakpoint também usado pelo CSS.
+ * Escape fecha o menu móvel e devolve o foco ao botão que o abriu.
+ * @param {HTMLElement} header - Cabeçalho já preenchido pelo módulo.
+ * @returns {void} Instala eventos do menu quando toggle e nav estão presentes.
+ */
 function initNavigation(header) {
   const toggle = header.querySelector('.site-nav-toggle');
   const nav = header.querySelector('.site-nav');

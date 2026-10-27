@@ -1,3 +1,4 @@
+/* Página pública de detalhes: fundo, largura e navegação própria estilizada neste arquivo. */
 .obra-page {
   min-width: 320px;
   min-height: 100vh;
@@ -64,6 +65,7 @@
 
 .obra-content { padding-bottom: 20px; }
 
+/* Painel de apresentação com capa e metadados da obra. */
 .obra-main-card {
   position: relative;
   display: grid;
@@ -93,6 +95,7 @@
   pointer-events: none;
 }
 
+/* Capa, imagem carregada e alternativa baseada na inicial do título. */
 .obra-cover-wrap { display: flex; justify-content: center; align-items: flex-start; }
 
 .obra-cover {
@@ -144,6 +147,7 @@
 
 .cover-ornament { font-size: 24px; color: #d3ad72; }
 
+/* Identificação, autoria, gêneros e metadados editoriais. */
 .obra-info { align-self: center; max-width: 650px; }
 .obra-eyebrow { margin: 0 0 10px; color: var(--color-primary); font-size: 10px; font-weight: 700; letter-spacing: 2px; }
 .obra-info h1 { margin: 0; font-family: var(--font-reading); font-size: clamp(40px, 5vw, 64px); font-weight: 600; line-height: .98; letter-spacing: -1px; }
@@ -158,6 +162,7 @@
 .meta-label { color: #9b8465; font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
 .obra-meta strong { color: var(--color-text); font-size: 12px; }
 
+/* Ações de iniciar leitura e alterar favorito. */
 .obra-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 .obra-primary-button, .obra-favorite-button { min-height: 46px; padding: 0 19px; border-radius: 2px; font-size: 11px; font-weight: 700; text-decoration: none; cursor: pointer; }
 .obra-primary-button { display: inline-flex; align-items: center; gap: 12px; border: 1px solid var(--color-primary); color: #fff4df; background: var(--color-primary); }
@@ -166,6 +171,7 @@
 .obra-favorite-button:hover { border-color: var(--color-primary); }
 .obra-favorite-button span { margin-right: 5px; font-size: 17px; vertical-align: -2px; }
 
+/* Sinopse: preserva quebras de linha sem interpretar HTML. */
 .obra-section { margin-top: clamp(2rem, 5vw, 3.5rem); }
 .synopsis-section { padding: clamp(1.25rem, 4vw, 2.5rem); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: rgb(255 249 231 / 55%); }
 .section-heading { margin-bottom: 1.25rem; }
@@ -173,6 +179,7 @@
 .section-heading h2 { margin: 0; color: var(--color-text); font: 600 clamp(1.9rem, 5vw, 2.5rem)/1.15 var(--font-reading); }
 .obra-description { max-width: 70ch; margin: 0; color: var(--color-text-muted); font-size: 1rem; line-height: 1.85; white-space: pre-line; overflow-wrap: anywhere; }
 
+/* Listagem de capítulos publicados, numeração e estados de interação. */
 .chapters-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
 .chapter-count { padding: .35rem .75rem; border: 1px solid var(--color-border); border-radius: 999px; color: var(--color-text-muted); font-size: .8rem; white-space: nowrap; }
 .chapter-list { display: grid; gap: .75rem; }
@@ -184,10 +191,12 @@
 .chapter-details strong { font: 600 clamp(1.2rem, 3vw, 1.4rem)/1.3 var(--font-reading); overflow-wrap: anywhere; }
 .chapter-arrow { color: var(--color-primary); font-size: 1.25rem; }
 .chapters-empty { margin: 0; padding: 1.25rem; border: 1px dashed var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-muted); background: rgb(255 249 231 / 40%); line-height: 1.6; }
+/* Remove transições dos capítulos quando o usuário solicita menos movimento. */
 @media (prefers-reduced-motion: reduce) { .chapter-card { transition: none; } }
 .obra-footer { margin-top: 48px; color: #8c7658; font-size: 10px; text-align: center; }
 .obra-footer span { margin: 0 5px; }
 
+/* Ação de recuperação de falhas de carregamento. */
 .obra-retry-button {
   min-height: 44px;
   margin-top: 16px;
@@ -203,6 +212,7 @@
   background: var(--color-primary-hover);
 }
 
+/* Responsividade: capa acima dos dados e alinhamento central em telas menores. */
 @media (max-width: 760px) {
   .obra-shell { width: min(100% - 24px, 600px); padding-top: 15px; }
   .obra-header { grid-template-columns: 1fr auto; margin-bottom: 22px; }
@@ -216,6 +226,7 @@
   .obra-meta { justify-content: center; }
 }
 
+/* Ajustes de ações e cards de capítulos em telas estreitas. */
 @media (max-width: 460px) {
   .obra-info h1 { font-size: 40px; }
   .obra-meta { gap: 17px; }

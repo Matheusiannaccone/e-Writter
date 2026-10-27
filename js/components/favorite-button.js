@@ -1,8 +1,16 @@
+/**
+ * Constrói o controle de biblioteca por obra usando favoriteService.
+ * favorite-session invalida o estado pessoal em mudanças de conta e no histórico da página.
+ */
 import { createFavoriteSession } from "./favorite-session.js";
 import { withDataSource } from "./navigation-context.js";
 import { isFavorite, addFavorite, removeFavorite } from "../services/favoriteService.js";
 
-// Uma instância por obra; cada ação consulta o estado persistido antes de mutar.
+/**
+ * Cria botão, feedback e coordenação de sessão para uma obra.
+ * @param {{id: string, title: string}} book - Obra associada ao controle.
+ * @returns {HTMLDivElement} Controle cuja consulta inicial começa antes da montagem.
+ */
 export function createFavoriteButton(book) {
   const button = document.createElement("button");
   button.type = "button";

@@ -1,6 +1,7 @@
 
 /* Aparência compartilhada das páginas da conta */
 
+/* Base e largura compartilhadas por Perfil e Meus Livros. */
 .user-page {
   margin: 0;
   min-height: 100vh;
@@ -63,6 +64,7 @@
   line-height: 1.6;
 }
 
+/* Painéis da conta e resumo visual do perfil. */
 .user-page-card,
 .profile-card {
   padding: 25px;
@@ -125,6 +127,7 @@
   font-size: 12px;
 }
 
+/* Campos editáveis, informações da conta e ações de salvar/cancelar. */
 .profile-detail {
   display: flex;
   flex-wrap: wrap;
@@ -140,6 +143,7 @@
 .profile-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
 .profile-actions .button { gap: var(--space-1); }
 .profile-detail :disabled { opacity: .7; cursor: wait; }
+/* Campos e ações preenchem a largura disponível em telas menores. */
 @media (max-width: 650px) { .profile-detail input, .profile-detail textarea { width: 100%; } .profile-actions .button { flex: 1 1 100%; } }
 
 .profile-detail span {
@@ -159,6 +163,7 @@
   line-height: 1.5;
 }
 
+/* Atalhos para obras próprias e favoritos. */
 .user-page-shortcuts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -206,6 +211,7 @@
   line-height: 1.4;
 }
 
+/* Barra da listagem, ações e apresentação da estante vazia. */
 .library-toolbar {
   display: flex;
   align-items: center;
@@ -283,6 +289,7 @@
   color: #8d3f37;
 }
 
+/* Rodapé das páginas da conta. */
 .user-page-footer {
   padding: 20px;
   border-top: 1px solid #d8c39d;
@@ -291,6 +298,7 @@
   font-size: 13px;
 }
 
+/* Responsividade: perfil compacto, atalhos empilhados e informações alinhadas à esquerda. */
 @media (max-width: 650px) {
   .user-page-main {
     width: min(100% - 28px, 960px);

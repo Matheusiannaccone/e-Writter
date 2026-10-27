@@ -1,5 +1,8 @@
-// Adapter Mock responsável pelas operações de livros.
-
+/**
+ * Implementa obras no catálogo simulado compartilhado por mockData.
+ * Aplica autoria e visibilidade em memória e solicita persistência local após as mutações;
+ * não utiliza RLS nem transações do PostgreSQL.
+ */
 import { mockAuthAdapter } from "./authAdapter.js";
 import {
   mockBooks,
@@ -72,7 +75,11 @@ async function getAuthenticatedUser() {
   return result.data;
 }
 
-// Valida a lista de gêneros.
+/**
+ * Exige de um a três IDs inteiros positivos, distintos e existentes no vocabulário Mock.
+ * @param {number[]} genreIds - Seleção enviada pelo formulário/service.
+ * @returns {object|null} Resultado de erro ou null quando a seleção é válida.
+ */
 function validateGenreIds(genreIds) {
   if (
     !Array.isArray(genreIds) ||
@@ -662,7 +669,7 @@ export const mockBookAdapter = {
     };
   },
 
-  // Retira uma obra própria do catálogo público.
+  // A obra vira draft e perde publishedAt; os estados dos capítulos permanecem como estavam.
   async unpublishBook(id) {
     if (!isValidUuid(id)) return createError("VALIDATION_ERROR", "ID de livro inválido.");
     const user = await getAuthenticatedUser();

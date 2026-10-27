@@ -12,6 +12,7 @@
 </head>
 <body class="library-page">
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <!-- Ponto de montagem do cabeçalho e da navegação de conta compartilhados. -->
   <header class="site-header" data-site-header></header>
   <main class="library-main page-container" id="conteudo">
     <section class="library-heading" aria-labelledby="library-title">
@@ -26,6 +27,7 @@
       </div>
       <a class="button button--secondary" href="./index.html" data-library-link>Explorar livros</a>
     </section>
+    <!-- Feedback de consulta/remoção, separado dos estados de coleção vazia e sessão ausente. -->
     <p id="favorites-message" role="status" aria-live="polite" hidden></p>
     <button class="button button--secondary" id="favorites-retry" type="button" hidden>Tentar novamente</button>
     <section class="library-empty" id="favorites-session" hidden aria-labelledby="session-title">
@@ -39,6 +41,7 @@
       <p>Quando você favoritar um livro do catálogo, poderá encontrá-lo nesta estante.</p>
       <a class="button" href="./index.html" data-library-link>Explorar o catálogo</a>
     </section>
+    <!-- Cards montados por favoritesPage.js com ação própria de remoção da biblioteca. -->
     <section class="book-grid" id="favorites-list" aria-label="Lista de livros favoritos" aria-busy="true" hidden></section>
     <noscript><p>Ative o JavaScript para consultar sua Biblioteca.</p></noscript>
   </main>

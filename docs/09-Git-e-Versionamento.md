@@ -1,184 +1,61 @@
 # 09 — Git e Versionamento
 
-## 1. Objetivo
+## Branches e integração
 
-Definir um fluxo simples e seguro de Git/GitHub para a equipe.
+`main` representa o estado integrado. A convenção do projeto é trabalhar em branches focadas, como `feature/<descricao>`, `fix/<descricao>`, `docs/<descricao>` e `refactor/<descricao>`, e integrar por Pull Request. Esta auditoria ocorre em `docs/documentacao-final`.
 
-## 2. Branch principal
+Fluxo esperado: atualizar a base, criar/usar branch de trabalho, implementar, revisar o diff, validar, publicar a branch, abrir PR, obter revisão e integrar. Desenvolvimento direto na `main` não é o procedimento da equipe.
 
-```text
-main
-```
+Essas são convenções do projeto; a configuração de proteções do GitHub não foi verificada nesta auditoria.
 
-A `main` representa o estado integrado e potencialmente apresentável.
+## Commits
 
-Nenhum integrante deve desenvolver diretamente nela.
+Utilizar mensagens claras e mudanças focadas. Os tipos seguem a terminologia de Conventional Commits:
 
-## 3. Branches de trabalho
+| Tipo | Uso |
+|---|---|
+| `feat` | Funcionalidade |
+| `fix` | Correção |
+| `docs` | Documentação |
+| `style` | Formatação/apresentação sem mudança lógica relevante |
+| `refactor` | Reorganização sem mudança de comportamento pretendida |
+| `test` | Testes |
+| `chore` | Manutenção/configuração |
 
-Padrões:
+O formato convencional é `tipo: descrição`. O histórico do projeto também usa o prefixo local `MAJOR.MINOR.PATCH - tipo: descrição`; esse prefixo não faz parte da sintaxe estrita de Conventional Commits. Ao manter a convenção histórica, não tratá-lo como prova automática de release ou versão do pacote.
 
-```text
-feature/<descricao>
-fix/<descricao>
-docs/<descricao>
-refactor/<descricao>
-```
+Antes de registrar uma mudança, revisar `git status`, diff, escopo e validação; não incluir credenciais nem misturar tarefas independentes.
 
-Branches devem ser curtas e focadas em uma tarefa ou mudança.
+## Pull Requests e revisão
 
-## 4. Fluxo de trabalho
+Todo merge esperado na `main` passa por PR com problema resolvido, resultado, validação e limitações. Mudanças visuais devem apresentar evidência adequada. A revisão deve ser feita por pelo menos um integrante diferente do autor; mudanças sensíveis podem demandar revisão adicional.
 
-```text
-atualizar main
-  ↓
-criar branch
-  ↓
-desenvolver
-  ↓
-commits
-  ↓
-push
-  ↓
-Pull Request
-  ↓
-revisão por outro integrante
-  ↓
-ajustes/conflitos
-  ↓
-aprovação
-  ↓
-merge em main
-  ↓
-excluir branch quando apropriado
-```
+O revisor confere escopo, comportamento, autorização, regressão e documentação afetada. Quando houver ajustes relevantes depois da aprovação, solicitar nova revisão. Não presumir que aprovação textual substitui os checks existentes.
 
-## 5. Commits
+## Conflitos
 
-Convenção baseada em Conventional Commits:
+O autor da branch conduz a resolução: compreender as duas alterações, atualizar a base, preservar ambos os requisitos aplicáveis e repetir os testes afetados. Não escolher automaticamente um lado nem resolver conflitos diretamente na `main`. Havendo dúvida de intenção, alinhar com o autor da outra mudança antes da integração.
 
-```text
-feat: nova funcionalidade
-fix: correção
-docs: documentação
-style: alteração visual/formatação sem mudança lógica relevante
-refactor: reorganização interna
-test: testes
-chore: manutenção/configuração
-```
+## Versões
 
-Boas práticas:
+Semantic Versioning utiliza `MAJOR.MINOR.PATCH`:
 
-- mensagens claras;
-- commits focados;
-- não versionar credenciais;
-- revisar `git status`;
-- não misturar mudanças independentes.
+| Parte | Significado |
+|---|---|
+| MAJOR | Mudança incompatível relevante |
+| MINOR | Funcionalidade compatível |
+| PATCH | Correção/ajuste compatível |
 
-## 6. Pull Requests
+O desenvolvimento anterior ao MVP usou `0.x.y`; o primeiro marco estável é `1.0.0`. O pacote permanece nessa versão. O commit posterior de documentação foi nomeado `1.0.1`, mas não atualizou `package.json`. Distinguir nome de commit, versão do pacote, tag e release ao preparar uma publicação.
 
-Todo merge em `main` deve passar por PR.
+## Tags, releases e rastreabilidade
 
-O PR deve informar:
+Após revisão e validação de uma versão apresentável, uma tag anotada como `v1.0.0` pode identificar o commit exato; uma release pode reunir descrição e evidências. A criação/publicação é uma ação de integração deliberada, não parte automática de uma edição documental.
 
-- o que mudou;
-- por que;
-- como testar;
-- screenshots quando visual;
-- riscos ou pendências.
+Não há tags locais no checkout auditado; não se afirma ausência de tags remotas. Antes de publicar, verificar qual commit, versão do pacote e artefato estão sendo associados. Evitar mover tags já publicadas sem coordenação.
 
-### 6.1 Revisão obrigatória
+## Proteções recomendadas
 
-Todo PR deve receber pelo menos **1 revisão de integrante diferente do autor**.
+Quando disponíveis, exigir PR, aprovação e checks adequados, bloquear push direto na branch principal e evitar autoaprovação. Essas proteções são recomendações, não uma declaração de que já estão configuradas.
 
-Mudanças sensíveis, como banco, Auth, RLS, segurança, arquitetura ou exclusão de conta, podem receber segunda revisão.
-
-### 6.2 Responsabilidade do revisor
-
-Verificar:
-
-- aderência ao escopo;
-- lógica principal;
-- risco de regressão;
-- convenções;
-- documentação afetada;
-- testes adequados.
-
-O revisor pode aprovar, solicitar alterações ou comentar.
-
-## 7. Conflitos
-
-O autor do PR é o responsável principal por resolver conflitos da própria branch.
-
-Ao resolver:
-
-1. entender as duas alterações;
-2. atualizar a branch quando necessário;
-3. conversar com o outro autor se houver dúvida;
-4. preservar o comportamento correto;
-5. testar novamente;
-6. solicitar nova revisão se a resolução for relevante.
-
-Conflitos não devem ser resolvidos diretamente na `main`.
-
-## 8. Semantic Versioning
-
-Formato:
-
-```text
-MAJOR.MINOR.PATCH
-```
-
-- **MAJOR:** mudança incompatível relevante;
-- **MINOR:** nova funcionalidade compatível;
-- **PATCH:** correção compatível.
-
-Durante desenvolvimento:
-
-```text
-0.x.y
-```
-
-Primeira versão estável do MVP:
-
-```text
-1.0.0
-```
-
-## 9. Tags e releases
-
-Para versões apresentáveis:
-
-```bash
-git tag -a v1.0.0 -m "Release 1.0.0"
-git push origin v1.0.0
-```
-
-Criar GitHub Release quando apropriado.
-
-## 10. Proteções recomendadas
-
-Quando disponíveis:
-
-- bloquear push direto na `main`;
-- exigir PR;
-- exigir aprovação;
-- impedir autoaprovação;
-- exigir branch atualizada quando fizer sentido.
-
-Evitar burocracia que a equipe não consiga manter.
-
-## 11. Responsabilidade da equipe
-
-Todos devem compreender:
-
-- branch;
-- commit;
-- push;
-- atualização da branch;
-- PR;
-- revisão;
-- conflitos simples;
-- versão atual.
-
-Mudanças sensíveis devem ser revisadas, quando possível, por alguém familiarizado com a área.
+Execução local/deploy pertence a [12-Deploy-e-Ambientes.md](12-Deploy-e-Ambientes.md); validação pertence a [10-Testes.md](10-Testes.md). O histórico de PRs e commits específicos é consultado no Git/GitHub, sem reprodução cronológica neste guia.

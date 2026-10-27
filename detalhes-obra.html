@@ -12,8 +12,10 @@
 </head>
 <body class="obra-page">
   <a class="skip-link" href="#obra-content">Ir para o conteúdo</a>
+  <!-- Cabeçalho global montado pelo módulo de layout. -->
   <header class="site-header" data-site-header></header>
   <main class="obra-shell">
+    <!-- Feedback de carregamento e recuperação antes da exibição dos detalhes. -->
     <p id="obra-status" class="obra-feedback" role="status" aria-live="polite">Carregando obra...</p>
     <button
       id="obra-retry"
@@ -23,6 +25,7 @@
     >
       Tentar novamente
     </button>
+    <!-- Dados públicos da obra preenchidos por detalhesObraPage.js. -->
     <section id="obra-content" class="obra-content" aria-labelledby="obra-title" hidden>
       <div class="obra-main-card">
         <div class="obra-cover-wrap"><div id="obra-cover" class="obra-cover" role="img" aria-label="Capa da obra"><span class="cover-small">E-writter</span><span id="cover-title" class="cover-title"></span><span class="cover-ornament" aria-hidden="true">✦</span></div></div>
@@ -52,6 +55,7 @@
       </section>
       <section class="obra-section chapters-section" id="capitulos" aria-labelledby="chapters-title">
         <div class="section-heading chapters-heading"><div><p class="obra-eyebrow">A HISTÓRIA CONTINUA</p><h2 id="chapters-title">Capítulos</h2></div><span id="chapter-count-label" class="chapter-count"></span></div>
+        <!-- Links dos capítulos publicados, ordenados por posição pelo controlador da página. -->
         <div id="chapter-list" class="chapter-list"></div>
       </section>
     </section>

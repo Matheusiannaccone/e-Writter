@@ -1,3 +1,5 @@
+-- Perfil público vinculado à conta de Auth; a exclusão da conta remove o perfil por cascata.
+-- Username único/normalizado, nome aparado e limite de bio são garantidos por constraints.
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
 
@@ -28,6 +30,8 @@ create table public.profiles (
   updated_at timestamptz not null default now()
 );
 
+-- RLS permite leitura pública, mas restringe inserção e atualização ao próprio auth.uid().
+-- USING seleciona linhas alteráveis; WITH CHECK também valida a identidade após a escrita.
 alter table public.profiles enable row level security;
 
 create policy "profiles_select_public"
@@ -54,6 +58,8 @@ with check (
   id = auth.uid()
 );
 
+-- O trigger cria o perfil na mesma transação do cadastro com metadados validados.
+-- SECURITY DEFINER permite a inserção durante Auth; search_path vazio exige nomes qualificados.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -121,6 +127,7 @@ after insert on auth.users
 for each row
 execute function public.handle_new_user();
 
+-- Função reutilizada por triggers de atualização para manter updated_at pelo relógio do banco.
 create or replace function public.handle_updated_user()
 returns trigger
 language plpgsql

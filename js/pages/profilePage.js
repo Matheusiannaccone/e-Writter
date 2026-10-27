@@ -1,3 +1,8 @@
+/**
+ * Carrega identidade e perfil da conta e permite editar nome, username e biografia.
+ * A cópia savedProfile restaura o último estado confirmado ao cancelar;
+ * session-boundary limpa dados privados e impede preenchimento por respostas de outra sessão.
+ */
 import { createSessionBoundary } from '../components/session-boundary.js';
 import { showFeedback, clearFeedback, setProcessing, prepareFormValidation } from "../components/feedback.js";
 import { getCurrentUser } from "../services/authService.js";
@@ -72,6 +77,11 @@ function updateProfileHeader(profile, email) {
   detailEmail.textContent = email || "E-mail não informado";
 }
 
+/**
+ * Consulta usuário e perfil em paralelo, confirmando a identidade antes do preenchimento.
+ * Ausência de sessão redireciona ao login; falhas temporárias mantêm a opção de tentar novamente.
+ * @returns {Promise<void>} Só libera campos quando existe perfil confirmado.
+ */
 async function loadProfile() {
   if (busy) return;
   const token = sessionBoundary.capture();
@@ -143,6 +153,7 @@ profileForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (busy || !savedProfile || !validation.validate()) return;
 
+  // O e-mail vem de Auth e é apenas exibido; este formulário envia campos de perfil.
   const data = {
     displayName: displayNameInput.value.trim(),
     username: usernameInput.value.trim().toLowerCase(),

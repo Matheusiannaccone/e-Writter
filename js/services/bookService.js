@@ -1,47 +1,84 @@
-// Service responsável pelas operações de livros.
-
+/**
+ * Contrato de obras consumido pelo catálogo e pelas páginas de autoria.
+ * Delega validação, autorização e persistência ao adapter ativo, preservando { data, error }.
+ */
 import { getBookAdapter } from "./dataSource.js";
 
-// Retorna os livros publicados disponíveis no catálogo.
+/**
+ * Lista obras publicadas do catálogo.
+ * @returns {Promise<{data: object[]|null, error: object|null}>} Obras com gêneros normalizados.
+ */
 export async function getBooks() {
   return getBookAdapter().getBooks();
 }
 
-// Busca um livro pelo ID.
+/**
+ * Busca uma obra conforme a visibilidade permitida ao usuário atual.
+ * @param {string} id - UUID da obra.
+ * @returns {Promise<{data: object|null, error: object|null}>} Obra ou erro; rascunhos alheios não são expostos.
+ */
 export async function getBookById(id) {
   return getBookAdapter().getBookById(id);
 }
 
-// Retorna todos os livros do usuário autenticado.
+/**
+ * Lista obras publicadas e rascunhos da conta autenticada.
+ * @returns {Promise<{data: object[]|null, error: object|null}>} Obras próprias ou erro de autenticação.
+ */
 export async function getMyBooks() {
   return getBookAdapter().getMyBooks();
 }
 
-// Retorna os livros publicados de um autor.
+/**
+ * Lista somente obras publicadas de um autor.
+ * @param {string} authorId - Identificador do autor validado pelo adapter.
+ * @returns {Promise<{data: object[]|null, error: object|null}>} Obras públicas do autor.
+ */
 export async function getBooksByAuthor(authorId) {
   return getBookAdapter().getBooksByAuthor(authorId);
 }
 
-// Cria um novo livro.
+/**
+ * Cria uma obra em rascunho com título e de um a três gêneros.
+ * @param {{title: string, description?: string|null, genreIds: number[]}} data - Dados iniciais.
+ * @returns {Promise<{data: object|null, error: object|null}>} Obra criada ou erro de validação/persistência.
+ */
 export async function createBook(data) {
   return getBookAdapter().createBook(data);
 }
 
-// Atualiza os dados de um livro.
+/**
+ * Atualiza os campos aceitos pelo adapter; publicação possui operações próprias.
+ * @param {string} id - UUID da obra.
+ * @param {{title?: string, description?: string|null, coverPath?: string|null, publicationStatus?: string, language?: string, genreIds?: number[]}} data - Campos a atualizar.
+ * @returns {Promise<{data: object|null, error: object|null}>} Obra atualizada ou erro.
+ */
 export async function updateBook(id, data) {
   return getBookAdapter().updateBook(id, data);
 }
 
-// Publica um livro.
+/**
+ * Publica a obra própria conforme os requisitos de descrição, gêneros e capítulos.
+ * @param {string} id - UUID da obra.
+ * @returns {Promise<{data: object|null, error: object|null}>} Obra publicada ou erro.
+ */
 export async function publishBook(id) {
   return getBookAdapter().publishBook(id);
 }
 
-// Exclui um livro.
+/**
+ * Exclui uma obra própria e suas relações de capítulos e gêneros.
+ * @param {string} id - UUID da obra.
+ * @returns {Promise<{data: {id: string}|null, error: object|null}>} Identificador removido ou erro.
+ */
 export async function deleteBook(id) {
   return getBookAdapter().deleteBook(id);
 }
-// Retira uma obra do catálogo público. A autorização pertence ao adapter.
+/**
+ * Retorna uma obra própria a rascunho, retirando-a do catálogo público.
+ * @param {string} id - UUID da obra.
+ * @returns {Promise<{data: object|null, error: object|null}>} Obra após despublicação ou erro.
+ */
 export async function unpublishBook(id) {
   return getBookAdapter().unpublishBook(id);
 }

@@ -1,3 +1,12 @@
+/**
+ * Calcula mensagens de impedimento para as ações de publicação no ateliê.
+ * As funções não persistem dados nem concedem autorização; adapters e banco validam a operação.
+ */
+/**
+ * Calcula impedimentos locais a partir do título e do comprimento bruto do conteúdo.
+ * @param {object|null} chapter - Dados persistidos do capítulo.
+ * @returns {string[]} Motivos para bloquear a publicação; vazio indica ausência destes impedimentos.
+ */
 export function chapterBlockers(chapter) {
   const reasons = [];
   if (!chapter?.title?.trim()) reasons.push('Adicione um título ao capítulo.');
@@ -6,6 +15,12 @@ export function chapterBlockers(chapter) {
   return reasons;
 }
 
+/**
+ * Calcula os requisitos locais da obra, incluindo ao menos um capítulo publicado.
+ * @param {object|null} book - Obra com gêneros normalizados.
+ * @param {object[]} chapters - Capítulos já consultados para a obra.
+ * @returns {string[]} Mensagens para a interface; não verifica autoria ou sessão.
+ */
 export function bookBlockers(book, chapters) {
   const reasons = [];
   if (!book?.title?.trim()) reasons.push('Adicione um título à obra.');

@@ -1,246 +1,87 @@
 # 06 — Fluxos de Usuário
 
-## 1. Objetivo
+## Páginas existentes
 
-Mapear os caminhos principais da aplicação para orientar páginas, navegação, estados de interface e testes.
+| Página | Uso |
+|---|---|
+| [index.html](../index.html) | Catálogo público |
+| [detalhes-obra.html](../detalhes-obra.html) | Dados da obra e capítulos publicados; parâmetro `id` da obra |
+| [chapter.html](../chapter.html) | Leitor; parâmetro `id` do capítulo |
+| [cadastro.html](../cadastro.html) e [login.html](../login.html) | Entrada na conta |
+| [recuperar-senha.html](../recuperar-senha.html) e [redefinir-senha.html](../redefinir-senha.html) | Recuperação de acesso |
+| [perfil.html](../perfil.html) | Dados da própria conta |
+| [meuslivros.html](../meuslivros.html) | Obras próprias, publicadas ou em rascunho |
+| [book-editor.html](../book-editor.html) | Ateliê de metadados, capa e publicação |
+| [chapter-editor.html](../chapter-editor.html) | Escrita/edição de capítulos |
+| [biblioteca.html](../biblioteca.html) | Favoritos da conta |
 
-Regras detalhadas permanecem em `03-Regras-de-Negocio.md`.
+## Descobrir e ler
 
----
+1. O visitante abre o catálogo e seleciona um card.
+2. Os detalhes consultam a obra por `id`, exibem sua sinopse e capítulos publicados ordenados.
+3. “Iniciar Leitura” abre o primeiro capítulo disponível; os links numerados abrem o capítulo escolhido.
+4. O leitor apresenta texto simples, anterior/próximo e retorno à obra. A navegação usa apenas os capítulos publicados.
 
-## 2. Visitante
+Sem ID, conteúdo indisponível ou rascunho, a página apresenta indisponibilidade. Falha temporária pode oferecer nova tentativa. Capa ou perfil de autor indisponível têm apresentação alternativa. Não há busca, filtro ou registro de progresso neste percurso.
 
-### 2.1 Descobrir e ler obra pública
+## Cadastrar, entrar e sair
 
-```text
-Home
-  ↓
-Selecionar livro publicado
-  ↓
-Página do livro
-  ↓
-Selecionar capítulo publicado
-  ↓
-Leitor
-  ↓
-Anterior / Próximo
-```
+No Cadastro, preencher nome, username, e-mail, senha e confirmação. A página informa sessão ativa quando o resultado contém sessão; caso contrário, orienta confirmar o e-mail. O fluxo normal não insere perfil separadamente na interface.
 
-A leitura pública não exige autenticação.
+No Login, credenciais aceitas levam à Biblioteca. Erros mantêm o formulário disponível para correção. O menu de conta, nas páginas que o montam, oferece Perfil, Meus Livros e Sair. As quatro páginas de autenticação usam sua composição própria e não montam o cabeçalho global no HTML atual.
 
-### 2.2 Cadastro
+Sair bloqueia duplicação, limpa dados privados das páginas e atualiza o estado de conta. Uma falha permite tentar novamente e não é apresentada como saída concluída. Voltar/Avançar exige revalidação; uma resposta antiga não deve restaurar dados da conta anterior. O logout não apaga contas, obras ou favoritos.
 
-```text
-Home/Login
-  ↓
-Cadastro
-  ↓
-email + password + username + displayName
-  ↓
-Supabase Auth cria auth.users
-  ↓
-trigger cria profiles
-  ↓
-cadastro concluído
-  ↓
-sessão autenticada
-```
+## Recuperar e redefinir senha
 
-No MVP atual, `enable_confirmations = false`.
+1. No Login, abrir recuperação e informar e-mail sintaticamente válido.
+2. O formulário apresenta resultado neutro no Supabase e reserva um prazo de 60 segundos compartilhado na origem, inclusive após mudar o e-mail ou recarregar.
+3. Sucesso ou limite de envio mantém o prazo; outras falhas liberam a própria reserva e permitem nova tentativa. Não há reenvio automático.
+4. No backend real, acessar a página de nova senha pelo redirect do Auth. Campos ficam bloqueados até o adapter aceitar a sessão; link/sessão inválidos não liberam a escrita.
+5. Informar e confirmar a senha; depois do sucesso, a página limpa os campos e bloqueia repetição do envio.
 
-Assim, um cadastro válido não exige confirmação de e-mail antes da sessão inicial.
+No Mock não há e-mail nem link que autentique uma conta. Para demonstrar redefinição, entrar com uma conta fictícia e abrir a página na mesma aba. Configuração de redirects e limites: [12-Deploy-e-Ambientes.md](12-Deploy-e-Ambientes.md).
 
-A página não cria `profiles` diretamente. A criação do perfil é responsabilidade do trigger associado ao fluxo de criação de `auth.users`.
+## Consultar e editar Perfil
 
-### 2.3 Login
+O Perfil carrega usuário e dados próprios antes de liberar os campos. Permite editar nome, username e biografia; Cancelar restaura o último estado confirmado. E-mail é exibido sem edição e o avatar é um símbolo estático.
 
-```text
-Login
-  ↓
-Credenciais
-  ↓
-Supabase Auth
-  ├── inválidas → erro
-  └── válidas → sessão + redirecionamento
-```
+Sessão ausente redireciona ao Login com `next=perfil.html`; o Login atual conclui sempre na Biblioteca, sem consumir esse `next`. Falha temporária de carga oferece tentativa na própria página.
 
----
+## Criar e editar obra
 
-## 3. Leitor autenticado
+1. Abrir Ateliê ou “Escrever um livro” em Meus Livros.
+2. Usar “Nova obra”, informar título e selecionar os gêneros.
+3. Adicionar descrição e capa se desejado; salvar cria um rascunho.
+4. Para editar, selecionar obra própria no ateliê ou abrir um card em Meus Livros.
+5. Salvar metadados e, se houver, aguardar envio/remoção da capa. Uma falha de imagem informa que a obra já foi salva.
 
-### 3.1 Adicionar à biblioteca
+O parâmetro canônico do editor é `bookId`; o ateliê ainda aceita `book` legado, usado pelos cards de Meus Livros. A seleção só é aceita entre as obras retornadas para a conta. Não há controles de exclusão, idioma ou andamento narrativo.
 
-```text
-Página do livro
-  ↓
-Adicionar à biblioteca
-  ↓
-favorite criado
-  ↓
-Interface atualizada
-```
+## Escrever capítulos
 
-### 3.2 Remover da biblioteca
+Com obra persistida e alterações salvas, abrir “Escrever capítulos”. O editor confirma a obra entre as próprias, carrega a lista e permite novo rascunho ou edição de capítulo existente.
 
-```text
-Biblioteca/Página do livro
-  ↓
-Remover
-  ↓
-favorite excluído
-  ↓
-Interface atualizada
-```
+O formulário exige título e conteúdo não vazios e limita o texto; salvar não publica. Após confirmação, recarrega a lista e volta ao modo de novo rascunho. Se a gravação ocorrer, mas a recarga falhar, a mensagem diferencia esses resultados. Trocar de obra invalida respostas atrasadas da seleção anterior.
 
-### 3.3 Buscar por gênero
+O retorno ao ateliê mantém o contexto de obra. Sem `bookId`, nenhuma obra é selecionada automaticamente, mesmo que exista apenas uma. Não há ação de excluir ou reordenar capítulos.
 
-```text
-Home/Busca
-  ↓
-Selecionar gênero
-  ↓
-Consulta
-  ↓
-Livros publicados compatíveis
-```
+## Publicar e retirar de publicação
 
----
+As ações ficam no painel de publicação do ateliê, não no formulário de escrita de capítulos. O painel mostra estado, impedimentos e uma confirmação antes de publicar/despublicar.
 
-## 4. Escritor
+Primeiro publicar capítulo elegível; depois publicar a obra elegível. Uma obra em rascunho mantém seus capítulos fora da leitura pública mesmo se marcados como publicados. Alterações pendentes precisam ser salvas.
 
-Não existe conta separada de escritor.
+A interface bloqueia retirar o único capítulo publicado de uma obra publicada e orienta retirar a obra primeiro. Após qualquer mutação, reconsulta obra/capítulos porque o backend pode alterar vários registros. Regras: [03-Regras-de-Negocio.md](03-Regras-de-Negocio.md). Diferença da cascata entre fontes: [14-Contrato-Front-Services.md](14-Contrato-Front-Services.md).
 
-### 4.1 Criar livro
+## Favoritar e organizar a Biblioteca
 
-```text
-Meus livros
-  ↓
-Novo livro
-  ↓
-Título + 1 a 3 gêneros
-  ↓
-Salvar
-  ↓
-Livro em draft
-```
+Controles no catálogo, detalhes e leitor consultam a relação pessoal. Sem sessão, pedem entrada; com sessão, permitem adicionar/remover. O resultado só atualiza a interface se ainda pertencer à mesma sessão.
 
-Descrição e capa podem ser adicionadas depois.
+A Biblioteca lista os registros válidos com cards e remoção própria. Remover atualiza contagem e foco sem recarregar a página inteira; o último removido leva ao estado vazio. Falhas conservam o card e permitem nova tentativa. Registros sem obra acessível ou inválidos podem ser omitidos com aviso; não se presume que todo favorito persistido seja exibido/removível pela tela.
 
-### 4.2 Editar livro
+## Estados transversais
 
-```text
-Meus livros
-  ↓
-Selecionar obra própria
-  ↓
-Editar
-  ↓
-Salvar
-```
+Carregamento, vazio, falha, sessão ausente e conteúdo indisponível são estados distintos. Campos inválidos recebem indicação e foco conforme o formulário. Operações em andamento bloqueiam ações concorrentes relevantes; perda de sessão limpa conteúdo privado.
 
-### 4.3 Criar capítulo
-
-```text
-Livro próprio
-  ↓
-Novo capítulo
-  ↓
-Título/conteúdo
-  ↓
-Salvar rascunho
-```
-
-A posição é atribuída pelo banco.
-
-### 4.4 Publicar capítulo
-
-```text
-Editor
-  ↓
-Validar critérios
-  ↓
-Publicar
-  ↓
-status = published
-```
-
-Critérios: `03-Regras-de-Negocio.md`, RN-026.
-
-### 4.5 Publicar livro
-
-```text
-Livro em draft
-  ↓
-Validar critérios
-  ↓
-Publicar
-  ↓
-status = published
-  ↓
-Obra disponível publicamente
-```
-
-Critérios: `03-Regras-de-Negocio.md`, RN-019C.
-
----
-
-## 5. Autorização negada
-
-```text
-Ação restrita
-  ↓
-Supabase
-  ↓
-RLS/Policy
-  ↓
-operação negada
-  ↓
-service normaliza erro
-  ↓
-frontend exibe feedback
-```
-
-A interface não é a autoridade de segurança.
-
----
-
-## 6. Estados importantes de UI
-
-Os fluxos devem prever:
-
-- carregando;
-- sucesso;
-- lista vazia;
-- erro recuperável;
-- não autenticado;
-- não autorizado;
-- não encontrado;
-- confirmação antes de ação destrutiva.
-
-Formato dos retornos dos services: `14-Contrato-Front-Supabase.md`.
-
----
-
-## 7. Fluxos evolutivos
-
-### Continuar lendo
-
-```text
-Leitor abre capítulo
-  ↓
-progresso salvo
-  ↓
-retorno futuro ao último ponto
-```
-
-### Leitura offline
-
-```text
-Conteúdo disponibilizado offline
-  ↓
-cache local
-  ↓
-leitura sem conexão
-```
-
-Esses fluxos não fazem parte do MVP e exigem desenho técnico próprio antes da implementação.
+Os links preservam `datasource` quando reconhecido, mas o formato de rota tem limitações conhecidas em servidores com redirecionamento de `.html`. Não há garantia geral de adaptação a rotas limpas. Consulte [12-Deploy-e-Ambientes.md](12-Deploy-e-Ambientes.md) e [10-Testes.md](10-Testes.md).

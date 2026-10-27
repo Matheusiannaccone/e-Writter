@@ -60,6 +60,9 @@ when (old.status is distinct from new.status)
 execute function public.validate_published_book_chapters();
 
 
+-- RPC SECURITY DEFINER com autenticação/autoria explícitas e locks sobre obra e capítulo.
+-- Despublica o alvo e a cauda publicada; se não sobrar capítulo publicado, também muda a obra para draft.
+-- Qualquer falha desfaz a operação; a constraint adiada avalia o estado final da transação.
 create or replace function public.unpublish_chapter(
     p_chapter_id uuid
 )
@@ -117,6 +120,7 @@ begin
 end;
 $$;
 
+-- A execução elevada fica restrita a authenticated; estar autenticado não dispensa a checagem de autoria.
 revoke all
 on function public.unpublish_chapter(uuid)
 from public;

@@ -1,8 +1,17 @@
+/**
+ * Constrói o card compartilhado pelas listagens a partir de dados já consultados.
+ * Resolve a capa pelo imageService e inclui o controle de favoritos quando aplicável.
+ */
 import { createFavoriteButton } from "./favorite-button.js";
 import { getBookCoverUrl } from "../services/imageService.js";
 
-// Use o mesmo card nas listas da Home, do catálogo, da busca e da biblioteca.
-// A página fornece o destino e os dados de apresentação; a URL da capa vem do service.
+/**
+ * Cria um card com link e, opcionalmente, um controle de favorito fora desse link.
+ * @param {object} book - Obra com id, title, status e coverPath opcional.
+ * @param {{href: string, author?: string, genres?: Array<string|object>, metadata?: string, showFavoriteButton?: boolean}} options - Apresentação e destino.
+ * @returns {Promise<HTMLElement>} Article pronto para montagem, mesmo se a capa falhar.
+ * @throws {TypeError} Quando a obra ou o destino não são fornecidos.
+ */
 export async function createBookCard(book, { href, author, genres = [], metadata, showFavoriteButton = true } = {}) {
   if (!book || !href) throw new TypeError("O card precisa de um livro e de um destino.");
 

@@ -1,3 +1,8 @@
+/**
+ * Validação de sintaxe e ligação dos imports de todos os módulos da pasta js.
+ * Um subprocesso usa SourceTextModule; o import do SDK remoto recebe um módulo sintético
+ * e os módulos são ligados sem avaliar a aplicação ou realizar chamadas de rede.
+ */
 const { test } = require('node:test');
 const { execFileSync } = require('node:child_process');
 const path = require('node:path');

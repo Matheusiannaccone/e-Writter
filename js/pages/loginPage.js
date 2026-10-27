@@ -1,3 +1,7 @@
+/**
+ * Controla validação e envio das credenciais por authService.
+ * Após sucesso, navega para a biblioteca preservando a fonte da página.
+ */
 import { showFeedback, setProcessing, prepareFormValidation } from '../components/feedback.js';
 import { signIn } from "../services/authService.js";
 import { withDataSource, preserveDataSource } from "../components/navigation-context.js";

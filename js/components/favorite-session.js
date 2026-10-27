@@ -1,3 +1,7 @@
+/**
+ * Coordena os controles de favoritos montados com uma única assinatura de Auth.
+ * Combina revisão global e geração de cada controle para descartar respostas obsoletas.
+ */
 import { reportSessionVerificationFailure } from './session-status.js';
 import { getCurrentUser, onAuthStateChange } from '../services/authService.js';
 
@@ -21,12 +25,20 @@ function listen() {
     resetControls(event === 'SESSION_ERROR' ? 'error' : event === 'SIGNED_OUT' ? 'guest' : 'checking');
     if (event !== 'SIGNED_OUT' && event !== 'SESSION_ERROR') {
       const token = revision;
+      // Adia consultas para fora do callback de Auth e ignora recargas já invalidadas.
       setTimeout(() => { if (token === revision) refreshControls(); }, 0);
     }
   });
   window.addEventListener('pagehide', () => resetControls('checking'));
   window.addEventListener('pageshow', event => { if (event.persisted) { resetControls('checking'); refreshControls(); } });
 }
+/**
+ * Registra o controle e fornece tokens para validar suas operações assíncronas.
+ * accept verifica geração e identidade; uma resposta de outra conta nunca deve pintar o controle.
+ * @param {HTMLElement} element - Raiz que será localizada entre os controles montados.
+ * @param {{clear: function(string): void, reload: function(): *}} callbacks - Limpeza e recarga do estado pessoal.
+ * @returns {{capture: function(): object, current: function(object): boolean, accept: function(object, object=): Promise<boolean>, invalidate: function(string): void, reload: Function, next: function(): object}} Coordenador do controle.
+ */
 export function createFavoriteSession(element, { clear, reload }) {
   listen();
   let generation = 0;

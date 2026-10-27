@@ -1,3 +1,8 @@
+/**
+ * Encerramento da sessão Mock isolada por aba, preservando contas e catálogo.
+ * Falhas do armazenamento e operações pendentes verificam ausência de sucesso falso
+ * e impedem que respostas antigas reabram uma sessão encerrada.
+ */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { identityPage, memoryStorage } = require('./helpers/mock-identity.cjs');

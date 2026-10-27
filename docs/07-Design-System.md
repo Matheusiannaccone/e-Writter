@@ -1,287 +1,78 @@
 # 07 — Design System
 
-## 1. Status
+## Referência visual implementada
 
-Documento base.  
-A identidade visual final ainda deve ser definida pelo grupo.
+A interface usa tons de papel/pergaminho, tinta escura e vinho, com tipografia de leitura em destaque. Esta é a descrição do CSS atual, sem afirmar uma aprovação visual externa. A base está em [global.css](../css/global.css); componentes compartilhados, em [components.css](../css/components.css).
 
-Este arquivo estabelece padrões funcionais e estruturais para impedir que cada integrante desenvolva interfaces incompatíveis.
+## Tokens
 
-## 2. Princípios
+| Grupo | Tokens e valores atuais |
+|---|---|
+| Superfícies | `--color-bg: #e9d8b5`, `--color-surface: #fbf1da`, `--color-input-bg: #fffaf0` |
+| Texto | `--color-text: #34251d`, `--color-text-muted: #705849` |
+| Ação | `--color-primary: #743d35`, `--color-primary-hover: #5b2d28`, `--color-on-primary: #fff4df` |
+| Estados | `--color-danger: #963e32`, `--color-danger-hover: #772e26`, `--color-success: #2e512b`, `--color-warning: #654414` |
+| Borda e cabeçalho | `--color-border: #d2b98d`, `--color-header: #34251d`, `--color-header-text: #f7e9ca` |
+| Interface | `--font-body: 'DM Sans', Arial, sans-serif` |
+| Leitura | `--font-reading: 'Cormorant Garamond', Georgia, serif` |
+| Espaçamento | `--space-1` a `--space-5`: `.5rem`, `1rem`, `1.5rem`, `2rem`, `3rem` |
+| Raios | `--radius-sm: .4rem`, `--radius-md: .8rem`, `--radius-lg: 1.2rem` |
+| Larguras | `--page-width: 74rem`, `--reading-width: 42rem` |
 
-1. Mobile first.
-2. Legibilidade acima de decoração.
-3. Consistência entre páginas.
-4. Controles com áreas de toque adequadas.
-5. Contraste suficiente.
-6. Estados claros de interação.
-7. Componentes reutilizáveis.
-8. Leitor com baixa distração visual.
+As fontes são importadas do Google Fonts com alternativas locais. Estilos de autenticação usam aliases como `--ink` e `--wine`. Há valores e fontes específicos por página: `user-pages.css`, por exemplo, define Georgia como base. Portanto, o conjunto atual não é uma uniformização total por tokens.
 
-## 3. Breakpoints
+## Tipografia e leitura
 
-Valores iniciais:
+Utilitários globais diferenciam título de página/seção, metadados e corpo de leitura. Tamanhos fluidos usam `clamp`. O leitor tem coluna máxima própria de `47rem`, superfície de papel e corpo entre `1.35rem` e `1.5rem`, com entrelinha `1.65`.
 
-```css
-/* Base: mobile */
+Capítulos são inseridos como texto. Linhas em branco separam parágrafos e `white-space: pre-wrap` preserva quebras simples. A sinopse usa `pre-line`. Não há controles de tema, fonte ou largura para o leitor; são candidatos de evolução.
 
-/* Tablet */
-@media (min-width: 768px) {}
+## Componentes compartilhados
 
-/* Desktop */
-@media (min-width: 1024px) {}
-```
+| Componente | Implementação e padrão |
+|---|---|
+| Cabeçalho/menu | [site-layout.js](../js/components/site-layout.js): marca, links, página atual e toggle móvel. |
+| Conta | [auth-navigation.js](../js/components/auth-navigation.js): verificação, visitante, autenticado, processamento e falha. |
+| Card | [book-card.js](../js/components/book-card.js): capa com proporção 2:3, fallback, título, autoria opcional e metadados. |
+| Favorito | [favorite-button.js](../js/components/favorite-button.js): botão separado do link principal, `aria-pressed` e feedback textual. |
+| Botões | `.button` e `.button--secondary`, além de variantes específicas de páginas. |
+| Formulários | [feedback.js](../js/components/feedback.js): associação de erro, processamento e região de feedback. |
 
-Breakpoints podem ser ajustados quando o layout real exigir.
+Home, Biblioteca e Meus Livros usam o card compartilhado. Na Biblioteca, o favorito embutido é desativado e há um botão próprio de remoção. Títulos/autoria/metadados são limitados visualmente a duas linhas sem alterar seus textos no DOM. Imagens usam `object-fit: cover`; falha de capa preserva o placeholder.
 
-## 4. Tokens CSS
+## Navegação e composição
 
-Definir tokens no início da implementação:
+O cabeçalho global é montado em oito páginas: início, Biblioteca, Meus Livros, Perfil, detalhes, leitor e ambos os editores. As quatro páginas de autenticação importam o módulo de layout, mas não oferecem o container de cabeçalho. Isso diverge do teste que exige cabeçalho em todas as páginas e permanece registrado em [10-Testes.md](10-Testes.md).
 
-```css
-:root {
-  --color-bg: ...;
-  --color-surface: ...;
-  --color-text: ...;
-  --color-text-muted: ...;
-  --color-primary: ...;
-  --color-danger: ...;
-  --color-border: ...;
+O menu móvel usa botão real, `aria-expanded`, `aria-controls`, fechamento por Escape e retorno do foco. O breakpoint de navegação é 768px. O link da página atual recebe `aria-current="page"`. O rodapé global só é montado onde existe seu ponto de montagem; outras páginas têm rodapé próprio.
 
-  --font-body: ...;
-  --font-reading: ...;
+## Feedback e formulários
 
-  --space-1: ...;
-  --space-2: ...;
-  --space-3: ...;
-  --space-4: ...;
-  --space-5: ...;
+Auth e Perfil compartilham mensagens com estado textual (`Erro`, `Sucesso`, `Atenção`, `Carregando`, `Sem conteúdo`), além de cor. Regiões estáveis usam `role="status"`, `aria-live="polite"` e `aria-atomic="true"`. Erros locais associam a descrição ao campo, preservando outras descrições, e a validação foca o primeiro campo inválido.
 
-  --radius-sm: ...;
-  --radius-md: ...;
-  --radius-lg: ...;
-}
-```
+O processamento controla `disabled`, `aria-busy`, indicador e restauração do rótulo. Os editores possuem mensagens próprias e também usam estados/bloqueios; não utilizam integralmente o helper de formulários. A recuperação apresenta prazo absoluto de espera em região viva e contagem no botão, evitando anunciar cada segundo.
 
-Os valores visuais devem ser aprovados pelo grupo antes de serem tratados como identidade definitiva.
+Login, Cadastro e Recuperação mantêm restrições HTML nativas como fallback. Perfil e Redefinição possuem campos inicialmente desabilitados e dependem do controlador para liberar o uso; os editores também têm bloqueios e validação próprios. Placeholder não substitui label.
 
-## 5. Tipografia
+## Responsividade
 
-Devem existir papéis claros para:
+| Conjunto | Comportamento/breakpoints presentes |
+|---|---|
+| Base/menu | Largura comum e menu de desktop a partir de 768px |
+| Cards | Duas colunas na base; uma abaixo de 360px; grade automática a partir de 480px |
+| Autenticação | Ajustes em 900px, empilhamento em 700px e redução em 360px |
+| Ateliê | Duas colunas a partir de 768px; ações expandidas em até 520px |
+| Editor de capítulos | Lista lateral a partir de 900px; ações expandidas em até 520px |
+| Detalhes | Reorganização em 760px e 460px |
+| Leitor | Navegação empilhada em até 420px e espaçamento adicional a partir de 768px |
+| Perfil/Meus Livros | Reorganização em até 650px |
 
-- título de página;
-- título de seção;
-- título de livro;
-- metadado;
-- corpo de interface;
-- corpo de leitura;
-- legenda;
-- mensagem de estado.
+O CSS combina regras de base, `min-width` e `max-width`, conforme a composição existente. Não há um único breakpoint universal de desktop.
 
-O texto dos capítulos pode utilizar configuração distinta da interface, desde que priorize legibilidade.
+## Acessibilidade e manutenção
 
-## 6. Grid de livros
+Existem foco visível, labels, controles nativos, atalhos de conteúdo em várias páginas, regiões de estado e tratamento de `prefers-reduced-motion`; a base reforça foco com `prefers-contrast: more`. Muitos controles têm área mínima de 44px, sem que isso certifique todos os elementos.
 
-### Mobile
+Não se declara conformidade WCAG integral: faltam evidências abrangentes de leitor de tela, zoom, contraste e todos os navegadores. Os procedimentos/evidências estão em [10-Testes.md](10-Testes.md).
 
-Preferência inicial:
-
-```text
-2 cards por linha quando houver largura suficiente.
-```
-
-Em telas muito estreitas, o layout deve permanecer legível sem overflow.
-
-### Tablet/Desktop
-
-Aumentar colunas conforme largura disponível, preservando tamanho mínimo dos cards.
-
-## 7. Componentes obrigatórios
-
-### Botões
-
-- primário;
-- secundário;
-- textual;
-- destrutivo;
-- desabilitado;
-- carregando.
-
-### Inputs
-
-- label identificável;
-- erro próximo ao campo;
-- foco visível;
-- placeholder não substitui label.
-
-### Card de livro
-
-Deve suportar:
-
-- capa;
-- título;
-- autor;
-- gênero ou metadado resumido.
-
-Implementação compartilhada: `createBookCard` em `js/components/book-card.js`, com
-estilos em `css/components.css`. Home, catálogo, busca e biblioteca devem usar
-esse componente dentro de `.book-grid`, sem repetir a marcação do card.
-
-```js
-import { createBookCard } from "./js/components/book-card.js";
-
-grid.append(await createBookCard(book, {
-  href: bookHref,
-  author: authorName,
-  genres: bookGenres,
-  metadata: book.publicationStatus === "ongoing" ? "Em andamento" : "Concluído"
-}));
-```
-
-O destino é fornecido pela página. A capa usa `getBookCoverUrl` do service;
-quando ausente ou indisponível, aparece o estado “Sem capa”. O link inteiro
-recebe foco e é acionável por teclado e toque. Título, autor e metadata longos
-são limitados visualmente sem alterar seus textos no DOM.
-Na Home, `js/pages/home-books.js` usa os services públicos para preencher esse
-grid com livros publicados e vincula cada card à página pública da obra.
-`detalhes-obra.html` apresenta as informações públicas da obra, seus capítulos publicados e as ações de leitura e favoritos.s
-
-### Navegação
-
-Deve possuir solução específica para mobile e não depender de hover.
-
-### Feedback
-
-Padrões para:
-
-- sucesso;
-- erro;
-- aviso;
-- carregamento;
-- conteúdo vazio.
-
-## 8. Leitor
-
-Priorizar:
-
-- largura de linha confortável;
-- bom espaçamento;
-- contraste;
-- tamanho legível;
-- anterior/próximo;
-- baixa distração.
-
-Recursos futuros:
-
-- tamanho de fonte;
-- tema claro/escuro/sépia;
-- família tipográfica;
-- largura da coluna.
-
-## 9. Acessibilidade mínima
-
-- HTML semântico;
-- labels associados a inputs;
-- `alt` em imagens informativas;
-- informação não transmitida somente por cor;
-- foco visível;
-- contraste adequado;
-- elementos interativos corretos;
-- áreas de toque adequadas;
-- hierarquia de headings.
-
-## 10. Imagens
-
-Capas devem:
-
-- manter proporção consistente;
-- usar `object-fit` apropriado;
-- possuir fallback visual;
-- evitar arquivos desnecessariamente grandes.
-
-Regras técnicas de upload: `11-Seguranca.md`.
-
-## 11. Responsividade
-
-```text
-1. implementar mobile
-2. validar mobile
-3. expandir para tablet
-4. expandir para desktop
-```
-
-## 12. Critério para novos componentes
-
-Antes de criar componente novo:
-
-1. verificar se já existe equivalente;
-2. reutilizar tokens;
-3. manter estados de foco/erro/desabilitado;
-4. documentar quando o padrão for reutilizável.
-
-## 13. Implementação compartilhada
-
-A base visual está em `css/global.css` (tokens, tipografia, reset e foco) e
-`css/components.css` (header, navegação, footer e botões). As páginas importam
-ambos antes do CSS específico. O visual mantém a linguagem de papel, tinta e
-vinho presente nas páginas de autenticação e no leitor. Os valores ainda estão
-sujeitos à aprovação do grupo como identidade final.
-
-Para usar a estrutura global em outra página, inclua o módulo
-`js/components/site-layout.js` e os elementos sem conteúdo
-`<header class="site-header" data-site-header></header>` e
-`<footer class="site-footer" data-site-footer></footer>`. Adicione um link de
-pular para `main` e um `id` correspondente. O módulo gera a navegação, marca
-`aria-current="page"` pela URL e controla o menu mobile com `aria-expanded`.
-A lista de links inclui apenas rotas presentes nesta branch; atualize-a quando
-as outras páginas forem integradas.
-
-Páginas de autenticação em outras branches podem reaproveitar tokens e estilos
-sem receber o header completo quando a composição própria exigir foco no
-formulário. O leitor mantém sua coluna e sua tipografia específicas.
-
-## 13. Implementação 0.33.2
-
-A base em `css/global.css` define tokens, tipografia, foco e largura comum.
-`css/components.css` contém header, menu mobile, footer e botões.
-`js/components/site-layout.js` monta o shell de início e leitura;
-formulários de autenticação compartilham os tokens e mantêm um layout
-próprio. O estado ativo usa `aria-current="page"`; o menu informa
-`aria-expanded`, fecha com Escape e usa controles de 44 px.
-
-A paleta em pergaminho e vinho segue a identidade já presente nas páginas.
-Os valores continuam sujeitos à aprovação visual do grupo.
-
-## 14. Feedback de formulários
-
-Importar os helpers de `js/components/feedback.js` e os estilos de
-`css/components.css`. Auth e Perfil usam a mesma apresentação, com tokens,
-texto identificando o estado e suporte a movimento reduzido.
-
-- `showFeedback(element, text, kind = 'error')`: mostra texto seguro com prefixo
-  e variante `error`, `success`, `warning`, `loading` ou `empty`. Usa uma única
-  região `role="status"`, `aria-live="polite"`, `aria-atomic="true"` por formulário.
-  Criar essa região vazia no HTML, com `data-feedback-region`, sem `hidden`.
-- `clearFeedback(element)`: limpa texto e variante. Regiões com
-  `data-feedback-region` continuam na árvore de acessibilidade, sem caixa visual
-  enquanto vazias. Destinos antigos sem esse atributo voltam a ficar ocultos.
-- `setFieldError(field, text)`: mostra erro próximo a campos com `id` único,
-  dentro de `.form-field`, `.field` ou `.profile-detail`; controla `aria-invalid`
-  e acrescenta/remove somente o ID do erro em `aria-describedby`, preservando
-  descrições anteriores. Texto vazio limpa o erro. Não cria um segundo alerta.
-- `setProcessing(button, processing, label)`: desabilita o botão, controla
-  `aria-busy`, mostra indicador decorativo e texto; ao finalizar, restaura a
-  marcação original. A página controla o bloqueio dos demais campos e ações
-  concorrentes, e o anúncio de progresso pela região de feedback.
-- `prepareFormValidation(form, message, validators = {})`: inicia a região
-  estável e retorna `validate()` e `clear()`. Validadores por `name` retornam
-  texto de erro ou string vazia; restrições HTML continuam sendo consultadas.
-  `validate()` associa erros e foca o primeiro campo inválido, sem repetir a
-  mesma informação na região global. Eventos `input` revalidam erros existentes
-  e dependentes. `clear()` remove os erros locais. Sem JS, a validação HTML
-  nativa permanece disponível.
-
-Em validações locais, o foco e `aria-describedby` comunicam o erro. Em operações
-assíncronas, usar a região global para progresso e resultado. Não duplicar
-o mesmo erro em ambos. `empty` é destinado à ausência de conteúdo quando
-aplicável, não a campos obrigatórios vazios.
+Para novos componentes, reutilizar tokens e primitivas existentes, preservar foco/labels/estados e validar em telas estreitas. Limites e proteção de imagens pertencem a [11-Seguranca.md](11-Seguranca.md).

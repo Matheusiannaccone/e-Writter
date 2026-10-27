@@ -1,133 +1,50 @@
-# 08 — Roadmap
+# 08 — Backlog e Roadmap
 
-## 1. Objetivo
+## Estado do produto
 
-Registrar a evolução de alto nível do produto.
+O MVP `1.0.0` foi entregue. A identificação do pacote, dos commits e das releases é tratada em [09-Git-e-Versionamento.md](09-Git-e-Versionamento.md), sem reproduzir aqui o histórico de versionamento.
 
-O acompanhamento operacional de tarefas, responsáveis, prazos, criticidade e status é realizado no **Trello**. Este documento não deve duplicar os cartões do quadro.
+O produto possui o percurso principal de conta, autoria, publicação, leitura e favoritos. Isso não significa ausência de falhas conhecidas ou equivalência integral entre Mock e Supabase. O estado verificável de cada requisito é mantido em [02-Requisitos.md](02-Requisitos.md).
 
-## 2. Roadmap do MVP
+## Marcos concluídos no código
 
-| Fase | Resultado esperado | Marco sugerido |
+| Marco | Entrega |
+|---|---|
+| Fundação | Camadas de páginas, componentes, services e adapters; schema e políticas versionados. |
+| Conta | Cadastro, login, logout, recuperação/redefinição e edição de perfil. |
+| Autoria | Obras, gêneros, capas e escrita/edição de capítulos. |
+| Publicação | Publicar/despublicar obras e capítulos; integridade transacional no Supabase. |
+| Leitura | Catálogo, detalhes e leitor com capítulos publicados. |
+| Biblioteca | Favoritos pessoais, listagem e remoção. |
+| Documentação interna | Comentários técnicos e JSDoc integrados após o marco funcional. |
+
+Não se associam versões intermediárias fictícias a esses marcos. O histórico detalhado permanece no Git; este arquivo não replica cartões do Trello, responsáveis ou prazos.
+
+## Estabilização ainda necessária
+
+As prioridades abaixo são uma organização técnica das lacunas observadas, não um cronograma aprovado.
+
+| Prioridade | Resultado a buscar | Referência oficial |
 |---|---|---|
-| Fundação | arquitetura, ambientes, segurança e processos definidos | `0.1.x` |
-| Conta e perfil | cadastro, login, logout, sessão e perfil | `0.2.0` |
-| Publicação | livros, capítulos, gêneros, rascunho, publicação e capa | `0.3.0` |
-| Descoberta e leitura | home, detalhes, leitor, busca e navegação | `0.4.0` |
-| Biblioteca | favoritos e biblioteca do usuário | `0.5.0` |
-| Estabilização | requisitos, segurança, responsividade e regressão validados | `1.0.0` |
+| Alta | Resolver a divergência entre o teste de cabeçalho e as páginas de Auth e decidir/testar o comportamento de rotas `.html` versus limpas. | [10-Testes.md](10-Testes.md) |
+| Alta | Confirmar segurança, redirects de recuperação, e-mail e Storage no ambiente real autorizado. | [11-Seguranca.md](11-Seguranca.md) e [12-Deploy-e-Ambientes.md](12-Deploy-e-Ambientes.md) |
+| Alta | Resolver a configuração local que referencia seed inexistente e verificar o bootstrap do banco. | [12-Deploy-e-Ambientes.md](12-Deploy-e-Ambientes.md) |
+| Média | Reduzir diferenças de persistência, identidade e despublicação entre adapters; avaliar normalização de erros genéricos de autorização. | [14-Contrato-Front-Services.md](14-Contrato-Front-Services.md) |
+| Média | Ampliar evidência de acessibilidade, Firefox/Safari, bfcache nativo e fontes reais. | [10-Testes.md](10-Testes.md) |
 
-Os marcos são referências de versionamento, não cronograma rígido.
+## Evolução funcional candidata
 
-## 3. Fundação
+| Grupo | Recursos fora da entrega atual |
+|---|---|
+| Completar superfícies existentes | Exclusão de obras/capítulos pela interface, upload/exibição de avatar e seleção de idioma/andamento. |
+| Descoberta | Busca básica, filtro por gênero, página pública de autor e posterior busca avançada. |
+| Conta | Exclusão protegida com escolha sobre obras; depende de completar o ADR-016 e regras associadas. |
+| Leitura | Histórico, continuar lendo e preferências de apresentação. |
+| Social | Avaliações, comentários, seguidores, ranking e recomendações. |
+| Plataforma | PWA/offline, exportação, notificações, moderação e colaboração entre autores. |
 
-Saída esperada:
+A existência de FK, campo ou service isolado não conclui essas jornadas. Qualquer evolução deve definir critérios, efeitos nos dados e autorização antes da implementação. As decisões aceitas ainda não entregues continuam rastreáveis em [13-Decisoes-Tecnicas.md](13-Decisoes-Tecnicas.md).
 
-- repositório e fluxo Git funcionando;
-- Vercel e Supabase configurados;
-- modelo de dados aprovado;
-- estratégia RLS/Storage definida;
-- design system inicial;
-- contrato Front ↔ Supabase estabelecido.
+## Condição de conclusão de uma evolução
 
-## 4. Conta e perfil
-
-Saída esperada:
-
-- cadastro;
-- login;
-- logout;
-- sessão;
-- criação e edição de `profiles`;
-- RLS de perfil;
-- tratamento padronizado de estados e erros.
-
-## 5. Publicação
-
-Saída esperada:
-
-- CRUD autorizado de livros;
-- gêneros;
-- capítulos;
-- rascunhos;
-- publicação;
-- capa;
-- integridade de ordenação;
-- autorização de autoria.
-
-## 6. Descoberta e leitura
-
-Saída esperada:
-
-- catálogo;
-- cards;
-- página de detalhes;
-- lista de capítulos;
-- leitor;
-- anterior/próximo;
-- busca;
-- gênero;
-- revisão mobile first.
-
-## 7. Biblioteca
-
-Saída esperada:
-
-- adicionar/remover favorito;
-- biblioteca;
-- estado visual;
-- RLS;
-- testes integrados.
-
-## 8. Estabilização
-
-Antes de `1.0.0`:
-
-- revisar requisitos;
-- executar regressão;
-- revisar RLS e uploads;
-- validar responsividade e navegadores;
-- revisar acessibilidade mínima;
-- corrigir fluxos quebrados;
-- atualizar documentação;
-- preparar demonstração.
-
-Checklist de testes: `10-Testes.md`.  
-Deploy/release: `12-Deploy-e-Ambientes.md`.
-
-## 9. Pós-MVP
-
-Candidatos:
-
-- página pública completa de autor;
-- histórico e continuar lendo;
-- avaliações/curtidas;
-- comentários;
-- ranking;
-- busca avançada;
-- configurações de leitura;
-- PWA/offline;
-- recomendações;
-- seguidores;
-- notificações;
-- exportação;
-- analytics;
-- moderação;
-- colaboração entre autores.
-
-Esses recursos não devem atrasar `1.0.0`.
-
-## 10. Definição de pronto
-
-Uma tarefa operacional só deve ser considerada concluída quando cumprir os critérios registrados no cartão correspondente do Trello e, quando aplicável:
-
-- comportamento validado;
-- segurança revisada;
-- responsividade verificada;
-- documentação atualizada;
-- PR revisado conforme `09-Git-e-Versionamento.md`.
-
-## Pendência para avaliação de Matheus — favoritos (0.42.0)
-
-- Validar a persistência de favoritos no ambiente mock após recarga: o adapter mock passou a guardar a lista por usuário no `localStorage`, mantendo a checagem de duplicidade existente. Isso é somente para prévia local; confirmar a integração real com Supabase/RLS antes da entrega em produção.
-- Avaliar no serviço/adapters a normalização de erros de autorização do Supabase (`42501`/RLS) para `FORBIDDEN`; a interface atual trata a falha genericamente sem interromper a página.
+Para cada mudança, exigir comportamento verificável, revisão de impacto, regressão proporcional e atualização dos documentos responsáveis. O controle operacional continua no Trello; o fluxo de integração está em [09-Git-e-Versionamento.md](09-Git-e-Versionamento.md).

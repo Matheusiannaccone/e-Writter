@@ -1,13 +1,12 @@
--- e-Writter: explicit least-privilege table access for PostgREST roles.
--- RLS policies remain the per-row authorization boundary.
--- Do not change previously-applied migrations.
+-- e-Writter: privilégios explícitos de tabela para os papéis usados pelo PostgREST.
+-- GRANT habilita a operação na tabela; RLS continua delimitando as linhas acessíveis.
+-- Esta migration explicita os privilégios necessários às tabelas criadas anteriormente.
 
--- These roles must be able to resolve the public schema to access its objects.
+-- USAGE permite aos papéis resolver os objetos do schema public.
 grant usage on schema public to anon, authenticated;
 
--- Remove implicit/default table grants before adding the MVP allowlist.
--- This also removes potentially excessive operations (TRUNCATE, REFERENCES,
--- TRIGGER, MAINTAIN) on these specific tables.
+-- Revoga os privilégios anteriores antes de conceder somente as operações do MVP.
+-- Isso também retira TRUNCATE, REFERENCES, TRIGGER e MAINTAIN destas tabelas.
 revoke all privileges on table
     public.profiles,
     public.books,
@@ -17,8 +16,8 @@ revoke all privileges on table
     public.favorites
 from anon, authenticated;
 
--- Public read of application profiles, public books, published chapters,
--- controlled genres, and genre associations is constrained by RLS.
+-- Leitura anônima de perfis, obras, capítulos, gêneros e associações.
+-- As políticas RLS filtram obras e capítulos conforme sua visibilidade.
 grant select on table
     public.profiles,
     public.books,
@@ -27,7 +26,7 @@ grant select on table
     public.book_genres
  to anon;
 
--- Authenticated users also read their own private records according to RLS.
+-- Autenticados também leem registros próprios privados conforme as políticas RLS.
 grant select on table
     public.profiles,
     public.books,
@@ -37,23 +36,22 @@ grant select on table
     public.favorites
  to authenticated;
 
--- Profiles are ordinarily created by the auth.users trigger.
--- The RLS 1.0 matrix still allows an authenticated user to insert only
--- their own profile; keeping INSERT follows the currently-approved matrix.
+-- Perfis normalmente são criados pelo trigger de auth.users.
+-- INSERT e UPDATE diretos continuam limitados pela RLS ao perfil do próprio usuário.
 grant insert, update on table public.profiles to authenticated;
 
--- Books and chapters: writers can mutate only their own data via RLS.
+-- Escrita de obras e capítulos: RLS restringe as alterações ao autor.
 grant insert, update, delete on table
     public.books,
     public.chapters
  to authenticated;
 
--- Association updates are performed through the checked SECURITY DEFINER RPC.
--- Direct UPDATE is intentionally not granted.
+-- UPDATE de associações ocorre pela RPC SECURITY DEFINER, que valida autoria e gêneros.
+-- O cliente recebe apenas INSERT e DELETE diretos, também sujeitos às políticas.
 grant insert, delete on table public.book_genres to authenticated;
 
--- A private per-user favorites collection, constrained by RLS.
+-- Favoritos permitem inserir/remover relações próprias, conforme RLS.
 grant insert, delete on table public.favorites to authenticated;
 
--- 'genres' has no DML grants to web-facing roles.
--- No permission is granted for direct DELETE of profiles or UPDATE of favorites.
+-- Os papéis do frontend não recebem escrita em genres.
+-- Também não recebem DELETE direto de profiles nem UPDATE de favorites.

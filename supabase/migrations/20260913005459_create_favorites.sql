@@ -1,3 +1,5 @@
+-- Coleção pessoal: a chave composta garante um favorito por usuário/obra e serve de índice.
+-- FKs removem relações órfãs ao excluir o perfil ou a obra.
 create table public.favorites (
     user_id uuid not null,
 
@@ -19,6 +21,8 @@ create table public.favorites (
         primary key (user_id, book_id)
 );
 
+-- RLS limita leitura e exclusão ao titular. Inserir também exige uma obra publicada.
+-- A remoção não exige publicação, permitindo limpar favoritos de obras que voltaram a draft.
 alter table public.favorites enable row level security;
 
 create policy "favorites_select_own"

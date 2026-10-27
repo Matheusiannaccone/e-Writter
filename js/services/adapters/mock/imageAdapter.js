@@ -1,5 +1,8 @@
-// Adapter Mock responsável pelas operações de imagens.
-
+/**
+ * Simula imagens sem acessar o Storage do Supabase.
+ * Capas conservam o arquivo original no IndexedDB, embora usem um caminho lógico .webp;
+ * avatares alteram apenas o perfil de mockData em memória, sem conversão ou upload real.
+ */
 import { mockAuthAdapter } from "./authAdapter.js";
 import {
   mockProfiles,
@@ -116,6 +119,12 @@ function openCoverDatabase() {
   });
 }
 
+/**
+ * Executa uma requisição no IndexedDB e aguarda o término da transação.
+ * @param {IDBTransactionMode} mode - Modo readonly ou readwrite.
+ * @param {function(IDBObjectStore): IDBRequest} action - Leitura, gravação ou remoção no store covers.
+ * @returns {Promise<*>} Resultado da requisição após commit; a conexão é sempre fechada.
+ */
 async function coverOperation(mode, action) {
   const database = await openCoverDatabase();
   try {

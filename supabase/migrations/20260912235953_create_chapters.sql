@@ -1,3 +1,5 @@
+-- Capítulos pertencem à obra e são removidos por cascata quando ela é excluída.
+-- A unicidade (book_id, position) também impede posições duplicadas no mesmo livro.
 create table public.chapters (
     id uuid primary key default gen_random_uuid(),
 
@@ -32,6 +34,8 @@ create table public.chapters (
         unique (book_id, position)
 );
 
+-- Leitura pública exige capítulo e obra publicados; o autor pode consultar seus rascunhos.
+-- Inserção, atualização e exclusão exigem autoria na obra relacionada.
 alter table public.chapters enable row level security;
 
 create policy "chapters_select_visible"

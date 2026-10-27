@@ -1,5 +1,8 @@
-// Adapter Supabase responsável pelas operações de favoritos.
-
+/**
+ * Consulta e altera favoritos da conta autenticada sob as políticas RLS.
+ * A consulta inclui resumo da obra, autor e gêneros, evitando consultas por card;
+ * uma relação de obra invisível pode resultar em book nulo no retorno normalizado.
+ */
 import { supabase } from "../../supabaseClient.js";
 
 // Campos retornados do livro associado ao favorito.

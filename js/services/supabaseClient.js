@@ -1,3 +1,9 @@
+/**
+ * Instância compartilhada do SDK, importada pelos adapters Supabase.
+ * O hostname seleciona o endpoint local ou remoto independentemente de datasource.
+ * Persistência, renovação de sessão e leitura do redirect usam os padrões de createClient;
+ * as permissões efetivas das operações são delimitadas pelos GRANTs e pelas políticas RLS.
+ */
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const isLocal =

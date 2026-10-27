@@ -1,5 +1,8 @@
-// Adapter Supabase responsável pelas operações de capítulos.
-
+/**
+ * Adapta chapters ao contrato do frontend, com visibilidade/autoria delimitadas por RLS.
+ * Triggers atribuem posição e validam publicação; a RPC de despublicação trata a cauda
+ * publicada e o estado final da obra em uma única transação.
+ */
 import { supabase } from "../../supabaseClient.js";
 
 // Campos retornados nas consultas.
@@ -350,7 +353,7 @@ export const supabaseChapterAdapter = {
     return fetchChapterById(id);
   },
 
-  // Cria um novo capítulo no final do livro.
+  // Não envia position: assign_chapter_position serializa a atribuição no banco por obra.
   async createChapter(bookId, data) {
     if (!isValidUuid(bookId)) {
       return createError(
@@ -447,7 +450,7 @@ export const supabaseChapterAdapter = {
     };
   },
 
-  // Atualiza título e conteúdo de um capítulo.
+  // RLS verifica autoria; triggers impedem mover/reordenar e revalidam capítulos publicados.
   async updateChapter(id, data) {
     if (!isValidUuid(id)) {
       return createError(
@@ -612,7 +615,8 @@ export const supabaseChapterAdapter = {
     };
   },
 
-  // Retira o capítulo e a cauda publicada por uma função atômica do banco.
+  // A RPC retira o alvo e capítulos publicados posteriores; sem capítulos publicados, a obra vira draft.
+  // O retorno void exige consultar novamente o alvo para entregar um capítulo normalizado.
   async unpublishChapter(id) {
     if (!isValidUuid(id)) return createError("VALIDATION_ERROR", "ID de capítulo inválido.");
     const auth = await getAuthenticatedUser();

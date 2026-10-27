@@ -1,3 +1,7 @@
+/**
+ * Lista as obras próprias, incluindo rascunhos, com destino ao ateliê.
+ * A barreira de sessão limpa os cards e rejeita respostas antigas, inclusive após resolver capas.
+ */
 import { createSessionBoundary } from '../components/session-boundary.js';
 
 import { getMyBooks } from "../services/bookService.js";
@@ -51,6 +55,10 @@ function getBookStatus(book) {
   return statuses[book.publicationStatus] || "Publicado";
 }
 
+/**
+ * Consulta obras da conta e aguarda a criação dos cards antes de montar a lista.
+ * @returns {Promise<void>} Aceita a renderização apenas após revalidar a sessão.
+ */
 async function loadMyBooks() {
   const token = sessionBoundary.capture();
   setLoading();

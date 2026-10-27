@@ -1,292 +1,94 @@
 # 03 — Regras de Negócio
 
-## 1. Objetivo
-
-Definir regras de comportamento do produto independentemente da interface ou tecnologia utilizada.
-
-Detalhes de schema ficam em `05-Modelo-de-Dados.md`. Autorização, RLS e Storage ficam em `11-Seguranca.md`.
-
----
-
-## 2. Usuários
-
-**RN-001 — Conta única para leitura e escrita**  
-Todo usuário cadastrado poderá atuar como leitor e escritor.
-
-**RN-002 — Identidade de autoria**  
-Enquanto a conta estiver ativa, toda obra sob edição deve possuir autor identificado.
-
-**RN-003 — Propriedade de conteúdo**  
-Somente o autor poderá alterar ou excluir seus livros enquanto houver vínculo de autoria.
-
-**RN-004 — Propriedade de capítulos**  
-A permissão sobre um capítulo deriva da autoria do livro ao qual ele pertence.
-
-**RN-005 — Perfil público e privado**  
-Somente dados explicitamente classificados como públicos poderão ser exibidos a terceiros. Dados de autenticação não devem ser tratados como dados públicos de perfil.
-
-**RN-006 — Exclusão de conta**  
-Ao excluir a própria conta, o usuário deve escolher entre excluir ou preservar suas obras.
-
-**RN-007 — Preservação sem identidade**  
-Obras preservadas após exclusão da conta deixam de possuir vínculo com o perfil removido e devem exibir **Autor desconhecido**.
-
-**RN-008 — Imutabilidade após remoção do autor**  
-Uma obra preservada sem autor ativo não poderá ser assumida ou editada por outro usuário.
-
-**RN-009 — Exclusão protegida do perfil**  
-A exclusão de perfil deve ocorrer dentro do fluxo protegido de exclusão de conta, após tratamento das relações dependentes.
-
----
-
-## 3. Livros
-
-**RN-010 — Estado editorial**  
-O MVP utiliza `draft` e `published`.
-
-**RN-011 — Visibilidade de rascunho**  
-Rascunhos não aparecem no catálogo público.
-
-**RN-012 — Publicação**  
-Somente o autor autenticado pode publicar ou retirar de publicação uma obra vinculada à própria conta.
-
-**RN-013 — Integridade de autoria**  
-Uma obra deve possuir autor enquanto estiver sob edição. A exceção é a preservação após exclusão da conta.
-
-**RN-014 — Autor único no MVP**  
-Cada livro possui um único autor ativo no MVP.
-
-**RN-015 — Gêneros controlados**  
-Gêneros pertencem a uma lista administrada pelo projeto. Usuários não criam novos gêneros.
-
-A lista inicial é mantida em `05-Modelo-de-Dados.md`, seção **genres**.
-
-**RN-016 — Capa opcional**  
-A capa é opcional e deve ser tratada como arquivo associado à obra.
-
-Formato, limites, paths e autorização de upload: `11-Seguranca.md`, seções **Storage** e **Uploads**.
-
-**RN-017 — Validade mínima de criação**  
-Um livro só deve ser considerado criado quando possuir:
-
-- autor válido;
-- título;
-- entre 1 e 3 gêneros.
-
-Podem estar ausentes no rascunho:
-
-- descrição;
-- capa;
-- capítulos;
-- data de publicação.
-
-**RN-017A — Criação lógica atômica**  
-A criação do livro e de suas associações obrigatórias de gênero não deve deixar uma obra estruturalmente inválida persistida.
-
-**RN-018 — Gêneros por obra**  
-Todo livro deve possuir entre 1 e 3 gêneros desde a criação.
-
-**RN-019 — Situação narrativa**  
-A situação da história é independente do estado editorial.
-
-Valores do MVP:
-
-- `ongoing`;
-- `completed`;
-- `discontinued`.
-
-**RN-019A — Descontinuação após exclusão do autor**  
-Obra preservada que não esteja concluída deve passar para `discontinued`.
-
-**RN-019B — Idioma padrão**  
-O idioma padrão de novas obras é `pt-BR`, sem impedir suporte futuro a outros idiomas.
-
-**RN-019C — Critérios mínimos de publicação do livro**  
-Para passar de `draft` para `published`, exigir:
-
-- título;
-- descrição;
-- entre 1 e 3 gêneros;
-- pelo menos 1 capítulo publicado.
-
-A capa permanece opcional.
-
----
-
-## 4. Capítulos
-
-**RN-020 — Pertencimento**  
-Todo capítulo pertence a exatamente um livro.
-
-**RN-021 — Ordenação**  
-Cada capítulo possui posição inteira positiva e determinística dentro do livro.
-
-**RN-021A — Sequência contínua**  
-As posições formam uma sequência contínua:
-
-```text
-1, 2, 3, 4, ...
-```
-
-**RN-021B — Novo capítulo ao final**  
-Todo novo capítulo nasce no final da sequência. A posição é atribuída pelo banco.
-
-**RN-021C — Sem reordenação no MVP**  
-O MVP não permite:
-
-- reordenar capítulos;
-- inserir capítulo entre posições existentes;
-- escolher posição manualmente.
-
-**RN-022 — Rascunho de capítulo**  
-Rascunhos podem ser salvos incompletos e permanecem privados ao autor.
-
-**RN-023 — Capítulo publicado**  
-Um capítulo só participa da leitura pública quando ele e o livro pai estiverem publicados.
-
-**RN-024 — Exclusão de livro**  
-A exclusão de um livro não pode deixar capítulos órfãos.
-
-**RN-024A — Exclusão sequencial de capítulo**  
-Excluir um capítulo intermediário remove também todos os capítulos posteriores da mesma obra.
-
-Exemplo:
-
-```text
-1 2 3 4 5 6 7 8 9 10
-excluir 7
-→
-1 2 3 4 5 6
-```
-
-**RN-025 — Navegação sequencial**  
-Anterior e próximo consideram apenas capítulos publicados e sua ordem.
-
-**RN-026 — Critérios mínimos de publicação do capítulo**  
-Para publicar um capítulo, exigir:
-
-- título;
-- conteúdo entre 500 e 15.000 caracteres, considerando espaços.
-
-O título não entra na contagem.
-
----
-
-## 5. Biblioteca e favoritos
-
-**RN-030 — Favorito único**  
-O mesmo usuário não pode favoritar o mesmo livro mais de uma vez.
-
-**RN-031 — Remoção**  
-Remover favorito não altera a obra original.
-
-**RN-032 — Independência da autoria**  
-Favoritar não concede permissão de edição.
-
-**RN-033 — Favoritos de obra preservada**  
-Preservar uma obra após exclusão do autor não remove automaticamente favoritos existentes.
-
-**RN-034 — Privacidade da biblioteca no MVP**  
-A biblioteca/favoritos será privada ao próprio usuário.
-
-**RN-035 — Obra elegível para favorito**  
-Somente livros publicados podem ser adicionados aos favoritos.
-
-Autorização detalhada: `11-Seguranca.md`, seção **Matriz de Autorização RLS**.
-
----
-
-## 6. Descoberta e leitura
-
-**RN-040 — Catálogo público**  
-Somente livros publicados aparecem em listagens públicas.
-
-**RN-041 — Página inicial**  
-Enquanto o catálogo for pequeno, a página inicial pode listar todos os livros publicados, respeitando limites técnicos quando necessário.
-
-**RN-042 — Relevância**  
-A ordenação inicial pode ser simples. Algoritmos personalizados ficam pós-MVP.
-
-**RN-043 — Filtro por gênero**  
-A modelagem deve permitir múltiplos gêneros por obra dentro do limite definido.
-
-**RN-044 — Leitura pública**  
-Visitantes podem consultar livros publicados e capítulos publicados pertencentes a livros publicados.
-
-**RN-045 — Recursos autenticados**  
-Criação, edição, publicação, exclusão e biblioteca/favoritos exigem autenticação.
-
----
-
-## 7. Exclusão de conta e conteúdo
-
-**RN-070 — Escolha do autor**  
-Ao excluir a conta, o autor escolhe excluir ou preservar suas obras.
-
-**RN-071 — Exclusão das obras**  
-Se optar por excluir, livros e dependências devem ser removidos sem deixar registros órfãos.
-
-**RN-072 — Preservação das obras**  
-Se optar por preservar, o vínculo com o perfil deve ser removido e a disponibilidade pública passa a depender do estado editorial da obra.
-
-**RN-073 — Autoria removida**  
-Obras preservadas exibem **Autor desconhecido**.
-
-**RN-074 — Obra não concluída**  
-Obras preservadas e não concluídas passam para `discontinued`.
-
-**RN-075 — Operação protegida**  
-A exclusão definitiva da identidade de autenticação exige mecanismo privilegiado protegido.
-
-Estratégia de FKs e cascatas: `05-Modelo-de-Dados.md`, seção **Exclusões**.
-
----
-
-## 8. Conteúdo e validação
-
-**RN-050 — Fonte da autorização**  
-Ocultar controles no frontend não constitui autorização.
-
-**RN-051 — Conteúdo não confiável**  
-Texto fornecido por usuários deve ser tratado como conteúdo não confiável.
-
-**RN-052 — Renderização de capítulos**  
-No MVP, conteúdo textual não deve ser interpretado como HTML arbitrário.
-
-**RN-053 — Credenciais privilegiadas**  
-Credenciais administrativas não podem ser expostas no frontend.
-
-**RN-054 — Validação em duas camadas**  
-Validações relevantes devem existir no frontend para UX e novamente na camada persistente apropriada para integridade.
-
-**RN-055 — Proteção de publicação**  
-O banco deve rejeitar tentativas de publicação que não cumpram RN-019C e RN-026.
-
-A implementação técnica está em `11-Seguranca.md`, seção **Validação e proteção no banco**.
-
----
-
-## 9. Recursos evolutivos
-
-Ficam fora do MVP:
-
-- histórico e continuação de leitura;
-- offline/PWA;
-- comentários;
-- recomendações;
-- reorganização avançada de capítulos;
-- experiência multilíngue completa.
-
-Roadmap: `08-Backlog-e-Roadmap.md`.
-
----
-
-## 10. Regra de mudança
-
-Nova regra de negócio deve:
-
-1. receber identificador;
-2. descrever comportamento verificável;
-3. apontar requisito relacionado quando possível;
-4. ser refletida em testes;
-5. atualizar documentos técnicos afetados.
+## Âmbito
+
+Esta é a referência das regras funcionais implementadas no MVP. Schema e mecanismos de integridade estão em [05-Modelo-de-Dados.md](05-Modelo-de-Dados.md), autorização em [11-Seguranca.md](11-Seguranca.md) e diferenças entre fontes em [14-Contrato-Front-Services.md](14-Contrato-Front-Services.md). A disponibilidade na interface é classificada em [02-Requisitos.md](02-Requisitos.md).
+
+## Conta e autoria
+
+| Regra | Comportamento atual |
+|---|---|
+| RN-001 | Uma conta pode ler e escrever; não há tipo separado de escritor. |
+| RN-002, RN-013 | A criação de obra pelo fluxo autenticado vincula a autoria à conta. O schema admite autoria nula, sem oferecer fluxo de exclusão de conta. |
+| RN-003, RN-004 | Somente o autor altera/exclui a obra e seus capítulos; a propriedade do capítulo deriva da obra. Exclusões técnicas não têm controle na interface atual. |
+| RN-005 | Perfil público e identidade de Auth são conjuntos distintos. O e-mail exibido no Perfil vem da própria sessão. |
+| RN-008 | Uma obra com autoria nula não pode ser assumida por outro usuário comum. |
+
+Cadastro pode concluir com sessão ou exigir confirmação por e-mail, conforme o ambiente. Recuperação Mock apenas informa simulação; redefinição exige uma sessão de demonstração já autenticada. Sair encerra a sessão, preservando a conta e os dados persistidos. Detalhes operacionais das jornadas: [06-Fluxos-de-Usuario.md](06-Fluxos-de-Usuario.md).
+
+## Obras e gêneros
+
+| Regra | Comportamento atual |
+|---|---|
+| RN-010 | `draft` e `published` controlam visibilidade editorial. |
+| RN-011 | Rascunhos ficam fora do catálogo; o autor consulta suas próprias obras. |
+| RN-012 | Publicar ou retirar de publicação exige autoria e autenticação. |
+| RN-014 | Há no máximo um vínculo de autor por obra. |
+| RN-015 | O vocabulário de gêneros é administrado pelo projeto; usuários não o ampliam. |
+| RN-016 | Capa é opcional; falha de upload pode ocorrer depois de os dados da obra terem sido salvos. |
+| RN-017, RN-018 | A criação exige título não vazio e de um a três gêneros válidos e distintos. Descrição, capa e capítulos podem faltar no rascunho. |
+| RN-017A | No Supabase, criação da obra e associação inicial dos gêneros constituem uma operação transacional. O Mock não fornece transações do banco. |
+| RN-019 | `ongoing`, `completed` e `discontinued` representam andamento narrativo, independente de publicação. Existem no schema/service, sem seletor na interface. |
+| RN-019B | Obras novas usam `pt-BR`; não há domínio fechado de idiomas no banco nem seletor na interface. |
+| RN-019C | Publicação exige título, descrição não vazia, de um a três gêneros e ao menos um capítulo publicado. Capa continua opcional. |
+| RN-019G | Retirar uma obra de publicação muda seu estado para `draft` e limpa a data de publicação, preservando os estados dos capítulos. |
+
+Os critérios de publicação também precisam continuar válidos ao editar conteúdo já publicado no backend. Na interface, alterações pendentes da obra precisam ser salvas antes de publicar; o editor de capítulos só é aberto a partir de obra já persistida e sem alterações pendentes.
+
+## Capítulos
+
+| Regra | Comportamento atual |
+|---|---|
+| RN-020 | Todo capítulo pertence a uma obra. |
+| RN-021, RN-021A | Posições são inteiras positivas e únicas por obra; as operações previstas constroem a sequência a partir de 1. |
+| RN-021B | Criação acrescenta ao final; a posição não é fornecida pela página. |
+| RN-021C | Não há reordenação, inserção intermediária ou mudança de obra. |
+| RN-022 | O adapter aceita rascunho incompleto. O formulário atual exige título e conteúdo não vazios e permite menos de 500 caracteres. |
+| RN-023 | Leitura pública exige capítulo e obra publicados. Publicar capítulo de obra em rascunho não o torna público. |
+| RN-024 | Excluir uma obra no backend remove os capítulos relacionados. |
+| RN-024A | A exclusão técnica de capítulo remove também todos os posteriores por posição; não há ação de exclusão na interface. |
+| RN-025 | Anterior/próximo consideram somente capítulos publicados, ordenados por posição; podem saltar posições em rascunho. |
+| RN-026 | Publicação exige título não vazio e conteúdo entre 500 e 15.000 caracteres, incluindo espaços. O título não entra na contagem. |
+| RN-027 | A edição de um capítulo publicado precisa preservar seus critérios de publicação. |
+| RN-028 | A interface bloqueia retirar o único capítulo publicado de uma obra publicada e orienta despublicar a obra primeiro. |
+
+Não há requisito de que todos os capítulos anteriores estejam publicados. No Supabase, a operação técnica de despublicação inclui os capítulos publicados posteriores ao alvo e pode retornar a obra a rascunho se nenhum permanecer publicado. No Mock, somente o alvo muda. O contrato explicita essa diferença e a diferença de contagem Unicode entre JavaScript e PostgreSQL.
+
+## Biblioteca e leitura pública
+
+| Regra | Comportamento atual |
+|---|---|
+| RN-030 | Um usuário não pode adicionar a mesma obra duas vezes aos favoritos. |
+| RN-031, RN-032 | Remover favorito não altera a obra; favoritar não concede autoria. |
+| RN-034 | A coleção de favoritos é privada da conta autenticada. |
+| RN-035 | Só obras publicadas podem ser adicionadas. A remoção da relação própria não exige que a obra continue pública. |
+| RN-040, RN-044 | Catálogo, detalhes e leitor apresentam somente conteúdo publicado elegível; visitantes não precisam entrar. |
+| RN-041 | O catálogo apresenta os resultados retornados pelo service, sujeito aos limites do backend; não há paginação na interface. |
+| RN-042 | Não há recomendação personalizada ou ranking. Ordenações concretas variam conforme o adapter. |
+| RN-043 | Obras podem ter vários gêneros dentro do limite; isso não implementa filtro de catálogo. |
+| RN-045 | Escrita e biblioteca exigem autenticação. |
+
+Despublicar uma obra não apaga automaticamente os favoritos existentes. A Biblioteca descarta registros inválidos, duplicados ou sem objeto de obra acessível; nesses casos, pode apresentar aviso. Isso não garante um controle para remover toda relação indisponível.
+
+## Conteúdo e validação
+
+| Regra | Comportamento atual |
+|---|---|
+| RN-050, RN-053 | Botões ocultos não concedem segurança; credenciais privilegiadas não pertencem ao frontend. Modelo técnico em 11. |
+| RN-051, RN-052 | Texto de usuário é tratado como não confiável e os capítulos são renderizados como texto simples. |
+| RN-054, RN-055 | Frontend valida para feedback; backend protege integridade e recusa publicação inválida. O Mock não substitui essas garantias. |
+
+## Regras aceitas, mas não entregues
+
+Os IDs abaixo preservam o planejamento de exclusão de conta do ADR-016. **Não descrevem um fluxo existente no MVP.**
+
+| IDs preservados | Intenção de evolução |
+|---|---|
+| RN-006, RN-070 | Escolha entre excluir e preservar obras ao encerrar a conta. |
+| RN-007, RN-073 | Identificação específica de autoria removida; o fallback atual de detalhes/catálogo é “Autor não informado”. |
+| RN-009, RN-075 | Exclusão da identidade por mecanismo administrativo protegido. |
+| RN-019A, RN-074 | Descontinuar automaticamente obra preservada não concluída. |
+| RN-033 | Definir a conservação de favoritos no futuro fluxo completo de preservação. |
+| RN-071, RN-072 | Orquestrar dependências e desvincular obras conforme a escolha do autor. A FK existente não implementa essa jornada. |
+
+Histórico e continuação de leitura, comentários, avaliações, offline e demais evoluções estão centralizados em [08-Backlog-e-Roadmap.md](08-Backlog-e-Roadmap.md).

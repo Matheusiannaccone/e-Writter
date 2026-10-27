@@ -1,3 +1,5 @@
+-- Integridade adiada: uma nova obra deve terminar a transação com um a três gêneros.
+-- A verificação no COMMIT permite inserir a obra antes das suas associações.
 create or replace function public.ensure_book_has_genres()
 returns trigger
 language plpgsql
@@ -36,6 +38,8 @@ deferrable initially deferred
 for each row
 execute function public.ensure_book_has_genres();
 
+-- RPC transacional de criação: insere rascunho e gêneros ou desfaz o conjunto em erro.
+-- Sem SECURITY DEFINER, executa com os privilégios/RLS do chamador autenticado.
 create or replace function public.create_book(
     p_title text,
     p_description text,
@@ -117,6 +121,7 @@ begin
 end;
 $$;
 
+-- Remove execução pública da RPC e a concede apenas ao papel authenticated.
 revoke all
 on function public.create_book(text, text, integer[])
 from public;
@@ -125,6 +130,8 @@ grant execute
 on function public.create_book(text, text, integer[])
 to authenticated;
 
+-- Valida qualquer escrita de obra publicada, inclusive edições, exigindo descrição,
+-- gêneros e ao menos um capítulo publicado; rascunhos não precisam desses requisitos.
 create or replace function public.validate_book_publication()
 returns trigger
 language plpgsql
@@ -182,6 +189,8 @@ before insert or update on public.books
 for each row
 execute function public.validate_book_publication();
 
+-- Protege a obra publicada contra perda do último capítulo publicado.
+-- A validação de UPDATE será adiada até o COMMIT em migration posterior; DELETE mantém seu trigger.
 create or replace function public.validate_published_book_chapters()
 returns trigger
 language plpgsql

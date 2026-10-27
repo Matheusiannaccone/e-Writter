@@ -1,7 +1,8 @@
-// services/adapters/supabase/profileAdapter.js
-// Este arquivo contém funções para operações de perfil usando Supabase.
-// As funções lançam erros indicando que não foram implementadas.
-
+/**
+ * Adapta profiles públicos e a edição da conta atual para profileService.
+ * Converte colunas para camelCase, limita campos editáveis e normaliza erros;
+ * a política RLS reforça que somente o titular pode atualizar seu perfil.
+ */
 import { supabase } from "../../supabaseClient.js";
 
 // Converte os nomes das colunas do banco para o formato usado no front.

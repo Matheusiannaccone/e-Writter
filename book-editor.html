@@ -13,6 +13,7 @@
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <!-- Cabeçalho compartilhado inicializado pelo módulo de layout. -->
   <header class="site-header" data-site-header></header>
   <main id="conteudo" class="editor page-container">
     <div class="editor__intro">
@@ -20,6 +21,7 @@
       <h1>Uma história começa com um nome.</h1>
       <p>Prepare os detalhes da sua obra. Você pode voltar e aperfeiçoar tudo depois.</p>
     </div>
+    <!-- Estado inicial e feedback do ateliê; o conteúdo é liberado após verificar a sessão. -->
     <div id="editor-status" class="editor__status" role="status" aria-live="polite">Carregando seu ateliê…</div>
     <div id="editor-content" class="editor__content" hidden>
       <div class="editor__toolbar">
@@ -28,6 +30,7 @@
         <button id="open-chapter-editor" class="button button--secondary" type="button" aria-describedby="chapter-editor-help" hidden disabled>Escrever capítulos</button>
         <p id="chapter-editor-help" class="editor__help">Salve a obra e suas alterações antes de abrir o editor de capítulos.</p>
       </div>
+      <!-- Painel dinâmico de visibilidade, impedimentos e publicação da obra e dos capítulos. -->
       <section id="publication-panel" class="editor__publication" aria-labelledby="publication-heading" hidden>
         <div class="editor__publication-head"><div><p class="editor__eyebrow">Estado editorial</p><h2 id="publication-heading">Publicação</h2></div><span id="book-status-badge" class="editor__badge"></span></div>
         <p id="book-visibility" class="editor__help"></p>
@@ -35,6 +38,7 @@
         <button id="book-publication-action" class="button button--secondary" type="button"></button>
         <section class="editor__chapters" aria-labelledby="chapters-heading"><div class="editor__publication-head"><h3 id="chapters-heading">Capítulos</h3><span id="chapter-count" class="editor__help"></span></div><ul id="chapter-list" class="editor__chapter-list"></ul></section>
       </section>
+      <!-- Metadados e seleção de capa; o JavaScript salva a obra antes de enviar/remover a imagem. -->
       <form id="book-form" method="post" novalidate>
         <div class="editor__grid">
           <div class="editor__fields">

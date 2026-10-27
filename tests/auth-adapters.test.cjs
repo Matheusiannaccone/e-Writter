@@ -1,3 +1,7 @@
+/**
+ * Contratos de Auth/recuperação nos adapters e no service, com SDK simulado e identidade local.
+ * Os cenários validam sessão, normalização de erros e respostas neutras sem acessar rede.
+ */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
